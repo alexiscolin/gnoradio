@@ -76,3 +76,13 @@ Nothing is deployed to a public network yet. Before onyx:
 1. Register the `gnoradio` namespace.
 2. Deploy `blocks`, then `catalog`, `radio`, `tickets` and `home`.
 3. Call `TransferAdmin` on each realm to hand admin to the owner's address.
+
+## Git hooks
+
+After cloning, enable the repo hooks once:
+
+```sh
+git config core.hooksPath .githooks
+```
+
+`commit-msg` rejects co-author and AI attribution lines.
