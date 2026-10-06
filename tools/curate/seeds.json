@@ -1,0 +1,200 @@
+{
+ "_doc": "WHITELIST ONLY. Every track in the catalog comes from one of these seeds; never from an open-ended search. Genres: 1 Electronic, 2 Synthwave, 3 Ambient, 4 Techno & House, 5 Lo-fi & Chill, 6 Hip-hop & Beats, 7 Rock & Indie, 8 Pop, 9 Jazz & Soul, 10 Folk & Acoustic, 11 Cinematic & Classical, 12 World. status: approved (listened, keep fetching) | to_review (verify originality/quality before importing) | paused. archive seeds: max_items caps releases (items), max_tracks caps tracks.",
+ "seeds": [
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Scott Buckley",
+   "genre": 11,
+   "status": "approved",
+   "max_items": 80,
+   "notes": "Cinematic, CC BY 4.0. Many items are soundcloud-* mirrors without licenseurl: they are skipped (strict license rule).",
+   "max_tracks": 60
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Komiku",
+   "genre": 5,
+   "status": "approved",
+   "max_items": 40,
+   "notes": "Chill / game music, CC0.",
+   "max_tracks": 40
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Monplaisir",
+   "genre": 8,
+   "status": "approved",
+   "max_items": 60,
+   "notes": "French artist, CC0, pop/jazz/chanson.",
+   "max_tracks": 60
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Josh Woodward",
+   "genre": 10,
+   "status": "approved",
+   "max_items": 60,
+   "notes": "Folk / rock, CC BY.",
+   "max_tracks": 60
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Jahzzar",
+   "genre": 9,
+   "status": "approved",
+   "max_items": 50,
+   "notes": "Jazz / soul / pop, CC BY-SA.",
+   "max_tracks": 50
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Chris Zabriskie",
+   "genre": 3,
+   "status": "approved",
+   "max_items": 40,
+   "notes": "Ambient, CC BY 4.0; some albums are NC and get filtered out.",
+   "max_tracks": 40
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Kevin MacLeod",
+   "genre": 11,
+   "status": "to_review",
+   "max_items": 60,
+   "notes": "Only CC BY items pass the filter (36 items are BY-ND). Very recognisable library music: dose it.",
+   "max_tracks": 60
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Rolemusic",
+   "genre": 1,
+   "status": "approved",
+   "max_items": 30,
+   "notes": "Electronic, CC BY.",
+   "max_tracks": 30
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Loyalty Freak Music",
+   "genre": 1,
+   "status": "to_review",
+   "max_items": 30,
+   "notes": "CC0, electronic / chiptune.",
+   "max_tracks": 30
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "HoliznaCC0",
+   "genre": 5,
+   "status": "approved",
+   "max_items": 40,
+   "notes": "Lo-fi, CC0.",
+   "max_tracks": 40
+  },
+  {
+   "source": "archive",
+   "kind": "collection",
+   "id": "urbansprawl",
+   "genre": 7,
+   "status": "to_review",
+   "max_items": 21,
+   "notes": "Netlabel, indie / rock, CC BY.",
+   "max_tracks": 21
+  },
+  {
+   "source": "archive",
+   "kind": "collection",
+   "id": "alga",
+   "genre": 7,
+   "status": "to_review",
+   "max_items": 29,
+   "notes": "Netlabel, CC BY-SA.",
+   "max_tracks": 29
+  },
+  {
+   "source": "archive",
+   "kind": "collection",
+   "id": "genetic-trance",
+   "genre": 1,
+   "status": "to_review",
+   "max_items": 40,
+   "notes": "580 CC0 releases, trance over-represented: cap hard.",
+   "max_tracks": 40
+  },
+  {
+   "source": "archive",
+   "kind": "collection",
+   "id": "treetrunk",
+   "genre": 3,
+   "status": "to_review",
+   "max_items": 40,
+   "notes": "Ambient netlabel.",
+   "max_tracks": 40
+  },
+  {
+   "source": "archive",
+   "kind": "collection",
+   "id": "kahvi",
+   "genre": 3,
+   "status": "to_review",
+   "max_items": 70,
+   "notes": "Only the CC BY subset (old releases kahvi011-042) passes; the rest is BY-ND.",
+   "max_tracks": 60
+  },
+  {
+   "source": "ccmixter",
+   "kind": "query",
+   "id": "tags=editorial_pick&lic=by",
+   "genre": 6,
+   "status": "approved",
+   "max_items": 150,
+   "notes": "Editors' picks. Hotlinking is blocked (403 without ccmixter Referer): every track needs a mirror (IPFS/CDN) before import. Usually no artwork: the realm draws an SVG cover."
+  },
+  {
+   "source": "audius",
+   "kind": "handle",
+   "id": "attlas",
+   "genre": 1,
+   "status": "to_review",
+   "max_items": 15,
+   "notes": "Verified producer, original works (no remix_of, no cover fields) seen in API."
+  },
+  {
+   "source": "audius",
+   "kind": "handle",
+   "id": "slowmagic",
+   "genre": 1,
+   "status": "to_review",
+   "max_items": 15,
+   "notes": "Verified, originals seen in trending. Check each title for edits."
+  },
+  {
+   "source": "audius",
+   "kind": "handle",
+   "id": "RAC",
+   "genre": 8,
+   "status": "to_review",
+   "max_items": 15,
+   "notes": "Verified, originals. Check each title for remixes of third parties."
+  },
+  {
+   "source": "audius",
+   "kind": "handle",
+   "id": "Lookas",
+   "genre": 1,
+   "status": "to_review",
+   "max_items": 15,
+   "notes": "Verified, originals seen in trending."
+  }
+ ]
+}

@@ -1,0 +1,22 @@
+{
+ "https://archive.org/download/scott-buckley/Air%20%28CC-BY%29%20%5B41199233%5D.mp3": {
+  "audio_sha256": "0c4fa22a5a823fa64b3fb879c3af9b84038b55438d992f23c0f51806365e89b0",
+  "bytes": 2321762
+ },
+ "https://archive.org/download/scott-buckley/Blood%20%28CC-BY%29%20%5B286222348%5D.mp3": {
+  "audio_sha256": "9505003c857429a378e54c59e74ea74c1b0ac85cde7445243a8083093b43b2ac",
+  "bytes": 5572648
+ },
+ "https://archive.org/download/scott-buckley/Eclipse%20%28CC-BY%29%20%5B108262202%5D.mp3": {
+  "audio_sha256": "bea5b299e1c3f8a11ef47cdf821205d7c53cf22cd05d97601d5eac1ad9f8111b",
+  "bytes": 4055457
+ },
+ "https://archive.org/download/scott-buckley/Eidolon%20%28CC-BY%29%20%5B241680532%5D.mp3": {
+  "audio_sha256": "a5e5235e052ab1e2899061783f757b95b47fc481b5fa7fba9f0081dd44173c9f",
+  "bytes": 3049847
+ },
+ "https://archive.org/download/scott-buckley/Homeward%20%28CC-BY%29%20%5B286896503%5D.mp3": {
+  "audio_sha256": "1be6848d5605e3c3be7c7b109885037b8de8e59774897c2ba52c43d1f3668b70",
+  "bytes": 2542444
+ }
+}

@@ -1,0 +1,467 @@
+<title>GnoRadio, dossier v0.3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: the product's own sober Swiss look. Grey ground, white cards, black, one red. Deliberately light-only, like the app. */
+:root{
+  --ground:#e9e9e6; --card:#fafaf8; --soft:#f2f2ef; --ink:#0d0d0d; --mute:#6f6f6b; --faint:#9a9a96; --line:#e3e3df; --tick:#c4c4c0;
+  --red:#e5432f; --ok:#1f8a4c; --plan:#2f5be5; --later:#a26a00;
+  --sans:"Geist","Helvetica Neue",Helvetica,Arial,sans-serif; --mono:"Geist Mono",ui-monospace,Menlo,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ground);color:var(--ink);font:15px/1.55 var(--sans)}
+a{color:var(--ink)}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,28px)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.dim{color:var(--mute)}
+h1,h2,h3{margin:0;font-weight:600;letter-spacing:-.03em;text-wrap:balance}
+p{margin:0}
+.card{background:var(--card);border-radius:26px;padding:clamp(20px,3vw,34px)}
+.stack{display:grid;gap:18px}
+section{padding-block:12px}
+.label{font-size:12px;color:var(--faint);font-weight:500}
+.dot{display:inline-block;width:.32em;height:.32em;border-radius:50%;background:var(--red);vertical-align:.12em;margin-left:.06em}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:rgba(233,233,230,.9);backdrop-filter:blur(8px)}
+.top .wrap{display:flex;align-items:center;gap:18px;height:58px}
+.brand{font-size:22px;font-weight:600;letter-spacing:-.03em;white-space:nowrap}
+.top nav{display:flex;gap:16px;margin-left:auto;overflow-x:auto;scrollbar-width:none}
+.top nav a{font-size:14px;color:var(--mute);text-decoration:none;white-space:nowrap}
+.top nav a:hover{color:var(--ink)}
+
+/* hero */
+.hero{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:18px;margin-top:10px}
+.hero h1{font-size:clamp(56px,9vw,128px);line-height:.9;letter-spacing:-.05em}
+.hero h1 span{color:var(--tick)}
+.hero .lede{font-size:18px;color:var(--mute);max-width:560px;margin-top:22px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.chip{background:var(--soft);border-radius:10px;padding:8px 12px;font-size:13px;font-weight:500}
+.chip.red{background:var(--red);color:#fff}
+.chip.ink{background:var(--ink);color:var(--card)}
+.big{display:grid;gap:18px;align-content:space-between}
+.num{font-size:clamp(64px,8vw,104px);font-weight:500;letter-spacing:-.05em;line-height:.9}
+.num span{color:var(--tick)}
+.ruler{position:relative;height:46px;display:flex;align-items:flex-end;justify-content:space-between}
+.ruler i{display:block;width:1.5px;background:var(--tick)}
+.ruler i.on{background:var(--ink)}
+.ruler b{position:absolute;top:0;bottom:0;width:2px;background:var(--red)}
+.kv{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.kv div{background:var(--soft);border-radius:16px;padding:14px}
+.kv b{display:block;font-size:26px;font-weight:600;letter-spacing:-.03em}
+.kv span{font-size:12px;color:var(--mute)}
+
+/* section heads */
+.head{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-bottom:22px}
+.head h2{font-size:clamp(32px,4.4vw,56px);line-height:.95}
+.head h2 span{color:var(--tick)}
+.head p{max-width:520px;color:var(--mute)}
+
+/* two ways + origins */
+.modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:12px}
+.mode{background:var(--soft);border-radius:20px;padding:22px;display:grid;gap:8px}
+.mode h3{font-size:28px}
+.mode.live{background:var(--ink);color:var(--card)}
+.mode.live .dim{color:#a5a5a0}
+.tablewrap{overflow-x:auto;border-radius:18px;background:#fff}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:640px}
+th,td{text-align:left;padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;font-weight:500;color:var(--faint)}
+tr:last-child td{border-bottom:0}
+td:first-child{font-weight:500}
+
+/* features */
+.filters{display:flex;flex-wrap:wrap;gap:6px;background:var(--soft);padding:4px;border-radius:14px;width:fit-content;max-width:100%}
+.filters button{border:0;background:none;border-radius:10px;padding:9px 13px;font:500 13px var(--sans);color:var(--mute);cursor:pointer}
+.filters button[aria-pressed="true"]{background:var(--ink);color:var(--card)}
+.filters button:focus-visible,.tabs button:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+.mods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.mod{background:#fff;border-radius:20px;padding:20px}
+.mod h3{font-size:22px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.mod h3 small{font:500 12px var(--mono);color:var(--faint)}
+.f{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px}
+.f:first-of-type{border-top:0}
+.st{font-size:11px;font-weight:600;border-radius:7px;padding:4px 8px;white-space:nowrap;align-self:start}
+.st.v{background:#e6f3ea;color:var(--ok)}
+.st.d{background:#e8edfb;color:var(--plan)}
+.st.l{background:#f6eedc;color:var(--later)}
+.st.x{background:#fbe7e3;color:var(--red)}
+
+/* architecture */
+.arch{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.pkg{background:#fff;border-radius:18px;padding:16px;display:grid;gap:6px;align-content:start}
+.pkg.core{background:var(--ink);color:var(--card)}
+.pkg.core .dim{color:#a5a5a0}
+.pkg code{font:500 12px var(--mono);word-break:break-all}
+.pkg b{font-size:18px;letter-spacing:-.02em}
+.measures{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.m{background:var(--soft);border-radius:16px;padding:16px}
+.m b{display:block;font:500 28px/1 var(--mono);letter-spacing:-.03em}
+.m span{display:block;font-size:12px;color:var(--mute);margin-top:6px}
+
+/* storage */
+.layers{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.layer{border-radius:18px;padding:18px;display:grid;gap:8px;align-content:start;background:#fff}
+.layer:first-child{background:var(--ink);color:var(--card)}
+.layer ul{margin:0;padding-left:16px;font-size:13px;display:grid;gap:4px}
+
+/* sources */
+.verdict{display:inline-flex;align-items:center;gap:6px;font-weight:600}
+.verdict i{width:8px;height:8px;border-radius:50%;display:block}
+.plan{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin-top:12px}
+.plan div{background:var(--soft);border-radius:16px;padding:16px}
+.plan b{display:block;font:500 30px/1 var(--mono)}
+.plan span{display:block;font-size:12px;color:var(--mute);margin-top:6px}
+.flow{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.flow span{background:#fff;border-radius:10px;padding:8px 11px;font-size:13px}
+.flow span::after{content:" →";color:var(--faint)}
+.flow span:last-child::after{content:""}
+
+/* design */
+.design{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.5fr);gap:12px}
+.cta{display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--card);text-decoration:none;border-radius:14px;padding:14px 18px;font-weight:500;justify-self:start}
+.cta::after{content:"";width:9px;height:9px;border-radius:50%;background:var(--red)}
+.screens{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.screens div{background:#fff;border-radius:14px;padding:12px;font-size:13px}
+.screens b{display:block;font-size:14px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+.tabs button{border:0;background:var(--soft);border-radius:10px;padding:9px 13px;font:500 13px var(--sans);color:var(--mute);cursor:pointer}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--card)}
+.shot{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:12px}
+.browser{background:#111;border-radius:18px;overflow:hidden}
+.browser .bar{display:flex;gap:8px;align-items:center;padding:10px 12px;background:#1b1b1b}
+.browser .bar i{width:9px;height:9px;border-radius:50%;background:#3a3a3a;display:block}
+.browser .url{flex:1;min-width:0;color:#9a9a96;font:12px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-left:6px}
+.browser .view{max-height:560px;overflow:auto}
+.browser img{display:block;width:100%;height:auto}
+.notes{background:#fff;border-radius:18px;padding:20px;display:grid;gap:10px;align-content:start}
+.notes ul{margin:0;padding-left:18px;font-size:14px;display:grid;gap:6px;color:var(--mute)}
+.notes li b{color:var(--ink);font-weight:500}
+
+/* checks + roadmap + decisions */
+.checks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.check{background:#fff;border-radius:16px;padding:16px;display:grid;gap:6px}
+.check b{display:flex;gap:8px;align-items:center;font-weight:500}
+.check b::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.check.w b::before{background:var(--later)}
+.check p{font-size:13px;color:var(--mute)}
+code{font:12px var(--mono);background:var(--soft);padding:1px 5px;border-radius:5px}
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.step{background:#fff;border-radius:18px;padding:18px;display:grid;gap:8px;align-content:start}
+.step .n{font:500 40px/1 var(--mono);color:var(--tick)}
+.step.now .n{color:var(--red)}
+.step ul{margin:0;padding-left:16px;font-size:13px;color:var(--mute);display:grid;gap:4px}
+.dec{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.d{background:#fff;border-radius:16px;padding:16px 18px;display:grid;gap:4px}
+.d b{display:flex;justify-content:space-between;gap:10px;font-weight:500}
+.d b span{font-size:11px;font-weight:600;border-radius:7px;padding:3px 8px;white-space:nowrap}
+.d.done b span{background:#e6f3ea;color:var(--ok)}
+.d.open b span{background:#fbe7e3;color:var(--red)}
+.d p{font-size:13px;color:var(--mute)}
+footer{padding-block:30px 40px;color:var(--mute);font-size:13px}
+
+@media (max-width:1000px){
+  .hero,.design,.shot{grid-template-columns:minmax(0,1fr)}
+  .arch{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .layers,.measures,.checks,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .plan{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  .modes,.mods,.arch,.layers,.measures,.checks,.steps,.dec,.screens{grid-template-columns:minmax(0,1fr)}
+  .plan{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .top nav{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div class="top"><div class="wrap">
+  <span class="brand">GnoRadio<span class="dot"></span></span>
+  <span class="label mono">v0.3 · devnet</span>
+  <nav aria-label="Sections">
+    <a href="#product">Produit</a><a href="#features">Fonctionnalités</a><a href="#arch">Architecture</a><a href="#storage">Stockage</a>
+    <a href="#music">Musique</a><a href="#design">Design</a><a href="#recette">Recette</a><a href="#next">Suite</a><a href="#decisions">Décisions</a>
+  </nav>
+</div></div>
+
+<main class="wrap stack">
+
+<section class="hero">
+  <div class="card">
+    <p class="label">Dossier v0.3 · 6 octobre 2026</p>
+    <h1 style="margin-top:14px">Gno<span>Radio</span><span class="dot"></span></h1>
+    <p class="lede">Un lecteur de musique et une radio communautaire, on-chain sur gno.land. Ce dossier remet tout à plat : produit, fonctionnalités, architecture, sources de musique, design et état du chantier.</p>
+    <div class="chips">
+      <span class="chip ink">5 packages, 25+ tests verts</span>
+      <span class="chip">lint v1.5.0 propre</span>
+      <span class="chip">devnet vérifié via gno MCP</span>
+      <span class="chip red">non publié sur onyx</span>
+    </div>
+  </div>
+  <div class="card big">
+    <div>
+      <p class="label">Une action, quel que soit le catalogue</p>
+      <div class="num mono" style="margin-top:10px"><span>1,</span>3M</div>
+      <p class="dim" style="margin-top:6px">gas par like avec 2 000 morceaux, contre 1,2 M avec 10</p>
+    </div>
+    <div class="ruler" id="ruler" aria-hidden="true"></div>
+    <div class="kv">
+      <div><b>0%</b><span>de commission</span></div>
+      <div><b>13</b><span>stations radio</span></div>
+      <div><b>3</b><span>origines de morceaux</span></div>
+      <div><b>~1 200</b><span>morceaux visés au lancement</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="product" class="card">
+  <div class="head"><h2>Deux façons <span>d'écouter</span></h2><p>Dans le même lecteur, avec un sélecteur Library / Live. Écouter ne demande jamais de transaction.</p></div>
+  <div class="modes">
+    <div class="mode"><p class="label">Library</p><h3>À la demande</h3><p class="dim">Albums, playlists, morceaux, dans l'ordre qu'on veut. File d'attente, aléatoire, répétition. Tout se passe dans l'app.</p></div>
+    <div class="mode live"><p class="label" style="color:#a5a5a0">Live</p><h3>La radio</h3><p class="dim">13 stations (Main + une par genre). Tout le monde entend la même seconde, d'après une grille on-chain. Les auditeurs programment des morceaux.</p></div>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Origine</th><th>Publié par</th><th>Base juridique</th><th>Audio</th><th>Soutien</th></tr></thead>
+    <tbody>
+      <tr><td>Artiste</td><td>l'artiste, avec son wallet</td><td>déclaration de droits</td><td>IPFS, Arweave, hôte autorisé + sha256</td><td>tips à 100 % (artiste + collaborateurs), concerts</td></tr>
+      <tr><td>Curé CC</td><td>l'admin (import curé)</td><td>CC0, CC BY, CC BY-SA, attribution</td><td>lien source (archive.org…) + sha256, copie permise</td><td>« Claim this profile »</td></tr>
+      <tr><td>Audius</td><td>l'admin (sélection)</td><td>Audius Open Music License §1.2</td><td><code>audius:&lt;id&gt;</code>, lu via l'API, cache de session</td><td>« Support on Audius » + « Claim this profile »</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="features" class="card">
+  <div class="head"><h2>Fonctionnalités, <span>rangées</span></h2><p>Par module, avec leur statut. Filtre pour voir ce qui est fait, ce qui revient à la dApp, ce qui vient plus tard ou qui est abandonné.</p></div>
+  <div class="filters" role="group" aria-label="Filtrer">
+    <button type="button" data-f="all" aria-pressed="true">Tout</button>
+    <button type="button" data-f="v" aria-pressed="false">Fait (v0.3)</button>
+    <button type="button" data-f="d" aria-pressed="false">dApp</button>
+    <button type="button" data-f="l" aria-pressed="false">Plus tard</button>
+    <button type="button" data-f="x" aria-pressed="false">Abandonné</button>
+  </div>
+  <div class="mods" id="mods"></div>
+</section>
+
+<section id="arch" class="card">
+  <div class="head"><h2>Cinq packages, <span>un cœur</span></h2><p>Les dépendances vont dans un seul sens : tout lit le catalog, le catalog ne dépend de rien. Chaque partie peut avoir une v1 sans toucher aux autres ; les billets restent valides pour toujours.</p></div>
+  <div class="arch">
+    <div class="pkg core"><span class="label" style="color:#a5a5a0">realm · cœur</span><b>catalog</b><code>r/gnoradio/catalog/v0</code><p class="dim" style="font-size:13px">Artistes, morceaux (3 origines), albums, playlists, likes, follows, tips, modération, hôtes autorisés, exports JSON.</p></div>
+    <div class="pkg"><span class="label">realm</span><b>radio</b><code>r/gnoradio/radio/v0</code><p class="dim" style="font-size:13px">13 stations, rotations, programmation, Sync / Refresh permissionless, grille JSON.</p></div>
+    <div class="pkg"><span class="label">realm</span><b>tickets</b><code>r/gnoradio/tickets/v0</code><p class="dim" style="font-size:13px">Concerts, billets GRC721 dessinés on-chain, check-in, TokenURI.</p></div>
+    <div class="pkg"><span class="label">realm</span><b>home</b><code>r/gnoradio/home/v0</code><p class="dim" style="font-size:13px">Le site gnoweb en anglais. Ne stocke rien, lit les trois autres.</p></div>
+    <div class="pkg"><span class="label">package pur</span><b>blocks</b><code>p/gnoradio/blocks/v0</code><p class="dim" style="font-size:13px">Rotation en blocs de 128 : ajout O(1), recherche ~O(n/128), retrait sans tout réécrire.</p></div>
+  </div>
+  <div class="measures">
+    <div class="m"><b>1,2 → 1,3M</b><span>gas par like, de 10 à 2 000 morceaux</span></div>
+    <div class="m"><b>1,8 → 2,0M</b><span>gas par publication, de 10 à 2 000 morceaux</span></div>
+    <div class="m"><b>14,0 → 14,1M</b><span>gas des opérations radio, de 1 000 à 20 000 créneaux</span></div>
+    <div class="m"><b>~77M</b><span>gas pour rendre l'accueil (budget : 3 milliards)</span></div>
+  </div>
+</section>
+
+<section id="storage" class="card">
+  <div class="head"><h2>Où vit <span>chaque donnée</span></h2><p>On-chain seulement ce qui prouve, paie ou engage. Le reste ne coûte rien.</p></div>
+  <div class="layers">
+    <div class="layer"><b>On-chain</b><ul><li>identités, fiches, licences</li><li>liens audio + sha256</li><li>parts, tips, albums</li><li>playlists publiques, likes, follows</li><li>stations, grilles, billets, modération</li></ul></div>
+    <div class="layer"><b>Calculé</b><ul><li>pochettes SVG par défaut</li><li>bannière On air</li><li>badges, billets dessinés</li><li>compteurs, top 10</li></ul></div>
+    <div class="layer"><b>Stockage externe</b><ul><li>audio : IPFS, Arweave, archive.org, Audius</li><li>vraies pochettes</li><li>paroles, bio longue</li></ul></div>
+    <div class="layer"><b>App seulement</b><ul><li>écoutes et historique</li><li>file Library, Save, playlists privées</li><li>recherche, cache hors ligne</li><li>nombre d'auditeurs (estimé)</li></ul></div>
+  </div>
+</section>
+
+<section id="music" class="card">
+  <div class="head"><h2>D'où vient <span>la musique</span></h2><p>La qualité vient d'une liste blanche d'artistes et de labels choisis à la main, jamais d'une recherche ouverte. Internet Archive sert d'hébergeur, pas de moteur de découverte.</p></div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Source</th><th>Verdict</th><th>Pourquoi</th></tr></thead>
+    <tbody id="sources"></tbody>
+  </table></div>
+  <div class="plan">
+    <div><b>~400</b><span>Audius, artistes sélectionnés</span></div>
+    <div><b>~300</b><span>artistes de référence CC</span></div>
+    <div><b>~150</b><span>ccMixter, sélections éditoriales</span></div>
+    <div><b>~200</b><span>netlabels validés à l'écoute</span></div>
+    <div><b>~150</b><span>Ziklibrenbib, Dogmazic</span></div>
+  </div>
+  <div class="flow" aria-label="Pipeline de sélection">
+    <span>liste blanche</span><span>API officielles</span><span>filtres licence, durée, débit</span><span>normalisation</span><span>sha256</span><span>écoute keep / drop</span><span>import par lots</span>
+  </div>
+  <p class="dim" style="margin-top:12px;font-size:13px">Outil : <code>tools/curate/</code>. Testé sur Scott Buckley, les sélections ccMixter et ATTLAS (Audius). 10 vrais morceaux importés sur le devnet.</p>
+</section>
+
+<section id="design" class="card">
+  <div class="head"><h2>Le design, <span>sobre</span></h2><p>Un style suisse : gris clair, cartes blanches, noir, un seul rouge, grands chiffres, réglette graduée. Le site gnoweb reprend la même identité.</p></div>
+  <div class="design">
+    <div class="stack" style="align-content:start">
+      <a class="cta" href="https://claude.ai/artifact/DwJvjv3xLsJbKJ8FwgRKCY">Ouvrir le canvas de design</a>
+      <p class="dim" style="font-size:14px">12 écrans en anglais, desktop et mobile. Les écrans marqués interactifs se cliquent : stations, lecteur, file d'attente, recherche, album.</p>
+    </div>
+    <div class="screens" id="screens"></div>
+  </div>
+  <div class="tabs" role="tablist" aria-label="Pages gnoweb" id="tabs"></div>
+  <div class="shot">
+    <div class="browser"><div class="bar"><i></i><i></i><i></i><span class="url" id="url"></span></div><div class="view"><img id="shot" alt="" src="shots3/home.jpg"></div></div>
+    <div class="notes"><p class="label">Capture du devnet v0.3</p><h3 id="stitle" style="font-size:22px"></h3><ul id="snotes"></ul></div>
+  </div>
+</section>
+
+<section id="recette" class="card">
+  <div class="head"><h2>Recette <span>sur devnet</span></h2><p>gnodev v1.5.0, même version qu'onyx et mainnet, piloté par gno MCP. Signataire : la clé de test, admin du catalog. Rien sur un réseau public.</p></div>
+  <div class="checks" id="checks"></div>
+</section>
+
+<section id="next" class="card">
+  <div class="head"><h2>La <span>suite</span></h2><p>Le chantier v0.3 est démarré et sa base est faite. Voici l'ordre proposé.</p></div>
+  <div class="steps">
+    <div class="step now"><span class="n">01</span><b>Catalogue de lancement</b><ul><li>compléter la liste blanche</li><li>lancer la sélection et l'écoute keep / drop</li><li>demander une clé API Audius</li><li>copier les morceaux ccMixter sur IPFS</li></ul></div>
+    <div class="step"><span class="n">02</span><b>dApp</b><ul><li>Next.js sur les maquettes validées</li><li>lecteur Library + Live</li><li>upload et sha256</li><li>indexeur + recherche</li></ul></div>
+    <div class="step"><span class="n">03</span><b>Avant onyx</b><ul><li>audit sécurité v0.3</li><li>réserver le nom <code>gnoradio</code></li><li><code>TransferAdmin</code> vers ton adresse</li><li>ta recette</li></ul></div>
+    <div class="step"><span class="n">04</span><b>Lancement</b><ul><li>recruter les artistes</li><li>soirée de lancement avec billets</li><li>plan de comm sur 6 semaines</li></ul></div>
+  </div>
+</section>
+
+<section id="decisions" class="card">
+  <div class="head"><h2>Décisions</h2><p>Ce qui est tranché, et ce qui reste ouvert.</p></div>
+  <div class="dec" id="dec"></div>
+</section>
+
+</main>
+<footer><div class="wrap">GnoRadio v0.3 · <span class="mono">gno/</span> dans le dépôt · spécification <span class="mono">docs/SPEC.md</span> · devnet local, rien de publié.</div></footer>
+
+<script>
+(function(){
+  // Ruler like the app's scrubber.
+  var r=document.getElementById("ruler");
+  for(var i=0;i<=60;i++){var t=document.createElement("i");t.style.height=(i%10===0?44:i%5===0?28:16)+"px";if(i<=17)t.className="on";r.appendChild(t)}
+  var n=document.createElement("b");n.style.left="28%";r.appendChild(n);
+
+  var F=[
+    {m:"Catalogue",p:"catalog",it:[
+      ["Profils d'artistes : noms latins, nom réservé, vérification","v"],
+      ["Artistes curés et Audius non réclamés + réclamation par l'admin","v"],
+      ["Morceaux des 3 origines : genre fixe, durée m:ss, licence, crédits","v"],
+      ["Liens audio et pochette : ipfs://, ar://, audius:, https + sha256, hôtes autorisés","v"],
+      ["Correction de morceau, signalement « broken link »","v"],
+      ["Albums, playlists publiques en une signature","v"],
+      ["Likes, follows (par utilisateur), badges premiers auditeurs","v"],
+      ["Tips partagés à 0 %, top 10 incrémentaux","v"],
+      ["Modération : masquer, vérifier, geler, successeur","v"],
+      ["Modifier les parts avec l'accord des collaborateurs","l"],
+      ["Paroles, commentaires","l"],
+      ["Licences commerciales façon Jamendo","x"]
+    ]},
+    {m:"Radio",p:"radio",it:[
+      ["13 stations : Main + une par genre","v"],
+      ["Rotation scalable et stable aux ajouts et retraits","v"],
+      ["Programmation sans coupure, quotas, genre vérifié","v"],
+      ["Sync / Refresh permissionless depuis le catalog","v"],
+      ["Grille JSON pour la dApp","v"],
+      ["Stations éditoriales sur playlist, émissions, jingles","l"],
+      ["Enchères de créneaux","x"]
+    ]},
+    {m:"Concerts et billets",p:"tickets",it:[
+      ["Concerts par profil artiste, prix à 100 % à l'artiste","v"],
+      ["Billets GRC721 dessinés, don, check-in « I was there »","v"],
+      ["Annulation, TokenURI, billets par détenteur","v"],
+      ["Royalties sur revente","x"]
+    ]},
+    {m:"Site gnoweb",p:"home",it:[
+      ["Toutes les pages en anglais, style sobre","v"],
+      ["Stations, catalogue, albums, playlists, artistes, concerts, classements","v"],
+      ["Actions par liens de transaction vers le bon realm","v"],
+      ["Bannière On air avec grands chiffres et réglette","v"]
+    ]},
+    {m:"dApp",p:"Next.js",it:[
+      ["Lecteur Library + Live, file, aléatoire, répétition","d"],
+      ["Save local et gratuit, Like on-chain et public","d"],
+      ["Upload, sha256, vraies pochettes","d"],
+      ["Recherche via indexeur, cache hors ligne","d"],
+      ["Clés de session (moins de popups Adena)","d"],
+      ["Partage, lecteur intégrable","d"]
+    ]},
+    {m:"Catalogue de lancement",p:"tools/curate",it:[
+      ["Pipeline liste blanche → filtres → sha256 → écoute → import","v"],
+      ["Exécution complète (~1 200 morceaux)","d"],
+      ["Copies IPFS pour ccMixter","l"]
+    ]}
+  ];
+  var lab={v:"Fait",d:"dApp",l:"Plus tard",x:"Abandonné"};
+  var mods=document.getElementById("mods");
+  F.forEach(function(g){
+    var c=document.createElement("div");c.className="mod";
+    var h=document.createElement("h3");h.textContent=g.m;var sm=document.createElement("small");sm.textContent=g.p;h.appendChild(sm);c.appendChild(h);
+    g.it.forEach(function(x){var r=document.createElement("div");r.className="f";r.dataset.s=x[1];var s=document.createElement("span");s.textContent=x[0];var b=document.createElement("span");b.className="st "+x[1];b.textContent=lab[x[1]];r.append(s,b);c.appendChild(r)});
+    mods.appendChild(c);
+  });
+  document.querySelectorAll(".filters button").forEach(function(b){b.addEventListener("click",function(){
+    document.querySelectorAll(".filters button").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false")});
+    var f=b.dataset.f;document.querySelectorAll(".f").forEach(function(r){r.hidden=!(f==="all"||r.dataset.s===f)});
+    document.querySelectorAll(".mod").forEach(function(m){m.hidden=!m.querySelector(".f:not([hidden])")});
+  })});
+
+  var S=[
+    ["Audius","#1f8a4c","Source principale de volume","Open Music License §1.2 : streaming et diffusion publique accordés aux lecteurs. Pas de copie, attribution obligatoire. Testé : streaming, Range et CORS OK."],
+    ["Internet Archive","#1f8a4c","Hébergeur des CC","Liens stables, CORS OK, licence CC permettant la copie. Seulement pour une liste blanche : beaucoup de bruit sinon."],
+    ["ccMixter","#a26a00","Avec copie","Sélections éditoriales de qualité (hip-hop, beats), mais lecture directe bloquée (403) : copie IPFS nécessaire."],
+    ["Wikimedia Commons","#a26a00","Appoint","Techniquement OK, peu de musique actuelle."],
+    ["Jamendo","#a26a00","À demander","Les tips relèvent probablement de leur licence commerciale."],
+    ["Free Music Archive","#e5432f","Non","Conditions : liens directs interdits."],
+    ["SoundCloud","#e5432f","Non","Conditions : radio, agrégation et copie interdites ; abonnement Pro requis."]
+  ];
+  var tb=document.getElementById("sources");
+  S.forEach(function(s){var tr=document.createElement("tr");tr.innerHTML='<td></td><td><span class="verdict"><i></i><span></span></span></td><td class="dim"></td>';
+    tr.children[0].textContent=s[0];tr.querySelector(".verdict i").style.background=s[1];tr.querySelector(".verdict span").textContent=s[2];tr.children[2].textContent=s[3];tb.appendChild(tr)});
+
+  var SC=[["Lecteur","Desktop · interactif"],["Artiste et billet","Desktop"],["Stations","Desktop · interactif"],["Album","Desktop · interactif"],["Recherche","Desktop · interactif"],["Lecteur + file","Desktop · interactif"],["Accueil","Mobile"],["Bibliothèque","Mobile"],["Lecture","Mobile · interactif"],["Billet","Mobile"],["Stations","Mobile"],["Album","Mobile"]];
+  var sc=document.getElementById("screens");
+  SC.forEach(function(s){var d=document.createElement("div");var b=document.createElement("b");b.textContent=s[0];var sp=document.createElement("span");sp.className="dim";sp.textContent=s[1];d.append(b,sp);sc.appendChild(d)});
+
+  var base="localhost:8911/r/gnoradio/home/v0";
+  var G=[
+    ["home","Accueil","","Accueil : station Main en direct",["<b>OK</b> : bannière On air avec grands chiffres, réglette et aiguille rouge, calculée au dernier bloc.","<b>OK</b> : stations avec leur nombre de morceaux, les plus aimés, concerts.","<b>OK</b> : pochettes géométriques générées pour les morceaux sans pochette."]],
+    ["track","Morceau Audius","track/4","The Night Air Was Cool · ATTLAS",["<b>OK</b> : attribution Audius complète (artiste, ©, licence, lien) comme l'exige l'OML §1.5.","<b>OK</b> : « Support on Audius » + « Claim this profile », pas de tip tant que le profil n'est pas réclamé.","<b>OK</b> : programmer sur Main ou sur la station du genre."]],
+    ["station","Station","station/0","Station Main",["<b>OK</b> : le morceau programmé démarre à la fin du titre en cours.","<b>OK</b> : file « Up next » avec heure de passage et qui l'a programmé."]],
+    ["artist","Artiste curé","artist/1","Scott Buckley",["<b>OK</b> : profil curé non réclamé, lien vers la source archive.org.","<b>OK</b> : album « Selected Scores » et morceaux."]],
+    ["event","Concert","event/1","Release Party",["<b>OK</b> : billet dessiné dans le style sobre, perforations découpées.","<b>OK</b> : achat via le realm tickets, 1 billet gratuit par wallet."]],
+    ["join","Rejoindre","join","Join GnoRadio",["<b>OK</b> : chaque étape ouvre la page de transaction du bon realm.","<b>OK</b> : explication de la réclamation de profil pour les artistes déjà présents."]]
+  ];
+  var tabs=document.getElementById("tabs");
+  function show(i){var g=G[i];document.getElementById("shot").src="shots3/"+g[0]+".jpg";document.getElementById("shot").alt="Capture gnoweb : "+g[3];
+    document.getElementById("url").textContent=base+(g[2]?":"+g[2]:"");document.getElementById("stitle").textContent=g[3];
+    document.getElementById("snotes").innerHTML=g[4].map(function(x){return "<li>"+x+"</li>"}).join("");
+    document.querySelector(".browser .view").scrollTop=0;
+    tabs.querySelectorAll("button").forEach(function(b,j){b.setAttribute("aria-selected",j===i?"true":"false")})}
+  G.forEach(function(g,i){var b=document.createElement("button");b.type="button";b.setAttribute("role","tab");b.textContent=g[1];b.addEventListener("click",function(){show(i)});tabs.appendChild(b)});
+  show(0);
+
+  var C=[
+    ["5 packages chargés","catalog, radio, tickets, home et blocks démarrent sur gnodev v1.5.0, sans erreur.",""],
+    ["Vrais morceaux importés","3 titres de Scott Buckley (archive.org, sha256) et 4 d'ATTLAS (Audius), plus un artiste avec wallet.",""],
+    ["Radio synchronisée","Sync intègre les 7 morceaux dans Main et leurs stations ; la programmation démarre à la fin du titre en cours.",""],
+    ["Album, playlist, like","Créés par transaction ; les pages gnoweb les affichent.",""],
+    ["Concert","Créé via le realm tickets par le profil artiste.",""],
+    ["Garde-fou des tips","Tip vers un artiste non réclamé : refusé par la chaîne.",""],
+    ["17 pages gnoweb","Toutes répondent 200, en anglais.",""],
+    ["Tests unitaires","catalog 8, radio, tickets 4, home, blocks avec tests de charge : tous verts.",""],
+    ["Pas encore vérifié on-chain","Tips et likes entre plusieurs comptes, check-in : un seul signataire sur ce devnet. Couverts par les tests unitaires.","w"]
+  ];
+  var ck=document.getElementById("checks");
+  C.forEach(function(c){var d=document.createElement("div");d.className="check"+(c[2]?" w":"");var b=document.createElement("b");b.textContent=c[0];var p=document.createElement("p");p.textContent=c[1];d.append(b,p);ck.appendChild(d)});
+
+  var D=[
+    ["Interface en anglais","done","Fait dans le site gnoweb v0.3 et les maquettes."],
+    ["Admin = ton adresse personnelle","done","Pas de multisig. TransferAdmin au déploiement, sur chaque realm."],
+    ["Rien sur onyx avant ta recette","done","Tout reste sur le devnet local."],
+    ["Style sobre suisse","done","Canvas de design et site gnoweb alignés."],
+    ["Trois origines de morceaux","done","Artiste, curé CC, Audius. Tips seulement pour les profils réclamés."],
+    ["Audius comme source principale","done","Base juridique : Open Music License §1.2."],
+    ["Programmation gratuite ou dédicace ?","open","Gratuite avec quotas pour l'instant ; payante = radio commerciale."],
+    ["Contrepartie bêta pour les artistes","open","Sur testnet les tips n'ont pas de valeur : bourse, mise en avant ou date de mainnet ?"],
+    ["Licences NC (Ektoplazm, Blocsonic…)","open","Exclues par prudence ; à revoir avec un avis juridique."],
+    ["Jamendo","open","Écrire à licensing@jamendo.com pour la question des tips."]
+  ];
+  var dec=document.getElementById("dec");
+  D.forEach(function(x){var d=document.createElement("div");d.className="d "+x[1];var b=document.createElement("b");b.textContent=x[0];var s=document.createElement("span");s.textContent=x[1]==="done"?"Décidé":"Ouvert";b.appendChild(s);var p=document.createElement("p");p.textContent=x[2];d.append(b,p);dec.appendChild(d)});
+})();
+</script>

@@ -1,0 +1,10 @@
+{
+  "name": "GnoRadio",
+  "short_name": "GnoRadio",
+  "description": "Community radio and open music player, on-chain on gno.land.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#e9e9e6",
+  "theme_color": "#0d0d0d",
+  "icons": [{ "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
