@@ -1,32 +1,30 @@
 # GnoRadio
 
-Lecteur de musique et radio communautaire, on-chain sur gno.land. Interface en anglais.
+![GnoRadio](docs/img/app.jpg)
 
-- Spécification v0.3 : [docs/SPEC.md](docs/SPEC.md)
-- Dossier (artifact) : https://claude.ai/artifact/WBWAyzE3AZtMNJDtkeEenM
-- Canvas de design : https://claude.ai/artifact/DwJvjv3xLsJbKJ8FwgRKCY
+GnoRadio is a community radio and an open music player built on [gno.land](https://gno.land).
 
-## Contenu
+You can play any album or playlist on demand, or tune into one of the live stations. Everyone hears the same second at the same time, because the schedule lives on-chain. Listening is free and never needs a wallet.
 
-```
-gno/p/gnoradio/blocks/v0     rotation en blocs (package pur)
-gno/r/gnoradio/catalog/v0    artistes, morceaux, albums, playlists, likes, follows, tips
-gno/r/gnoradio/radio/v0      13 stations, rotations, programmation
-gno/r/gnoradio/tickets/v0    concerts, billets GRC721
-gno/r/gnoradio/home/v0       site gnoweb
-app/                         dApp (Vite + React + TS), voir app/README.md
-tools/curate/                sélection du catalogue de lancement (voir son README)
-legacy/v0.2/                 première version, conservée pour référence
-```
+The chain comes in when something matters. You can tip an artist, and 100% of the tip goes straight to their wallet. You can also put a track on air, follow someone, buy a concert ticket (an NFT), or chip in to keep the station running. Every one of these is a public transaction anyone can check.
 
-## Tester
+The music comes from artists who publish their own tracks and from a hand-picked catalog of Creative Commons and Audius releases, each with proper credits.
+
+## What's in here
+
+- `gno/`: the realms (catalog, radio, tickets) and the gnoweb site
+- `app/`: the web app (Vite, React, TypeScript)
+- `tools/curate/`: the scripts used to pick the launch catalog
+- `docs/`: the spec and the developer notes
+
+## Try it locally
 
 ```sh
-export GNOROOT=~/go/pkg/mod/github.com/gnolang/gno@v1.5.0 GNOHOME=~/.cache/gno-toolchains/onyx-v1.5.0/gnohome
-G=~/.cache/gno-toolchains/onyx-v1.5.0/gno
-for d in gno/p/gnoradio/blocks/v0 gno/r/gnoradio/{catalog,radio,tickets,home}/v0; do $G lint ./$d && $G test ./$d; done
+cd app && npm install && npm run dev
 ```
 
-Devnet local (gnodev v1.5.0, compilé depuis le tag) : RPC `127.0.0.1:27157`, gnoweb `http://127.0.0.1:8911/r/gnoradio/home/v0`.
+The app expects a local gno.land devnet running the realms. [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) explains how to start one, run the tests and deploy.
 
-Rien n'est déployé sur un réseau public avant la recette.
+## Status
+
+Early days. GnoRadio only runs on a local devnet for now, and nothing is live on a public network yet.
