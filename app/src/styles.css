@@ -1265,6 +1265,8 @@ button.feed-title:hover { text-decoration: underline; text-underline-offset: 3px
 @media (prefers-reduced-motion: reduce) { .stamp { animation: none; } }
 /* Me: jump links to each section, and lighter sections so Saved and the rest come up sooner */
 .me-nav { gap: 6px 18px; margin: 24px 0 0; }
+/* the section title is the divider: no second line above its first row */
+.me-nav ~ .rows .track:first-child { border-top: 0; }
 .me-nav ~ .sub { margin: 32px 0 12px; scroll-margin-top: 24px; color: var(--ink); font-size: 15px; font-weight: 500; }
 .me-empty { border: 0; padding: 0; margin: 0; font-size: 14px; }
 @media (max-width: 700px) {
