@@ -31,6 +31,20 @@
   status = 200
   force = true
 
+# PostHog EU behind the site's own path (lib/analytics.ts api_host), its
+# extensions under /e/static: a blocker sees no third party, the CSP needs none.
+[[redirects]]
+  from = "/e/static/*"
+  to = "https://eu-assets.i.posthog.com/static/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/e/*"
+  to = "https://eu.i.posthog.com/:splat"
+  status = 200
+  force = true
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

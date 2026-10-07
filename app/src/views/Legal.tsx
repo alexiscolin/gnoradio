@@ -1,5 +1,14 @@
+import { useState } from "react";
 import { Head } from "../components/common";
+import { measured, optOut, optedOut } from "../lib/analytics";
 import { CONTACT, HOST, MIN_AGE, NOTICE_DELAY, PUBLISHER, REPEAT_INFRINGER, TREASURY_HOLDER } from "../lib/legal";
+
+/** StatsChoice is the one-click objection to the audience measurement. */
+function StatsChoice() {
+  const [off, setOff] = useState(optedOut);
+  if (!measured()) return <>this build measures nothing.</>;
+  return off ? <>you objected; nothing is measured in this browser.</> : <button className="link" onClick={() => { optOut(); setOff(true); }}>don't measure my visits</button>;
+}
 
 // Contact goes through the repository's issues: public, so no private data in them.
 const issue = (label: string) => <a href={CONTACT} target="_blank" rel="noreferrer">{label}</a>;
@@ -20,7 +29,8 @@ export function Legal() {
 
       <section className="about-sec">
         <h2 className="sub">Privacy</h2>
-        <p>No account, no tracking, no analytics, no advertising cookies.</p>
+        <p>No account, no advertising, no tracking across sites.</p>
+        <p>Audience measurement, anonymous: PostHog (EU servers), through GnoRadio's own address. It counts pages seen and what is used (listening, picks, tips, saves, shares), with one first-party cookie kept 13 months at most. It never receives your wallet address, a name or a dedication; text on screen is masked and addresses are cut from every event; your IP address is discarded. It is exempt from consent under the CNIL's audience-measurement rules, and you can object at any time: <StatsChoice /></p>
         <p>On-chain actions (likes, picks, dedications, tips, tickets, reports) are public and permanent on gno.land, tied to your wallet address. GnoRadio can hide them in its pages but cannot erase them from the chain: the right to erasure (GDPR art. 17) is limited by how a public blockchain works. We process them on the basis of legitimate interest, to run the radio you chose to take part in.</p>
         <p>A dedication's text is sent to OpenAI's moderation service before you sign. OpenAI is a US processor and may keep it for up to 30 days; it never receives your address.</p>
         <p>Your browser stores your saves, volume, wallet choice, gnokey key name, dismissed hints, whether you have seen the intro and a copy of the public catalog (to load faster). When quick actions are on, it also stores a session key that signs small actions for you until it expires; turn quick actions off to delete it.</p>

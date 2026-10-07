@@ -1,3 +1,4 @@
+import { track } from "../lib/analytics";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { audioURLs, loadSchedule } from "../lib/catalog";
 import { errorMessage } from "../lib/format";
@@ -126,6 +127,7 @@ export function usePlayer(cat: Catalog | null) {
     (ids: readonly number[], start = 0) => {
       const first = ids[start];
       if (first === undefined) return;
+      track("listen", { mode: "library" });
       setMode("library");
       setQueue(ids);
       setIndex(start);
@@ -197,6 +199,7 @@ export function usePlayer(cat: Catalog | null) {
 
   const goLive = useCallback(
     (st: number) => {
+      track("listen", { mode: "live", station: st });
       setMode("live");
       setStation(st);
       setError("");

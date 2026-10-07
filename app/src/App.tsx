@@ -1,4 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { register, start as startAnalytics, track } from "./lib/analytics";
+import { CHAIN_ID } from "./lib/gno";
 import { MiniPlayer, MobileTop, Sidebar, TabBar } from "./components/Chrome";
 import { GnokeySheet } from "./components/GnokeySheet";
 import { WalletSheet } from "./wallet/WalletSheet";
@@ -75,6 +77,7 @@ export default function App() {
     loadCatalog({ cached: show, early: EARLY.has(viewRef.current.k) ? show : undefined, touched }).then(
       (c) => {
         if (seq !== loadSeq.current) return;
+        if (seq === 1) track("load", { what: "catalog", ms: Math.round(performance.now()) });
         setCat(c);
         setLoadError("");
       },
@@ -84,6 +87,8 @@ export default function App() {
   }, [refreshPulse]);
 
   useEffect(() => { refresh(); }, [refresh]);
+  // Audience measurement: loads once idle, only in a build with a key (lib/analytics.ts).
+  useEffect(() => { startAnalytics(CHAIN_ID); }, []);
   useEffect(() => {
     const id = window.setInterval(() => { if (!document.hidden) refreshPulse(); }, PULSE_MS);
     return () => { window.clearInterval(id); };
@@ -124,6 +129,7 @@ export default function App() {
   const { resync } = player;
   const afterTx = useCallback((c?: Call) => { refresh(touchedBy(c)); resync(); }, [refresh, resync]);
   const actions = useActions(afterTx);
+  useEffect(() => { register({ wallet: actions.wallet.state.status }); }, [actions.wallet.state.status]);
   useMediaMeta(cat, view, player);
   const saved = useSaved();
   // The catalog names the URL (/artist/scott-buckley-1): once it is loaded, the

@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { track } from "./analytics";
 
 const KEY = "gnoradio.saved";
 
@@ -17,6 +18,7 @@ export function useSaved() {
   const toggle = useCallback((id: number) => {
     setIds((cur) => {
       const next = cur.includes(id) ? cur.filter((x) => x !== id) : [id, ...cur];
+      track("save", { on: next.length > cur.length });
       try {
         localStorage.setItem(KEY, JSON.stringify(next));
       } catch {

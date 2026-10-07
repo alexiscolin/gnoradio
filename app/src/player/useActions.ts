@@ -1,3 +1,4 @@
+import { track } from "../lib/analytics";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { forgetName, nameReg } from "../lib/names";
 import { arr, num } from "../lib/guard";
@@ -107,7 +108,10 @@ export function useActions(onDone: (c?: Call) => void) {
       }
       if (signer === "gnokey") {
         // A dedication is certified for the signing key: the gnokey key's address when given.
-        try { setGnokey({ label, call: await make(isAddress(gnokeyAddress()) ? gnokeyAddress() : me) }); } catch (e) { setToast(errorMessage(e)); }
+        try {
+          setGnokey({ label, call: await make(isAddress(gnokeyAddress()) ? gnokeyAddress() : me) });
+          track("action", { label, stage: "sent", via: "gnokey" });
+        } catch (e) { setToast(errorMessage(e)); }
         return;
       }
       if (busy.current) {
@@ -116,6 +120,7 @@ export function useActions(onDone: (c?: Call) => void) {
       }
       busy.current = true;
       setPending(opts.key ?? label);
+      let via: "adena" | "session" = "adena";
       try {
         const address = await ensure();
         const c = await make(address);
@@ -124,11 +129,15 @@ export function useActions(onDone: (c?: Call) => void) {
         const deposit = opts.deposit ?? DEPOSIT[label];
         const lock = deposit === undefined ? "" : ` · about ${String(deposit)} GNOT locked as storage deposit`;
         setToastState({ text: quick ? `${label}…${lock}` : `${label}… confirm in Adena${lock}`, pending: true });
+        via = quick ? "session" : "adena";
+        track("action", { label, stage: "sent", via });
         const tx = quick ? await sessionCall(address, c) : await call(address, c);
+        track("action", { label, stage: "ok", via });
         opts.after?.(address);
         setToast(`${label} · in block ${tx.height}`, explorerURL(tx.hash));
         onDone(c);
       } catch (e) {
+        track("action", { label, stage: isCancel(e) ? "cancelled" : "failed", via });
         if (isCancel(e)) setToast("Cancelled");
         else setToast(errorMessage(e));
       } finally {

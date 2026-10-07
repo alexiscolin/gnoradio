@@ -1,3 +1,4 @@
+import { track } from "../lib/analytics";
 import { withRef } from "../lib/incentives";
 import { Icon } from "./Icons";
 import { type ReactNode, useState } from "react";
@@ -226,6 +227,7 @@ export function Crumbs({ trail, go }: { readonly trail: readonly Crumb[]; readon
 export function ShareButton({ title, to, text, refBy = "", compact = false }: { readonly title: string; readonly to?: View; readonly text?: string; readonly refBy?: string; readonly compact?: boolean }) {
   const [copied, setCopied] = useState(false);
   const share = async () => {
+    track("share", { what: to?.k ?? "page" });
     // refBy makes the link earn: tips made from it share the artist's promo share with them.
     const url = withRef(to ? new URL(viewToPath(to, to.k === "stations" ? "" : title), location.origin).href : location.href, refBy);
     if (typeof navigator.share === "function") {

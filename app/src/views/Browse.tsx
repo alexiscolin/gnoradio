@@ -1,3 +1,4 @@
+import { bucket, track } from "../lib/analytics";
 import { Icon } from "../components/Icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type TrackOrder, sortTracks } from "../lib/catalog";
@@ -178,6 +179,11 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
   }), [cat]);
   const words = fold(q).split(/\s+/).filter(Boolean);
   const hit = (k: string) => words.every((w) => k.includes(w));
+  // Measured by how many tracks a search finds, never by what was typed.
+  useEffect(() => {
+    if (q) track("search", { results: bucket(index.tracks.filter((x) => hit(x.k)).length) });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- once per settled query
+  }, [q]);
   const found = words.length === 0 ? null : {
     artists: index.artists.filter((x) => hit(x.k)).slice(0, 4).map((x) => x.a),
     tracks: index.tracks.filter((x) => hit(x.k)).slice(0, 8).map((x) => x.t),

@@ -1,3 +1,4 @@
+import { track } from "../lib/analytics";
 import { Icon } from "./Icons";
 import { useEffect, useRef, useState } from "react";
 import { loadSchedule } from "../lib/catalog";
@@ -125,6 +126,9 @@ function replayedAt(picks: readonly Pick<RadioPick, "station" | "track" | "at" |
 export function PickNext({ cat, station: initial, suggest, me = "", pending = "", notice, onPick, onClose }: Props) {
   const [station, setStation] = useState(initial);
   const ref = useRef<HTMLDialogElement>(null);
+  // The sheet's funnel (lib/analytics.ts): opened, a track chosen, pushed, or closed before.
+  const pushed = useRef(false);
+  const stepNow = useRef<1 | 2>(1);
   useEffect(() => {
     const d = ref.current;
     if (d && !d.open && typeof d.showModal === "function") d.showModal();
@@ -144,7 +148,10 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
     setNoteWhy("");
     if (!note) return;
     const id = window.setTimeout(() => {
-      noteProblem(note.trim()).then(setNoteWhy, () => { setNoteWhy(""); });
+      noteProblem(note.trim()).then((why) => {
+      setNoteWhy(why);
+      if (why) track("dedication_refused", { by: "filter" });
+    }, () => { setNoteWhy(""); });
     }, 350);
     return () => { window.clearTimeout(id); };
   }, [note]);
@@ -152,6 +159,12 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
   // Opened from a track (suggest), the sheet starts on that track's step 2.
   const [selected, setSelected] = useState(suggest ?? 0);
   const [step, setStep] = useState<1 | 2>(suggest === undefined ? 1 : 2);
+  stepNow.current = step;
+  useEffect(() => {
+    track("pick_step", { step: "open", at: stepNow.current });
+    return () => { if (!pushed.current) track("pick_step", { step: "close", at: stepNow.current }); };
+  }, []);
+  useEffect(() => { if (step === 2) track("pick_step", { step: "track" }); }, [step]);
   const [sent, setSent] = useState(0);
   const [asked, setAsked] = useState(false); // show the action's feedback once this sheet sent one
   const [reads, setReads] = useState(0);
@@ -221,6 +234,8 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
     if ("Notification" in window && Notification.permission === "default") void Notification.requestPermission();
     setSent(chosen.id);
     setAsked(true);
+    pushed.current = true;
+    track("pick_step", { step: "push", dedication: !sponsoredPick && note.trim() !== "", booked: when > 0, sponsored: sponsoredPick });
     onPick(chosen, station, sponsoredPick ? "" : note.trim(), sponsoredPick, when);
   };
   const timing = picks.length === 0 ? (takeover ? "right away" : "plays next") : `after ${String(picks.length)} pick${picks.length > 1 ? "s" : ""}`;

@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_GNOWEB?: string;
   /** Namespace of the GnoRadio packages: "gnoradio" locally, the deployer's on a public chain. */
   readonly VITE_GNORADIO_NS?: string;
+  /** PostHog project key (phc_…, public, write-only): audience measurement; unset, nothing loads. */
+  readonly VITE_POSTHOG_KEY?: string;
 }
 
 interface ImportMeta {
