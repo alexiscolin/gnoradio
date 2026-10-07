@@ -23,8 +23,9 @@ Third-party material included in this repository.
    License, Version 1.1 (https://openfontlicense.org). The full licence text
    ships with the packages (node_modules/@fontsource/geist/LICENSE).
 
-Station jingles (app/public/jingles)
-  Music generated with ACE-Step 1.5 (code and weights under the MIT licence,
-  https://github.com/ace-step/ACE-Step-1.5); voices generated with Kokoro-82M
-  v1.0 (Apache License 2.0, https://huggingface.co/hexgrad/Kokoro-82M).
-  The voices are synthetic.
+3. Station jingles (app/public/jingles)
+
+   Music generated with ACE-Step 1.5 (code and weights under the MIT licence,
+   https://github.com/ace-step/ACE-Step-1.5); voices generated with Kokoro-82M
+   v1.0 (Apache License 2.0, https://huggingface.co/hexgrad/Kokoro-82M).
+   The voices are synthetic.

@@ -14,12 +14,9 @@ KEY=$1
 NS=$2/gnoradio
 REMOTE=https://rpc.onyx.testnets.gno.land:443
 cd "$(dirname "$0")/../.."
-python3 tools/deploy/stage.py "$NS" build/onyx >/dev/null
-for pkg in p/text p/svg p/store p/safe p/blocks r/catalog r/radio r/tickets r/home; do
-  kind=${pkg%%/*}
-  name=${pkg#*/}
-  path=gno.land/$kind/$NS/$name/v0
-  dir=build/onyx/$kind/$NS/$name/v0
+# stage.py prints the staged package directories in deploy order (each imports only earlier ones).
+for dir in $(python3 tools/deploy/stage.py "$NS" build/onyx); do
+  path=gno.land/${dir#build/onyx/}
   # The storage deposit is charged when the package is enabled, about 100 ugnot per byte: allow twice that.
   deposit=$(( $(cat "$dir"/*.gno | wc -c) * 200 + 2000000 ))
   echo "submitting $path (max deposit ${deposit}ugnot)"

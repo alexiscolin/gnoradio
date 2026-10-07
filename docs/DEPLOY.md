@@ -1,20 +1,22 @@
 # Deploying GnoRadio
 
-How GnoRadio goes on a public chain, who holds which key, and what to do once it is live. The
-design behind it is in [ARCHITECTURE-v1.md](ARCHITECTURE-v1.md).
+How GnoRadio goes on a public chain, who holds which key, and what to do once it is live.
+Nothing is deployed yet. This covers the v0 realms that ship today; the v1 design (a data
+realm with an owner and a guardian) is in progress in [ARCHITECTURE-v1.md](ARCHITECTURE-v1.md).
 
 ## Where it lives
 
 On onyx, the packages go under the deployer's gno.land name, next to gnogolf:
 
 ```
-gno.land/p/nym-alexiscolin000/gnoradio/...   pure packages (text, svg, store, role, safe, blocks)
-gno.land/r/nym-alexiscolin000/gnoradio/...   realms (data, catalog, radio, tickets, home)
+gno.land/p/nym-alexiscolin000/gnoradio/...   pure packages (text, svg, store, safe, blocks)
+gno.land/r/nym-alexiscolin000/gnoradio/...   realms (catalog, radio, tickets, home)
 ```
 
 `tools/deploy/stage.py` copies `gno/` with every `gno.land/{p,r}/gnoradio/` path rewritten to
-that namespace (no tests, no devseed). `tools/deploy/onyx.sh` stages, then submits each package
-in order with your gnokey key and waits for onyx to enable it before the next:
+that namespace (no tests, no devseed; it also stages the v1 `role` and `data` packages, which
+the script below does not submit). `tools/deploy/onyx.sh` stages, then submits each v0
+package in order with your gnokey key and waits for onyx to enable it before the next:
 
 ```sh
 tools/deploy/onyx.sh <your gnokey key name> nym-alexiscolin000
@@ -25,7 +27,40 @@ applied to the functions too, so the robot reads the same paths).
 
 ## Keys and roles
 
-Whoever deploys holds every role at first. Two of them matter.
+Whoever deploys catalog, radio and tickets becomes the admin of each. The admin is the
+owner's everyday address (`g1mpkp5lm8lwpm0pym4388836d009zfe4maxlqsq`, nym-alexiscolin000);
+`TransferAdmin(<address>)` on a realm hands it on in one step, so check the address twice.
+
+| The admin can | The admin cannot |
+|---|---|
+| moderate (hide, resolve reports, restore dedications, unmute), allow hosts, set the robot keys, the treasury, the service fee and the app URL | move tips, ticket money or support: they are paid out in the same transaction |
+| `Freeze` writes on a realm, set a successor (`SetSuccessor`) and the sibling realms for an upgrade | touch the artists' promo budgets: `WithdrawPromo` and `ClaimPickPayout` keep working while frozen |
+
+A stolen admin key can hide content, freeze the realms and point the robot keys elsewhere,
+but cannot take anyone's money. v1 adds a guardian on a second key and a 72 h delay before
+new rules take over ([ARCHITECTURE-v1.md](ARCHITECTURE-v1.md), section 5); it is not
+deployed.
+
+## After the realms are live
+
+1. Robot keys: `catalog.SetBot` and `radio.SetModBot` with the robot's public key (the private
+   one only in Netlify, `BOT_SIGNING_KEY`; [VERIFICATION.md](VERIFICATION.md)).
+2. `catalog.SetTreasury` to the address that receives support and service fees.
+3. `catalog.AllowHost("archive.org", true)` if it is not allowed yet (`HostAllowed`), and any
+   other https host the catalog uses.
+4. `home.SetAppURL` to the app's public URL, so gnoweb links to the app and its Legal page;
+   `home.SetContact` for the contact line on the rights-notice page.
+5. `tickets.SetServiceFee` (ugnot, 10 GNOT at most).
+6. Launch catalog: import the curated tracks (`tools/curate`), then sync the stations.
+7. Netlify: the variables in [DEVELOPMENT.md](DEVELOPMENT.md#app) (at least
+   `VITE_GNORADIO_NS`, `BOT_SIGNING_KEY` and `OPENAI_API_KEY`; `VITE_POSTHOG_KEY` for analytics).
+8. Before opening to the public: an Audius API key (their terms).
+
+## v1: owner and guardian (in progress)
+
+The data/rules split ([ARCHITECTURE-v1.md](ARCHITECTURE-v1.md)) replaces the per-realm admin with
+an owner and a guardian on the data realm. This section is what to do with them once v1 is
+deployed; until then, the v0 rules above apply.
 
 | Role | Can | Cannot |
 |---|---|---|
@@ -80,11 +115,3 @@ its role on.
   move what you can; a new owner can only be set by the current owner (`Offer` / `Accept`).
 - `Renounce()` makes the rules permanent for good: no release, no pause, ever. Only for a
   GnoRadio meant to run on its own forever.
-
-## After the realms are live
-
-1. Robot keys: `SetBot` / `SetModBot` with the robot's public key (the private one only in
-   Netlify, `BOT_SIGNING_KEY`).
-2. Launch catalog: import the curated tracks (`tools/curate`), then sync the stations.
-3. Netlify: `VITE_GNORADIO_NS`, `VITE_POSTHOG_KEY`, `BOT_SIGNING_KEY`, `OPENAI_API_KEY`.
-4. Before opening to the public: an Audius API key (their terms).

@@ -78,13 +78,10 @@ dedication text is the one thing sent to OpenAI, and the certificate binds
 that exact text. If OpenAI or the key is down, dedications pause; picks
 without one still work.
 
-Environment (Netlify, never committed; `app/.env.local` in dev):
-
-- `BOT_SIGNING_KEY`: 32-byte Ed25519 seed, hex. Its public key goes on-chain
-  with `catalog.SetBot(<public key hex>)` and `radio.SetModBot(<public key hex>)`.
-- `OPENAI_API_KEY`: for `dedication.mts`.
-- `BOT_MNEMONIC`: only if `SYNC_ROBOT=on`: the gno account that pays `Sync`.
-- `SYNC_ROBOT=on`: optional, see above. `BOT_RPC`: defaults to onyx.
+Environment (Netlify, never committed; `app/.env.local` in dev): `BOT_SIGNING_KEY`,
+`OPENAI_API_KEY`, and for the optional Sync `SYNC_ROBOT`, `BOT_MNEMONIC`, `BOT_RPC`; see the
+table in [DEVELOPMENT.md](DEVELOPMENT.md#app). The public key of `BOT_SIGNING_KEY` goes
+on-chain with `catalog.SetBot(<public key hex>)` and `radio.SetModBot(<public key hex>)`.
 
 Locally, `npm run dev` serves `/api/verify` and `/api/dedication` against the
 devnet; without the keys they only report what they would do.

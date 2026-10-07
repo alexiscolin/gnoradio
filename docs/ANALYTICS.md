@@ -34,7 +34,7 @@ filters on it. gnogolf's events have no `app` yet: filter them with `app is not 
 | `app` | `gnoradio` |
 | `chain` | the chain id (onyx-1, dev) |
 | `viewport` (phone/tablet/desktop), `touch`, `locale` | the device |
-| `wallet` | the wallet state: missing, disconnected, connecting, connected, wrong-network |
+| `wallet` | the wallet state: missing, idle (not connected), connecting, connected, wrong-network |
 | `since_day` | the day the anonymous id was made |
 
 ## Events
@@ -44,7 +44,7 @@ filters on it. gnogolf's events have no `app` yet: filter them with `app is not 
 | `$pageview`, `$pageleave` | (PostHog's) | each screen, as the address bar follows them |
 | `listen` | `mode` (live/library), `station` | a station is tuned in, or a library list starts |
 | `action` | `label` (Like, Pick next, Tip, Ticket…), `stage` (sent/ok/cancelled/failed), `via` (adena/session/gnokey) | every on-chain action |
-| `share` | `what` (the screen kind shared: track, artist, stations…) | a Share button |
+| `share` | `what` (the screen kind shared: track, artist, stations…, or page) | a Share button |
 | `save` | `on` | a track saved or unsaved in this browser |
 | `pick_step` | `step` (open/track/push/close), `at` (the step it was on), `dedication`, `booked`, `sponsored` | the pick sheet's funnel |
 | `dedication_refused` | `by` (filter) | the on-chain word filter refused a dedication before signing (never its text) |

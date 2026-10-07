@@ -3,6 +3,7 @@
 > A music player **and** a community radio, on-chain on gno.land.
 > The interface is in **English**. Admin = the project owner's personal address.
 > Nothing is deployed on a public network before it passes review on a local devnet.
+> This describes the v0 realms that ship today. A v1 that keeps the data apart from the rules is in progress: [ARCHITECTURE-v1.md](ARCHITECTURE-v1.md).
 
 ## 1. Product
 
@@ -19,7 +20,7 @@ Tracks come from three origins, mixed in the same genres, albums, playlists and 
 | Legal basis | the artist's statement | CC0 / CC BY / CC BY-SA | Audius Open Music License §1.2 (streaming and public performance granted to players) |
 | Audio | `ipfs://`, `ar://`, `https://` + sha256 | source link + sha256, copy allowed | `audius:<trackId>`, played through the API, **session cache only** |
 | Attribution | artist | artist, license, source | artist, ©, OML notice, Audius link (§1.5) |
-| Tips | yes, 100% to the artist + collaborators | no, "Claim this profile" | no, "Support on Audius" + "Claim this profile" |
+| Tips | yes, to the artist + collaborators (minus the promo share the artist chose, see Listener rewards), once verified | no, "Claim this profile" | no, "Support on Audius" + "Claim this profile" |
 | Concerts, tickets | yes | after a claim | after a claim |
 
 A curated or Audius artist who **claims** their profile (a code on a page they control, checked by a robot that signs a certificate; 72 h public wait) gets their tracks back: tips and concerts are turned on.
@@ -57,7 +58,8 @@ Status: **0.3** = this work · **dApp** = app side · **0.4+** = later · **✕*
 | Permissionless sync from the catalog to the stations (`Sync`, `Refresh`, `RefreshArtist`) | 0.3 |
 | `ScheduleJSON(station)` for the dApp | 0.3 |
 | Main flows like a real radio: sets of 3 to 5 tracks of one genre, transition to a nearby genre along an energy line, a daily clock (calm at night, energy in the evening), never the same artist twice in a row; `Sync` writes the next hour, called every 30 min by the robot (`app/netlify/functions/sync.mts`) | 0.5 |
-| Editorial stations based on a playlist, shows at fixed times, jingles | 0.4+ |
+| Station jingles (in the app, on tune-in and at the top of the hour) | dApp |
+| Editorial stations based on a playlist, shows at fixed times | 0.4+ |
 | "New this week" (`NumGenres+1`, the last 300 tracks added) and "Listeners' choice" (`NumGenres+2`, the last 500 distinct tracks picked by listeners through `Queue`/`QueueWithNote`, plus the top likes at each `Sync`) stations: fixed-size ring, once full the oldest slot is reused in place (its track leaves `homes`), the rotation stops growing, constant cost; can be programmed like any station, with no genre check | 0.5 |
 | Slot auctions | ✕ (commercial radio) |
 
@@ -79,13 +81,15 @@ Status: **0.3** = this work · **dApp** = app side · **0.4+** = later · **✕*
 ### dApp (Vite + React)
 | Feature | Phase |
 |---|---|
-| Library + Live player, queue, shuffle, repeat | dApp |
-| Save (local, free) vs Like (on-chain, public) | dApp |
-| Audio and cover upload, sha256 computation | dApp |
-| Search (index built from the exports and the events) | dApp |
-| Offline cache, volume normalization, hash check | dApp |
-| Session keys (fewer Adena popups), to be confirmed with Adena | dApp |
-| Sharing, embeddable player | dApp |
+| Library + Live player, shuffle (albums), track order (mix of the day, most liked, most tipped, newest) | dApp |
+| Save (local, free) vs Like (on-chain, public), both under Your library | dApp |
+| sha256 of a local audio or cover file (no upload: the artist hosts the file) | dApp |
+| Search over the catalog loaded from the exports | dApp |
+| Catalog cache in the browser (IndexedDB), only what changed is read again | dApp |
+| Session keys (fewer Adena popups, daily spending cap) | dApp |
+| Sharing with `?ref=` | dApp |
+| Concerts: search, this week / this month, free, city and day filters; a QR per ticket that opens a door page for check-in | dApp |
+| Audio upload, repeat, volume normalization, embeddable player | 0.4+ |
 
 ## 3. Where each piece of data lives
 
@@ -112,10 +116,12 @@ gno.land/r/gnoradio/tickets/v0    concerts, GRC721 tickets                 (read
 gno.land/r/gnoradio/home/v0       gnoweb site + Info()                     (reads everything)
 ```
 
+Also in the tree, for v1 and not used by the v0 realms: `p/gnoradio/role/v0`, `r/gnoradio/data` and the `catalog/v1` being written ([ARCHITECTURE-v1.md](ARCHITECTURE-v1.md)).
+
 One-way dependencies: `radio`, `tickets`, `home` import `catalog`; `catalog` imports no realm.
 Realms talk to each other through **ids** and getters that return **values** (never pointers).
 Each realm has its own `admin` (set to the deployer, then `TransferAdmin`).
-The `gnoradio` name must be reserved on-chain before onyx.
+On a public chain the packages go under the deployer's namespace ([DEPLOY.md](DEPLOY.md)).
 
 ### 4.1 Scaling rules
 
@@ -143,18 +149,18 @@ Position in the loop at time `t`: `(t − epoch − paused(t)) mod total`, where
 
 ```go
 // catalog
-func RegisterArtist(cur realm, name, bio string)
-func CreateCuratedArtist(cur realm, name, bio, sourceURL string) int          // admin
+func RegisterArtist(cur realm, name, bio string) int
+func CreateArtist(cur realm, kind, name, bio, source string) int              // admin, unclaimed curated or Audius artist
 func AssignArtist(cur realm, artistID int, owner address)                      // admin, claim
-func PublishTrack(cur realm, title string, genre int, duration, license, credits, audio, audioSHA, cover, coverSHA, splits, rights string) int
+func PublishTrack(cur realm, title string, genre int, duration, license, cmo, credits, audio, audioSHA, cover, coverSHA, splits, rights string) int
 func ImportTrack(cur realm, artistID int, title string, genre int, duration, license, credits, audio, audioSHA, cover, coverSHA, sourceURL, attribution string) int // admin
 func EditTrack(cur realm, id int, ...)
-func CreateAlbum(cur realm, title, cover, coverSHA string, year int, trackIDs string) int
+func CreateAlbum(cur realm, artistID int, title, cover, coverSHA string, year int, trackIDs string) int
 func PublishPlaylist(cur realm, title, trackIDs string) int
 func Like(cur realm, trackID int)
 func Follow(cur realm, artistID int)
 func Tip(cur realm, trackID int)                     // payable
-func Report(cur realm, kind, target, reason string)
+func Report(cur realm, kind string, target int, reason string)
 func AllowHost(cur realm, host string, allowed bool) // admin
 // getters for the other realms (values only): CONTRACT FROZEN v0.3
 const NumGenres = 20                                  // genres 1..20, 0 = invalid
@@ -169,7 +175,7 @@ func ArtistOf(owner address) int                       // 0 if no profile
 func ArtistVisible(artistID int) bool
 
 // radio
-func Sync(cur realm, max int)        // permissionless: adds the catalog's new tracks
+func Sync(cur realm, max int) int    // permissionless: adds the catalog's new tracks
 func RefreshArtist(cur realm, artistID, offset int) int // permissionless: refreshes 50 tracks of an artist, returns the next offset (0 = done)
 func Queue(cur realm, station, trackID int)
 func NowPlaying(station int) (trackID int, offset int64, queued bool)
@@ -234,11 +240,13 @@ Excluded: FMA (direct links forbidden), SoundCloud (radio and aggregation forbid
 
 Audius (terms read on 2026-10-06, versions of 2 July 2025): OML §1.2 grants "Music Players" the right to stream and to perform publicly; the API forbids persistent caching, bulk extraction and AI training. We store the Audius id and the attribution; title and cover are read live by the dApp. API key to request (api.audius.co/plans).
 
-Pipeline (`tools/curate`): allowlist → metadata (archive.org / ccMixter API) → filters (license, duration 1:30–10:00, bitrate ≥ 192 kbps, cover, complete metadata) → normalization (genre, artist, SPDX license) → sha256 and LUFS computation → listening screen keep / drop → import file → `ImportTrack` in batches.
+Pipeline (`tools/curate`): allowlist → metadata (archive.org / ccMixter API) → filters (license, duration 1:30–10:00, bitrate ≥ 128 kbps and flagged under 192, cover, complete metadata) → normalization (genre, artist, SPDX license) → sha256 and LUFS computation → listening screen keep / drop → import file → `ImportTrack` in batches.
 
 Genres (fixed list, `genre` = index): 1 Electronica · 2 Synthwave · 3 Ambient · 4 Techno · 5 House · 6 Drum & Bass · 7 Dubstep & Trap · 8 Lo-fi Beats · 9 Hip-hop & Rap · 10 R&B & Soul · 11 Rock & Indie · 12 Metal & Punk · 13 Pop · 14 Jazz & Blues · 15 Folk & Acoustic · 16 Cinematic & Classical · 17 World · 18 Latin · 19 Reggae & Dub · 20 Funk & Disco.
 
-## 6. Budgets (checked by the tests)
+## 6. Budgets (targets)
+
+The gas tests (`TestScaleSmall` / `TestScaleLarge`, `TestScale*` in radio, `gas_test.gno`) print the figures to compare; they do not assert these numbers.
 
 | Action | Max gas | Independent of volume |
 |---|---|---|
@@ -296,7 +304,7 @@ Genres (fixed list, `genre` = index): 1 Electronica · 2 Synthwave · 3 Ambient 
 - **Main flow** (`radio/flow.gno`): see §2 Radio.
 - **Dedications** (`radio.QueueWithNote`, `p/gnoradio/safe/v0`): a pick can carry a 40-character dedication shown on air. Filtering with no human: simple characters, no link or phone number, a multilingual list (LDNOOBW en/fr/es/de/it/pt/nl, CC BY 4.0, strong keywords from gnolang/gno#5178, added insults and hate terms), after normalization (accents, leet, repeated or spaced letters). `ReportNote`: three distinct reports (from listeners who have already made a pick) hide the dedication at once; a first hidden dedication is a warning (strike), a second within 7 days (`muteFor`) suspends the author's dedications for 7 days. `RestoreNote` (admin) only applies to a hidden dedication and removes the strike it gave. To be replaced by `p/gnoland/antispam` when gnolang/gno#5178 is deployed.
 - **Pick priority**: a pick takes the flow's place on air right away (fade in the app) and replaces its next track; after a listener pick in progress, it goes next.
-- **Dedication moderation before the transaction, with no human, free for GnoRadio**: (1) the app sends the text to the robot (`app/netlify/functions/dedication.mts`), which applies the on-chain filter `p/gnoradio/safe` (≈2,000 words and phrases, 20 languages, workarounds) then OpenAI's moderation model (free, multilingual, context-aware, thresholds in `app/src/lib/moderation.ts`); if it passes, the robot signs `radio.NoteMessage(note, expires)` (Ed25519, 10 min); (2) the listener sends `QueueWithNote` with this certificate and pays their gas; the realm checks `safe.Note` and the signature again, refuses otherwise, and the dedication shows at once; with no key or if OpenAI is down, dedications are paused, a pick without a dedication works; (3) three reports (from listeners who have already made a pick) hide it; a second hidden dedication within 7 days turns off the author's dedications for 7 days. The admin can `RestoreNote`, `Unmute`, `SetModBot("")` (turns dedications off). Hidden on the chain = hidden everywhere (app and gnoweb).
+- **Dedication moderation before the transaction, with no human, free for GnoRadio**: (1) the app sends the text to the robot (`app/netlify/functions/dedication.mts`), which applies the on-chain filter `p/gnoradio/safe` (≈2,000 words and phrases, 20 languages, workarounds) then OpenAI's moderation model (free, multilingual, context-aware, thresholds in `app/src/lib/moderation.ts`); if it passes, the robot signs `radio.NoteMessage(author, station, note, expires)` (Ed25519, 10 min; the realm accepts at most 15); (2) the listener sends `QueueWithNote` with this certificate and pays their gas; the realm checks `safe.Note` and the signature again, refuses otherwise, and the dedication shows at once; with no key or if OpenAI is down, dedications are paused, a pick without a dedication works; (3) three reports (from listeners who have already made a pick) hide it; a second hidden dedication within 7 days turns off the author's dedications for 7 days. The admin can `RestoreNote`, `Unmute`, `SetModBot("")` (turns dedications off). Hidden on the chain = hidden everywhere (app and gnoweb).
 
 
 ### Listener rewards (v0.6)

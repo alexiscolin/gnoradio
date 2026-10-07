@@ -16,6 +16,7 @@ python3 curate.py fetch --seed "Komiku"      # a single seed (status ignored)
 python3 curate.py hash --max 50              # sha256 (+ LUFS with ffmpeg) of non-Audius files
 python3 -m http.server 8077                  # then open http://localhost:8077/review.html
 python3 curate.py batch                      # approved.json → import_batch.json
+python3 curate.py batch --dry-run            # check every row against the realm rules, write nothing
 ```
 
 1. **`seeds.json`**: the allowlist. Each seed gives a source (`archive`, `ccmixter`, `audius`), an artist, a collection or a query, a default genre (1 to 20) and a status:
@@ -34,6 +35,12 @@ python3 curate.py batch                      # approved.json → import_batch.js
    - Keys: `K` keep, `D` drop, `N`/`P` next/previous; `1`–`9`, `0` to fix the genre (1 to 10, with `Shift` 11 to 20).
    - Decisions stay in the browser. **Export approved.json** writes the final file.
 5. **`batch`** writes `import_batch.json`: the artists to create first, then the tracks, with the count per genre (target: 80 per station). It blocks tracks without a sha256 and ccMixter tracks without a mirror.
+
+## Devnet seed
+
+`python3 curate.py devseed` is separate from the launch catalog: it writes
+`gno/r/gnoradio/devseed/v0/data.gno` (gitignored, local devnet only) from Audius trending lists,
+250 tracks per genre by default (`--per`, `--per-artist`, `--batch`).
 
 ## Legal rules per source
 
