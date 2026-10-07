@@ -24,7 +24,7 @@ Every promise, how the code keeps it and which test checks it: [docs/FEATURES.md
 - `gno/`: the realms (catalog, radio, tickets) and the gnoweb site
 - `app/`: the web app (Vite, React, TypeScript)
 - `tools/curate/`: the scripts used to pick the launch catalog
-- `docs/`: the features and promises, the spec, the developer notes and how artist verification works
+- `docs/`: the features and promises, the spec, the developer notes, how artist verification works, the architecture and how to deploy (keys and roles: [DEPLOY.md](docs/DEPLOY.md))
 
 ## Try it locally
 
