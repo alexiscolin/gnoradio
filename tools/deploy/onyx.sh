@@ -1,7 +1,10 @@
 #!/bin/sh
-# Deploy GnoRadio's packages to onyx under your own address, with your gnokey key.
+# Deploy GnoRadio's packages to onyx under your namespace, with your gnokey key.
 #
-#   tools/deploy/onyx.sh <gnokey key name> <your g1 address>
+#   tools/deploy/onyx.sh <gnokey key name> <your gno.land name or g1 address>
+#
+# e.g. tools/deploy/onyx.sh mykey nym-alexiscolin000 puts them at
+# gno.land/{p,r}/nym-alexiscolin000/gnoradio/..., next to gnogolf.
 #
 # Each package is submitted, then the script waits for onyx's approver to
 # enable it (status "live") before the next one, since each imports the earlier

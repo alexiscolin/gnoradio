@@ -2,11 +2,12 @@
 """Stage the GnoRadio packages for a public chain under another namespace.
 
 On a local devnet the packages live at gno.land/{p,r}/gnoradio/...; on onyx they
-go under the deployer's namespace, e.g. g1y2ts…/gnoradio. This copies gno/ to
+go under the deployer's namespace: their gno.land name or their address,
+e.g. nym-alexiscolin000/gnoradio (as gnogolf is under nym-alexiscolin000/gnogolf). This copies gno/ to
 OUT with every "gno.land/{p,r}/gnoradio/" path rewritten (imports, gnomod.toml,
 path constants), without tests and without the dev-only devseed realm.
 
-    python3 tools/deploy/stage.py g1y2tswmrtlany2ffmpyc0uyunk4gt4gv8gtf736/gnoradio build/onyx
+    python3 tools/deploy/stage.py nym-alexiscolin000/gnoradio build/onyx
 
 Deploy order (each package imports only earlier ones): p/text, p/svg, p/store,
 p/safe, p/blocks, r/catalog, r/radio, r/tickets, r/home. The app then builds
@@ -21,7 +22,7 @@ ORDER = ["p/text", "p/svg", "p/store", "p/safe", "p/blocks", "r/catalog", "r/rad
 
 
 def stage(ns: str, out: pathlib.Path) -> list[pathlib.Path]:
-    if not re.fullmatch(r"[a-z0-9]+(/[a-z0-9_]+)*", ns):
+    if not re.fullmatch(r"[a-z0-9][a-z0-9_-]*(/[a-z0-9_]+)*", ns):
         sys.exit(f"bad namespace: {ns}")
     src = pathlib.Path(__file__).resolve().parents[2] / "gno"
     if out.exists():
