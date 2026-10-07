@@ -12,3 +12,4 @@ app/tsconfig.tsbuildinfo
 __pycache__/
 app/test-results/
 app/playwright-report/
+build/

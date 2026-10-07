@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_WALLET_RPC?: string;
   /** gnoweb base URL, for "read the code" links. */
   readonly VITE_GNOWEB?: string;
+  /** Namespace of the GnoRadio packages: "gnoradio" locally, the deployer's on a public chain. */
+  readonly VITE_GNORADIO_NS?: string;
 }
 
 interface ImportMeta {

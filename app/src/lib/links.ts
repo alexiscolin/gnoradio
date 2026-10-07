@@ -4,10 +4,9 @@
 import { GNOWEB, REALMS } from "./gno";
 import type { View } from "./types";
 
-const HOME = "gno.land/r/gnoradio/home/v0";
-export type Realm = keyof typeof REALMS | "home";
+export type Realm = keyof typeof REALMS;
 
-const pathOf = (r: Realm): string => (r === "home" ? HOME : REALMS[r]).replace(/^gno\.land/, "");
+const pathOf = (r: Realm): string => REALMS[r].replace(/^gno\.land/, "");
 
 /** realmPage is a realm's rendered page on gnoweb, with an optional render path. */
 export const realmPage = (r: Realm, path = ""): string => `${GNOWEB}${pathOf(r)}${path ? `:${path}` : ""}`;
