@@ -4,13 +4,16 @@
 
 ```
 gno/p/gnoradio/blocks/v0     rotation stored in blocks (pure package)
+gno/p/gnoradio/safe/v0       screens dedications: plain text, no links, multilingual blocklist (pure package)
+gno/p/gnoradio/store/v0      compact encodings for ids, records and buckets (pure package)
+gno/p/gnoradio/svg/v0        shared on-chain SVG canvas (covers, tickets, charts)
+gno/p/gnoradio/text/v0       shared string helpers (keys, JSON strings, text rules, GNOT)
 gno/r/gnoradio/catalog/v0    artists, tracks, albums, playlists, likes, follows, tips, treasury
 gno/r/gnoradio/radio/v0      13 stations, rotations, listener and curator queue
 gno/r/gnoradio/tickets/v0    concerts and GRC721 tickets
 gno/r/gnoradio/home/v0       the gnoweb site
 app/                         web app (Vite + React + strict TypeScript)
 tools/curate/                launch catalog selection (see its README)
-legacy/v0.2/                 first single-realm version, kept for reference
 docs/SPEC.md                 full product and technical spec (French)
 ```
 
@@ -24,7 +27,7 @@ Use a toolchain that matches the chain:
 export GNOROOT=~/go/pkg/mod/github.com/gnolang/gno@v1.5.0
 export GNOHOME=~/.cache/gno-toolchains/onyx-v1.5.0/gnohome
 G=~/.cache/gno-toolchains/onyx-v1.5.0/gno
-for d in gno/p/gnoradio/blocks/v0 gno/r/gnoradio/{catalog,radio,tickets,home}/v0; do
+for d in gno/p/gnoradio/{blocks,svg,text}/v0 gno/r/gnoradio/{catalog,radio,tickets,home}/v0; do
   $G lint ./$d && $G test ./$d
 done
 ```
@@ -37,7 +40,7 @@ done
 gnodev local -empty-blocks -no-watch \
   -node-rpc-listener 127.0.0.1:27157 -web-listener 127.0.0.1:8911 -chain-id dev \
   -extra-root ./gno \
-  -paths gno.land/r/gnoradio/home/v0,gno.land/r/gnoradio/catalog/v0,gno.land/r/gnoradio/radio/v0,gno.land/r/gnoradio/tickets/v0,gno.land/p/gnoradio/blocks/v0 \
+  -paths gno.land/r/gnoradio/home/v0,gno.land/r/gnoradio/catalog/v0,gno.land/r/gnoradio/radio/v0,gno.land/r/gnoradio/tickets/v0,gno.land/p/gnoradio/blocks/v0,gno.land/p/gnoradio/svg/v0,gno.land/p/gnoradio/text/v0,gno.land/p/gnoradio/store/v0,gno.land/p/gnoradio/safe/v0 \
   -web-home /r/gnoradio/home/v0
 ```
 
@@ -67,15 +70,16 @@ Build-time variables:
 | `VITE_WALLET_RPC` | RPC given to Adena | `https://rpc.onyx.testnets.gno.land:443` |
 | `VITE_GNOWEB` | gnoweb base for links | `https://onyx.testnets.gno.land` |
 
-The app is a static site. `app/netlify.toml` holds the proxy, CSP and cache headers.
+The app is a static site plus one function, the artist verification robot (`app/netlify/functions/verify.mts`, see [VERIFICATION.md](VERIFICATION.md)). `app/netlify.toml` holds the proxy, CSP and cache headers.
 
 ## Deploying
 
 Nothing is deployed to a public network yet. Before onyx:
 
 1. Register the `gnoradio` namespace.
-2. Deploy `blocks`, then `catalog`, `radio`, `tickets` and `home`.
+2. Deploy the packages `blocks`, `svg`, `text`, `store` and `safe`, then the realms `catalog`, `radio`, `tickets` and `home`.
 3. Call `TransferAdmin` on each realm to hand admin to the owner's address.
+4. Set up the verification robot: `SetBot`, then `BOT_MNEMONIC` on Netlify ([VERIFICATION.md](VERIFICATION.md)).
 
 ## Git hooks
 

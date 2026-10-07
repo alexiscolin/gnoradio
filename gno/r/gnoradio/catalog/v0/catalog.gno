@@ -18,8 +18,9 @@ import (
 	"chain"
 	"chain/runtime/unsafe"
 	"strconv"
-	"strings"
 	"time"
+
+	"gno.land/p/gnoradio/store/v0"
 
 	"gno.land/p/nt/avl/v0"
 )
@@ -63,7 +64,8 @@ var licenses = []string{
 	"CC-BY-NC-4.0", "CC-BY-NC-SA-4.0", "CC-BY-NC-ND-4.0", "ALL-RIGHTS-RESERVED",
 }
 
-const audiusLicense = "Audius-OML"
+// AudiusLicense is the license id of tracks streamed from Audius.
+const AudiusLicense = "Audius-OML"
 
 const rightsTerms = "I own the rights to this recording and composition and grant GnoRadio a non-exclusive right to stream, broadcast and display it."
 
@@ -124,6 +126,7 @@ type Album struct {
 	Tracks   []int
 	Created  int64
 	Hidden   bool
+	list     string // Tracks as stored (JSON-ready)
 }
 
 type Playlist struct {
@@ -133,17 +136,17 @@ type Playlist struct {
 	Tracks  []int
 	Updated int64
 	Hidden  bool
+	list    string // Tracks as stored (JSON-ready)
 }
 
 // User groups everything a listener writes, so a like or a follow only
-// touches that listener's own records.
+// touches that listener's own record. Id sets are sorted packed lists (see
+// store): 8 bytes per like or follow.
 type User struct {
-	Likes     avl.Tree // padded track id -> true
-	NLikes    int
-	Follows   avl.Tree // padded artist id -> true
-	NFollows  int
+	Likes     string // sorted packed track ids
+	Follows   string // sorted packed artist ids
 	Tipped    int64
-	tipped    avl.Tree // padded track id -> true (distinct supporters)
+	tipped    string // sorted packed track ids (distinct supporters)
 	Playlists []int
 	Reports   int // open reports filed by this user
 }
@@ -162,20 +165,31 @@ type Rank struct {
 	Value int64
 }
 
+// Storage is compact (see records.gno): on gno.land each stored byte costs a
+// 100 ugnot deposit, and an avl node or a struct costs about 2KB on its own.
+// Tracks, artists, albums and playlists are string records in chunked
+// sequences (index = id-1); per-key indexes are hashed maps; id lists are
+// packed 8-digit strings.
 var (
 	admin     address
 	frozen    bool
 	successor string
 
-	artists   avl.Tree // padded id -> *Artist
-	byOwner   avl.Tree // owner address -> artist id
-	names     avl.Tree // lowercased artist name -> artist id
-	tracks    avl.Tree // padded id -> *Track
-	albums    avl.Tree // padded id -> *Album
-	playlists avl.Tree // padded id -> *Playlist
-	users     avl.Tree // address -> *User
-	reports   avl.Tree // padded id -> *Report
-	hosts     avl.Tree // allowed https hosts -> true
+	// Chunks of 16: a write rewrites one chunk (2-5KB, about 45k gas per KB)
+	// plus one small node per tree level. Buckets are sparse and sized for the
+	// largest expected collection (about 16 entries each at that size).
+	artists     = store.NewSeq(16)   // artist head records
+	artistLists = store.NewSeq(8)    // per artist: track id list, album id list
+	byOwner     = store.NewMap(8192) // owner address -> artist id
+	names       = store.NewMap(8192) // name skeleton -> artist id
+	tracks      = store.NewSeq(16)   // track records
+	byGenre     [NumGenres + 1]store.IDs
+	albums      = store.NewSeq(16)    // album records
+	playlists   = store.NewSeq(16)    // playlist records
+	users       = store.NewMap(65536) // address -> index in userRecs
+	userRecs    = store.NewSeq(16)    // listener records
+	reports     avl.Tree              // padded id -> *ReportInfo (bounded, removed when resolved)
+	hosts       avl.Tree              // allowed https hosts -> true
 
 	nArtists, nTracks, nAlbums, nPlaylists, nReports int
 	openReports                                      int // reports not yet resolved
@@ -196,11 +210,6 @@ func init() {
 // ---- helpers shared by every file ----
 
 func now() int64 { return time.Now().Unix() }
-
-func key(id int) string {
-	s := strconv.Itoa(id)
-	return strings.Repeat("0", 10-len(s)) + s
-}
 
 func itoa(n int) string     { return strconv.Itoa(n) }
 func itoa64(n int64) string { return strconv.FormatInt(n, 10) }
@@ -240,45 +249,15 @@ func paid() int64 {
 	return sent[0].Amount
 }
 
-func getArtist(id int) *Artist {
-	if a, ok := artists.Get(key(id)).(*Artist); ok {
-		return a
-	}
-	return nil
-}
-
-func getTrack(id int) *Track {
-	if t, ok := tracks.Get(key(id)).(*Track); ok {
-		return t
-	}
-	return nil
-}
-
-func getAlbum(id int) *Album {
-	if a, ok := albums.Get(key(id)).(*Album); ok {
-		return a
-	}
-	return nil
-}
-
-func getPlaylist(id int) *Playlist {
-	if p, ok := playlists.Get(key(id)).(*Playlist); ok {
-		return p
-	}
-	return nil
-}
-
 func artistOf(owner address) int {
-	if id, ok := byOwner.Get(owner.String()).(int); ok {
-		return id
-	}
-	return 0
+	v, _ := byOwner.Get(owner.String())
+	return atoi(v)
 }
 
 func visibleArtist(a *Artist) bool { return a != nil && !a.Hidden }
 
 func playable(t *Track) bool {
-	return t != nil && !t.Hidden && visibleArtist(getArtist(t.Artist))
+	return t != nil && !t.Hidden && artistVisible(t.Artist)
 }
 
 func mustArtist(id int) *Artist {
@@ -315,17 +294,27 @@ func mayEdit(caller address, a *Artist) bool {
 	return caller == admin
 }
 
+// user returns a listener's record (a new empty one if none); save it with putUser.
 func user(addr address) *User {
-	if u, ok := users.Get(addr.String()).(*User); ok {
+	if u := getUser(addr); u != nil {
 		return u
 	}
-	u := &User{}
-	users.Set(addr.String(), u)
-	return u
+	return &User{}
 }
 
 // updateTop keeps a short leaderboard sorted by value, highest first.
 func updateTop(list []Rank, k string, v int64) []Rank {
+	// Most writes do not touch the ranking: return the same slice so it is not
+	// stored again (each element is a stored object).
+	if len(list) == topSize && v <= list[topSize-1].Value {
+		ranked := false
+		for _, r := range list {
+			ranked = ranked || r.Key == k
+		}
+		if !ranked {
+			return list
+		}
+	}
 	out := make([]Rank, 0, topSize+1)
 	for _, r := range list {
 		if r.Key != k {

@@ -93,3 +93,14 @@ func TestTreasuryNotARealm(cur realm, t *testing.T) {
 	SetTreasury(cross(cur), dave)
 	uassert.Equal(t, dave, Treasury())
 }
+
+// Names, titles and bios refuse slurs but not strong words (real works).
+func TestSlurs(cur realm, t *testing.T) {
+	reset()
+	testing.SetRealm(testing.NewUserRealm(alice))
+	uassert.AbortsContains(t, cur, "name holds a slur", func() { RegisterArtist(cross(cur), "Heil Hitler", "") })
+	uassert.AbortsContains(t, cur, "bio holds a slur", func() { RegisterArtist(cross(cur), "Alice", "f4ggots out") })
+	RegisterArtist(cross(cur), "Sex Pistols", "Bitches Brew and Fuck tha Police")
+	uassert.AbortsContains(t, cur, "title holds a slur", func() { publish(cur, "Nigger Kills") })
+	publish(cur, "Anarchy in the UK")
+}

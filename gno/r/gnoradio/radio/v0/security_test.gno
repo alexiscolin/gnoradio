@@ -17,7 +17,7 @@ func TestGenreEditLeavesNoOrphanSlot(cur realm, t *testing.T) {
 	catalog.RegisterArtist(cross(cur), "Genre Mover", "")
 	id := publish(cur, "Mover", 3, "2:00")
 	Sync(cross(cur), 50)
-	i, ok := stations[3].slotOf.Get(key(id)).(int)
+	i, ok := stations[3].slot(id)
 	urequire.True(t, ok)
 
 	catalog.EditTrack(cross(cur), id, "Mover", 7, "2:00", "", "ipfs://"+cid, "", "", "")
@@ -25,7 +25,7 @@ func TestGenreEditLeavesNoOrphanSlot(cur realm, t *testing.T) {
 
 	_, d := stations[3].rot.Slot(i)
 	uassert.Equal(t, int64(0), d) // silent on the old genre station
-	j, ok := stations[7].slotOf.Get(key(id)).(int)
+	j, ok := stations[7].slot(id)
 	urequire.True(t, ok) // now rotates on the new one
 	_, d = stations[7].rot.Slot(j)
 	uassert.Equal(t, int64(120), d)
@@ -50,7 +50,7 @@ func TestDropSlotAndUnqueue(cur realm, t *testing.T) {
 	Unqueue(cross(cur), 6, b)
 	uassert.Equal(t, 0, len(UpNext(6)))
 	DropSlot(cross(cur), 6, a)
-	i := stations[6].slotOf.Get(key(a)).(int)
+	i, _ := stations[6].slot(a)
 	_, d := stations[6].rot.Slot(i)
 	uassert.Equal(t, int64(0), d)
 	uassert.False(t, strings.Contains(ScheduleJSON(6, 600), `"track":`+itoa(a)+`,`))
@@ -86,7 +86,7 @@ func TestQueueCooldownAndAirtimeCap(cur realm, t *testing.T) {
 					capped = true
 				}
 			}()
-			queue(who, 8, ids[i], false)
+			queue(who, 8, ids[i], false, "")
 		}()
 	}
 	urequire.True(t, capped)

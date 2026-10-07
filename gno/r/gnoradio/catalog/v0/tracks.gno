@@ -3,6 +3,8 @@ package catalog
 import (
 	"strconv"
 	"strings"
+
+	"gno.land/p/gnoradio/store/v0"
 )
 
 // PublishTrack adds a track by the caller's own artist profile.
@@ -41,7 +43,7 @@ func ImportTrack(cur realm, artistID int, title string, genre int, duration, lic
 		if !strings.HasPrefix(audio, "audius:") {
 			panic("catalog: Audius tracks use audio audius:<trackId>")
 		}
-		t.License = audiusLicense
+		t.License = AudiusLicense
 	} else {
 		lic := curatedLicense(license)
 		if lic == "" {
@@ -72,16 +74,27 @@ func EditTrack(cur realm, trackID int, title string, genre int, duration, credit
 	if t.Origin == OriginAudius && !strings.HasPrefix(audio, "audius:") {
 		panic("catalog: Audius tracks use audio audius:<trackId>")
 	}
+	oldGenre := t.Genre
 	setInfo(t, title, genre, duration, credits)
+	if t.Genre != oldGenre {
+		byGenre[oldGenre].Remove(t.ID)
+		byGenre[t.Genre].Add(t.ID)
+	}
 	setMedia(t, audio, audioSHA, cover, coverSHA)
+	putTrack(t)
 	emitEvent("TrackEdited", "id", itoa(t.ID), "audio", t.Audio, "duration", itoa64(t.Duration), "genre", itoa(t.Genre))
 }
 
 func addTrack(publisher address, a *Artist, t *Track) int {
-	a.Tracks = appendCapped(a.Tracks, nTracks+1, maxPerArtist, "tracks per artist")
+	trackIDs, albumIDs := lists(a.ID)
+	if store.Count(trackIDs) >= maxPerArtist {
+		panic("catalog: tracks per artist limit reached")
+	}
 	nTracks++
 	t.ID, t.Artist, t.Created = nTracks, a.ID, now()
-	tracks.Set(key(t.ID), t)
+	tracks.Append(trackRecord(t))
+	setLists(a.ID, trackIDs+store.Enc(t.ID), albumIDs)
+	byGenre[t.Genre].Add(t.ID)
 	recordActivity("publish", publisher, t.ID, a.ID, 0)
 	emitEvent("TrackPublished", "id", itoa(t.ID), "artist", itoa(a.ID), "origin", t.Origin, "genre", itoa(t.Genre),
 		"duration", itoa64(t.Duration), "title", t.Title, "audio", t.Audio, "license", t.License)

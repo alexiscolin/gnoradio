@@ -1,25 +1,20 @@
 package catalog
 
-import "strings"
+import (
+	"strconv"
+	"strings"
 
-// JSON exports for the GnoRadio app and indexers (vm/qeval). Every string
-// passed validText / validName / URL checks, so none holds a quote or a
-// backslash and no escaping is needed.
+	"gno.land/p/gnoradio/store/v0"
+	"gno.land/p/gnoradio/text/v0"
+)
 
-func q(s string) string { return `"` + s + `"` }
-
-func boolStr(v bool) string {
-	if v {
-		return "true"
-	}
-	return "false"
-}
+// JSON exports for the GnoRadio app and indexers (vm/qeval).
 
 func Info() string {
-	return `{"version":` + q(version) + `,"artists":` + itoa(nArtists) + `,"tracks":` + itoa(nTracks) +
-		`,"albums":` + itoa(nAlbums) + `,"playlists":` + itoa(nPlaylists) + `,"listeners":` + itoa(users.Size()) +
-		`,"genres":` + itoa(NumGenres) + `,"now":` + itoa64(now()) + `,"frozen":` + boolStr(frozen) +
-		`,"successor":` + q(successor) + `,"admin":` + q(admin.String()) + `}`
+	return `{"version":` + text.Str(version) + `,"artists":` + itoa(nArtists) + `,"tracks":` + itoa(nTracks) +
+		`,"albums":` + itoa(nAlbums) + `,"playlists":` + itoa(nPlaylists) + `,"listeners":` + itoa(users.Len()) +
+		`,"genres":` + itoa(NumGenres) + `,"now":` + itoa64(now()) + `,"frozen":` + strconv.FormatBool(frozen) +
+		`,"successor":` + text.Str(successor) + `,"admin":` + text.Str(admin.String()) + `}`
 }
 
 func ints(xs []int) string {
@@ -35,21 +30,22 @@ func ints(xs []int) string {
 	return b.String()
 }
 
-func trackJSON(t *Track) string {
-	a := getArtist(t.Artist)
+func trackJSON(t *Track) string { return trackJSONWith(t, getArtist(t.Artist)) }
+
+func trackJSONWith(t *Track, a *Artist) string {
 	var b strings.Builder
-	b.WriteString(`{"id":` + itoa(t.ID) + `,"artist":` + itoa(t.Artist) + `,"artistName":` + q(a.Name) +
-		`,"claimed":` + boolStr(a.Owner != "") + `,"origin":` + q(t.Origin) + `,"title":` + q(t.Title) +
-		`,"genre":` + itoa(t.Genre) + `,"duration":` + itoa64(t.Duration) + `,"license":` + q(t.License) +
-		`,"cmo":` + q(t.CMO) + `,"credits":` + q(t.Credits) + `,"audio":` + q(t.Audio) + `,"audioSha256":` + q(t.AudioSHA) +
-		`,"cover":` + q(t.Cover) + `,"coverSha256":` + q(t.CoverSHA) + `,"source":` + q(t.SourceURL) +
-		`,"attribution":` + q(t.Attribution) + `,"album":` + itoa(t.Album) + `,"created":` + itoa64(t.Created) +
+	b.WriteString(`{"id":` + itoa(t.ID) + `,"artist":` + itoa(t.Artist) + `,"artistName":` + text.Str(a.Name) +
+		`,"claimed":` + strconv.FormatBool(a.Owner != "") + `,"origin":` + text.Str(t.Origin) + `,"title":` + text.Str(t.Title) +
+		`,"genre":` + itoa(t.Genre) + `,"duration":` + itoa64(t.Duration) + `,"license":` + text.Str(t.License) +
+		`,"cmo":` + text.Str(t.CMO) + `,"credits":` + text.Str(t.Credits) + `,"audio":` + text.Str(t.Audio) + `,"audioSha256":` + text.Str(t.AudioSHA) +
+		`,"cover":` + text.Str(t.Cover) + `,"coverSha256":` + text.Str(t.CoverSHA) + `,"source":` + text.Str(t.SourceURL) +
+		`,"attribution":` + text.Str(t.Attribution) + `,"album":` + itoa(t.Album) + `,"created":` + itoa64(t.Created) +
 		`,"likes":` + itoa(t.Likes) + `,"tips":` + itoa64(t.Tips) + `,"supporters":` + itoa(t.Supporters) + `,"splits":[`)
 	for i, s := range t.Splits {
 		if i > 0 {
 			b.WriteString(",")
 		}
-		b.WriteString(`{"to":` + q(s.To.String()) + `,"pct":` + itoa64(s.Pct) + `}`)
+		b.WriteString(`{"to":` + text.Str(s.To.String()) + `,"pct":` + itoa64(s.Pct) + `}`)
 	}
 	b.WriteString(`]}`)
 	return b.String()
@@ -58,42 +54,63 @@ func trackJSON(t *Track) string {
 // TrackJSON returns one playable track.
 func TrackJSON(id int) string { return trackJSON(mustTrack(id)) }
 
-// TracksJSON pages through playable tracks (newest first), at most 50.
+// TracksJSON pages through playable tracks (newest first), at most 100.
 func TracksJSON(offset, limit int) string {
-	if limit < 1 || limit > 50 {
-		limit = 50
+	if limit < 1 || limit > maxBatch {
+		limit = maxBatch
 	}
 	var b strings.Builder
 	b.WriteString(`{"total":` + itoa(nTracks) + `,"tracks":[`)
 	n := 0
+	heads := map[int]*Artist{} // an artist is decoded once per page
 	for _, id := range TrackPage(offset, limit, true) {
-		if t := getTrack(id); playable(t) {
-			if n > 0 {
-				b.WriteString(",")
-			}
-			b.WriteString(trackJSON(t))
-			n++
+		t := getTrack(id)
+		if t == nil || t.Hidden {
+			continue
 		}
+		a, ok := heads[t.Artist]
+		if !ok {
+			a = getArtist(t.Artist)
+			heads[t.Artist] = a
+		}
+		if !visibleArtist(a) {
+			continue
+		}
+		if n > 0 {
+			b.WriteString(",")
+		}
+		b.WriteString(trackJSONWith(t, a))
+		n++
 	}
 	b.WriteString(`]}`)
 	return b.String()
 }
 
-func ArtistJSON(id int) string {
-	a := mustArtist(id)
-	return `{"id":` + itoa(a.ID) + `,"name":` + q(a.Name) + `,"kind":` + q(a.Kind) + `,"owner":` + q(a.Owner.String()) +
-		`,"bio":` + q(a.Bio) + `,"source":` + q(a.Source) + `,"joined":` + itoa64(a.Joined) + `,"tips":` + itoa64(a.Tips) +
-		`,"followers":` + itoa(a.Followers) + `,"verified":` + boolStr(a.Verified) +
-		`,"tracks":` + ints(a.Tracks) + `,"albums":` + ints(a.Albums) + `}`
+func ArtistJSON(id int) string { return artistJSON(mustArtist(id)) }
+
+func artistJSON(a *Artist) string {
+	trackIDs, albumIDs := lists(a.ID)
+	return `{"id":` + itoa(a.ID) + `,"name":` + text.Str(a.Name) + `,"kind":` + text.Str(a.Kind) + `,"owner":` + text.Str(a.Owner.String()) +
+		`,"bio":` + text.Str(a.Bio) + `,"source":` + text.Str(a.Source) + `,"joined":` + itoa64(a.Joined) + `,"tips":` + itoa64(a.Tips) +
+		`,"followers":` + itoa(a.Followers) + `,"verified":` + strconv.FormatBool(a.Verified) +
+		`,"tracks":` + store.JSON(trackIDs) + `,"albums":` + store.JSON(albumIDs) + `}`
 }
 
 func AlbumJSON(id int) string {
 	al := getAlbum(id)
-	if al == nil || al.Hidden || !visibleArtist(getArtist(al.Artist)) {
+	if !visibleAlbum(al) {
 		panic("catalog: unknown album")
 	}
-	return `{"id":` + itoa(al.ID) + `,"artist":` + itoa(al.Artist) + `,"title":` + q(al.Title) + `,"cover":` + q(al.Cover) +
-		`,"coverSha256":` + q(al.CoverSHA) + `,"year":` + itoa(al.Year) + `,"tracks":` + ints(al.Tracks) + `}`
+	return albumJSON(al)
+}
+
+func visibleAlbum(al *Album) bool {
+	return al != nil && !al.Hidden && visibleArtist(getArtist(al.Artist))
+}
+
+func albumJSON(al *Album) string {
+	return `{"id":` + itoa(al.ID) + `,"artist":` + itoa(al.Artist) + `,"title":` + text.Str(al.Title) + `,"cover":` + text.Str(al.Cover) +
+		`,"coverSha256":` + text.Str(al.CoverSHA) + `,"year":` + itoa(al.Year) + `,"tracks":` + store.JSON(al.list) + `}`
 }
 
 func PlaylistJSON(id int) string {
@@ -101,14 +118,18 @@ func PlaylistJSON(id int) string {
 	if p == nil || p.Hidden {
 		panic("catalog: unknown playlist")
 	}
-	return `{"id":` + itoa(p.ID) + `,"owner":` + q(p.Owner.String()) + `,"title":` + q(p.Title) +
-		`,"updated":` + itoa64(p.Updated) + `,"tracks":` + ints(p.Tracks) + `}`
+	return playlistJSON(p)
+}
+
+func playlistJSON(p *Playlist) string {
+	return `{"id":` + itoa(p.ID) + `,"owner":` + text.Str(p.Owner.String()) + `,"title":` + text.Str(p.Title) +
+		`,"updated":` + itoa64(p.Updated) + `,"tracks":` + store.JSON(p.list) + `}`
 }
 
 // UserJSON returns a listener's public counters (likes are paged with LikesJSON).
 func UserJSON(addr address) string {
 	likes, follows, tipped, lists := UserStats(addr)
-	return `{"address":` + q(addr.String()) + `,"likes":` + itoa(likes) + `,"follows":` + itoa(follows) +
+	return `{"address":` + text.Str(addr.String()) + `,"likes":` + itoa(likes) + `,"follows":` + itoa(follows) +
 		`,"tipped":` + itoa64(tipped) + `,"playlists":` + ints(lists) + `,"artist":` + itoa(artistOf(addr)) + `}`
 }
 
@@ -121,8 +142,66 @@ func GenresJSON() string {
 		if g > 1 {
 			b.WriteString(",")
 		}
-		b.WriteString(`{"id":` + itoa(g) + `,"name":` + q(genres[g]) + `}`)
+		b.WriteString(`{"id":` + itoa(g) + `,"name":` + text.Str(genres[g]) + `}`)
 	}
 	b.WriteString("]")
 	return b.String()
+}
+
+// maxBatch caps the batched readers, so one query stays far below the qeval budget.
+const maxBatch = 100
+
+// batch writes {"total":n,"<key>":[...]} for ids offset+1..offset+limit, skipping
+// hidden items; one query replaces up to 100 single reads.
+func batch(key string, total, offset, limit int, one func(id int) string) string {
+	if limit < 1 || limit > maxBatch {
+		limit = maxBatch
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	var b strings.Builder
+	b.WriteString(`{"total":` + itoa(total) + `,"` + key + `":[`)
+	n := 0
+	for id := offset + 1; id <= total && id <= offset+limit; id++ {
+		if s := one(id); s != "" {
+			if n > 0 {
+				b.WriteString(",")
+			}
+			b.WriteString(s)
+			n++
+		}
+	}
+	b.WriteString(`]}`)
+	return b.String()
+}
+
+// ArtistsJSON returns visible artists with ids offset+1..offset+limit (at most 100).
+func ArtistsJSON(offset, limit int) string {
+	return batch("artists", nArtists, offset, limit, func(id int) string {
+		if a := getArtist(id); visibleArtist(a) {
+			return artistJSON(a)
+		}
+		return ""
+	})
+}
+
+// AlbumsJSON returns visible albums with ids offset+1..offset+limit (at most 100).
+func AlbumsJSON(offset, limit int) string {
+	return batch("albums", nAlbums, offset, limit, func(id int) string {
+		if al := getAlbum(id); visibleAlbum(al) {
+			return albumJSON(al)
+		}
+		return ""
+	})
+}
+
+// PlaylistsJSON returns visible playlists with ids offset+1..offset+limit (at most 100).
+func PlaylistsJSON(offset, limit int) string {
+	return batch("playlists", nPlaylists, offset, limit, func(id int) string {
+		if p := getPlaylist(id); p != nil && !p.Hidden {
+			return playlistJSON(p)
+		}
+		return ""
+	})
 }

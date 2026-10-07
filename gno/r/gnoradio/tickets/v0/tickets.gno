@@ -10,7 +10,9 @@ import (
 	"strconv"
 	"strings"
 	"time"
-	"unicode"
+
+	"gno.land/p/gnoradio/safe/v0"
+	"gno.land/p/gnoradio/text/v0"
 
 	"gno.land/p/nt/avl/v0"
 	"gno.land/p/nt/grc721/v0"
@@ -69,8 +71,7 @@ var (
 	upcoming     avl.Tree // padded start + "/" + padded id -> *event (not cancelled, not hidden)
 	artistAhead  avl.Tree // padded artistID + "/" + padded start + "/" + padded id -> true (not cancelled)
 	tickets      avl.Tree // padded id -> *Ticket
-	owned        avl.Tree // owner + "/" + padded ticket id -> true
-	ownedCount   avl.Tree // owner -> int
+	owned        avl.Tree // owner + "/" + padded ticket id -> true (the grc721 ledger cannot list by owner)
 	attended     avl.Tree // holder -> int
 	nEvents      int
 	nTickets     int
@@ -92,7 +93,7 @@ func CreateEvent(cur realm, title, venue, link, start, price string, capacity in
 	noPayment()
 	notFrozen()
 	artistID := mustArtistOf(caller)
-	if n, _ := artistEvents.Get(key(artistID)).(int); n >= maxPerArtist {
+	if n, _ := artistEvents.Get(text.Key(artistID)).(int); n >= maxPerArtist {
 		panic("tickets: concert limit reached for this artist")
 	}
 	if openAhead(artistID) >= maxOpenAhead {
@@ -121,12 +122,12 @@ func CreateEvent(cur realm, title, venue, link, start, price string, capacity in
 	nEvents++
 	e := &event{Event: Event{ID: nEvents, ArtistID: artistID, Title: title, Venue: venue, Link: link,
 		Start: when.Unix(), Price: p, Capacity: capacity}}
-	events.Set(key(e.ID), e)
-	byArtist.Set(key(artistID)+"/"+key(e.ID), true)
+	events.Set(text.Key(e.ID), e)
+	byArtist.Set(text.Key(artistID)+"/"+text.Key(e.ID), true)
 	upcoming.Set(upKey(e), e)
-	artistAhead.Set(key(artistID)+"/"+upKey(e), true)
-	n, _ := artistEvents.Get(key(artistID)).(int)
-	artistEvents.Set(key(artistID), n+1)
+	artistAhead.Set(text.Key(artistID)+"/"+upKey(e), true)
+	n, _ := artistEvents.Get(text.Key(artistID)).(int)
+	artistEvents.Set(text.Key(artistID), n+1)
 	chain.Emit("EventCreated", "id", itoa(e.ID), "artist", itoa(artistID), "start", itoa64(e.Start), "price", itoa64(p))
 	return e.ID
 }
@@ -142,9 +143,13 @@ func CancelEvent(cur realm, eventID int) {
 	}
 	e.Cancelled = true
 	upcoming.Remove(upKey(e))
-	artistAhead.Remove(key(e.ArtistID) + "/" + upKey(e))
+	artistAhead.Remove(text.Key(e.ArtistID) + "/" + upKey(e))
 	chain.Emit("EventCancelled", "id", itoa(e.ID))
 }
+
+// artistVerified gates paid tickets like tips (tests swap it: the catalog
+// admin is unreachable from this package under gno test).
+var artistVerified = catalog.ArtistVerified
 
 // BuyTicket mints a GRC721 ticket to the caller; the exact price must be
 // attached and goes straight to the artist.
@@ -162,8 +167,8 @@ func BuyTicket(cur realm, eventID int) int {
 		panic("tickets: sold out")
 	}
 	owner := catalog.ArtistOwner(e.ArtistID)
-	if e.Price > 0 && owner == "" {
-		panic("tickets: this artist profile is not claimed yet")
+	if e.Price > 0 && (owner == "" || !artistVerified(e.ArtistID)) {
+		panic("tickets: this artist has not verified their profile yet")
 	}
 	bought, _ := e.buyers.Get(caller.String()).(int)
 	if bought >= maxPerBuyer || (e.Price == 0 && bought >= 1) {
@@ -178,7 +183,7 @@ func BuyTicket(cur realm, eventID int) int {
 			panic("tickets: the GnoRadio treasury is not set")
 		}
 		if paid() != e.Price+fee {
-			panic("tickets: attach exactly " + gnot(e.Price+fee))
+			panic("tickets: attach exactly " + text.GNOT(e.Price+fee))
 		}
 	}
 
@@ -189,7 +194,7 @@ func BuyTicket(cur realm, eventID int) int {
 	e.buyers.Set(caller.String(), bought+1)
 	nTickets++
 	tk := &Ticket{ID: nTickets, Event: e.ID, Serial: e.Sold}
-	tickets.Set(key(tk.ID), tk)
+	tickets.Set(text.Key(tk.ID), tk)
 	if err := ticketLed.Mint(caller, tokenID(tk.ID)); err != nil {
 		panic("tickets: " + err.Error())
 	}
@@ -234,6 +239,9 @@ func CheckIn(cur realm, ticketID int) {
 	e := mustEvent(tk.Event)
 	if catalog.ArtistOwner(e.ArtistID) != caller {
 		panic("tickets: only the concert's artist can check tickets in")
+	}
+	if e.Cancelled {
+		panic("tickets: this concert is cancelled")
 	}
 	if now() < e.Start-checkInWindow {
 		panic("tickets: check-in opens 12h before the concert")
@@ -347,7 +355,7 @@ func ArtistEvents(artistID, limit int) []int {
 		limit = 50
 	}
 	var ids []int
-	prefix := key(artistID) + "/"
+	prefix := text.Key(artistID) + "/"
 	byArtist.ReverseIterate(prefix, prefix+"~", func(k string, _ any) bool {
 		if e := getEvent(atoi(k[len(prefix):])); visible(e) {
 			ids = append(ids, e.ID)
@@ -388,7 +396,7 @@ func eachUpcoming(fn func(e *event) bool) {
 // openAhead counts the artist's future, not cancelled concerts.
 func openAhead(artistID int) int {
 	n := 0
-	prefix := key(artistID) + "/"
+	prefix := text.Key(artistID) + "/"
 	artistAhead.Iterate(prefix+key64(now()+1), prefix+"~", func(_ string, _ any) bool {
 		n++
 		return false
@@ -448,15 +456,10 @@ func key64(n int64) string {
 	return strings.Repeat("0", 12-len(s)) + s
 }
 
-func upKey(e *event) string { return key64(e.Start) + "/" + key(e.ID) }
-
-func key(id int) string {
-	s := strconv.Itoa(id)
-	return strings.Repeat("0", 10-len(s)) + s
-}
+func upKey(e *event) string { return key64(e.Start) + "/" + text.Key(e.ID) }
 
 func getEvent(id int) *event {
-	if e, ok := events.Get(key(id)).(*event); ok {
+	if e, ok := events.Get(text.Key(id)).(*event); ok {
 		return e
 	}
 	return nil
@@ -475,7 +478,7 @@ func mustEvent(id int) *event {
 }
 
 func getTicket(id int) *Ticket {
-	if tk, ok := tickets.Get(key(id)).(*Ticket); ok {
+	if tk, ok := tickets.Get(text.Key(id)).(*Ticket); ok {
 		return tk
 	}
 	return nil
@@ -489,43 +492,19 @@ func mustTicket(id int) *Ticket {
 	return tk
 }
 
-func addOwned(addr address, id int) {
-	owned.Set(addr.String()+"/"+key(id), true)
-	n, _ := ownedCount.Get(addr.String()).(int)
-	ownedCount.Set(addr.String(), n+1)
-}
+func addOwned(addr address, id int) { owned.Set(addr.String()+"/"+text.Key(id), true) }
 
-func removeOwned(addr address, id int) {
-	if _, removed := owned.Remove(addr.String() + "/" + key(id)); removed {
-		n, _ := ownedCount.Get(addr.String()).(int)
-		ownedCount.Set(addr.String(), n-1)
-	}
-}
+func removeOwned(addr address, id int) { owned.Remove(addr.String() + "/" + text.Key(id)) }
 
 func tokenID(id int) grc721.TokenID { return grc721.TokenID(strconv.Itoa(id)) }
 
-// validText accepts letters, digits, spaces and a little punctuation, so the
-// text is safe in markdown, SVG and JSON alike.
-func validText(s string, min, max int) bool {
-	n := 0
-	for _, r := range s {
-		n++
-		if unicode.IsLetter(r) || unicode.IsDigit(r) {
-			continue
-		}
-		switch r {
-		case ' ', '.', ',', '\'', '-', '!', '?', ':', '/':
-			continue
-		}
-		return false
-	}
-	return n >= min && n <= max
-}
-
 func mustText(field, s string, min, max int) {
-	if !validText(s, min, max) {
+	if !text.Valid(s, min, max) {
 		panic("tickets: " + field + " must be " + itoa(min) + "-" + itoa(max) +
-			" characters (letters, digits, spaces and . , ' - ! ? : /)")
+			" characters (letters, digits, spaces and . , ' - ! ? : / &)")
+	}
+	if safe.Slur(s) {
+		panic("tickets: " + field + " holds a slur")
 	}
 }
 
@@ -548,21 +527,12 @@ func validURL(s string) bool {
 func parseGNOT(s string) (int64, bool) {
 	s = strings.TrimSpace(s)
 	whole, frac, _ := strings.Cut(s, ".")
-	if whole == "" || len(whole) > 9 || len(frac) > 6 || !digits(whole) || !digits(frac) {
+	if whole == "" || len(whole) > 9 || len(frac) > 6 || !text.Digits(whole) || (frac != "" && !text.Digits(frac)) {
 		return 0, false
 	}
 	w, _ := strconv.ParseInt(whole, 10, 64)
 	f, _ := strconv.ParseInt(frac+strings.Repeat("0", 6-len(frac)), 10, 64)
 	return w*ugnot + f, true
-}
-
-func digits(s string) bool {
-	for _, c := range s {
-		if c < '0' || c > '9' {
-			return false
-		}
-	}
-	return true
 }
 
 func itoa(n int) string     { return strconv.Itoa(n) }
@@ -574,18 +544,6 @@ func atoi(s string) int {
 		return 0
 	}
 	return n
-}
-
-// gnot formats ugnot as GNOT with up to 6 decimals.
-func gnot(u int64) string {
-	whole := strconv.FormatInt(u/ugnot, 10)
-	frac := u % ugnot
-	if frac == 0 {
-		return whole + " GNOT"
-	}
-	f := strconv.FormatInt(frac, 10)
-	f = strings.TrimRight(strings.Repeat("0", 6-len(f))+f, "0")
-	return whole + "." + f + " GNOT"
 }
 
 func date(unix int64) string { return time.Unix(unix, 0).UTC().Format("2006-01-02 15:04") + " UTC" }

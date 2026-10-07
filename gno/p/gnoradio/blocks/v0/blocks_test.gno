@@ -80,11 +80,11 @@ func TestSetDuration(t *testing.T) {
 
 func TestPanics(cur realm, t *testing.T) {
 	l := New()
-	uassert.PanicsWithMessage(t, cur, "blocks: negative duration", func() { l.Append(1, -1) })
+	uassert.PanicsWithMessage(t, cur, "blocks: duration out of range", func() { l.Append(1, -1) })
 	uassert.PanicsWithMessage(t, cur, "blocks: index out of range", func() { l.Slot(0) })
 	l.Append(1, 10)
 	uassert.PanicsWithMessage(t, cur, "blocks: index out of range", func() { l.SetDuration(1, 5) })
-	uassert.PanicsWithMessage(t, cur, "blocks: negative duration", func() { l.SetDuration(0, -5) })
+	uassert.PanicsWithMessage(t, cur, "blocks: duration out of range", func() { l.SetDuration(0, -5) })
 }
 
 func TestEmpty(t *testing.T) {
@@ -136,4 +136,21 @@ func TestHundredK(t *testing.T) {
 	uassert.True(t, ok)
 	uassert.Equal(t, 99998, slot)
 	uassert.Equal(t, int64(99999*200), l.PrefixBefore(99999))
+}
+
+func TestPackedRange(t *testing.T) {
+	l := New()
+	l.Append(MaxID, MaxDur)
+	l.Append(0, 0)
+	id, d := l.Slot(0)
+	uassert.Equal(t, MaxID, id)
+	uassert.Equal(t, int64(MaxDur), d)
+	uassert.Equal(t, "blocks: id out of range", panicOf(func() { l.Append(MaxID+1, 1) }))
+	uassert.Equal(t, "blocks: duration out of range", panicOf(func() { l.Append(1, MaxDur+1) }))
+}
+
+func panicOf(f func()) (msg string) {
+	defer func() { msg, _ = recover().(string) }()
+	f()
+	return ""
 }

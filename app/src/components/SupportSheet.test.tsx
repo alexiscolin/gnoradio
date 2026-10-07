@@ -30,6 +30,6 @@ describe("SupportSheet", () => {
   it("refuses amounts under 0.1 GNOT", () => {
     render(<SupportSheet target={{ kind: "platform" }} codeURL="#" onClose={() => undefined} onTip={() => undefined} onSupport={() => undefined} />);
     fireEvent.change(screen.getByPlaceholderText("Other"), { target: { value: "0.05" } });
-    expect(screen.getByRole<HTMLButtonElement>("button", { name: /Send/ }).disabled).toBe(true);
+    expect(screen.getByRole<HTMLButtonElement>("button", { name: /Enter between 0.1/ }).disabled).toBe(true);
   });
 });

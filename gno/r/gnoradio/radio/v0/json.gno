@@ -1,22 +1,15 @@
 package radio
 
 import (
+	"strconv"
 	"strings"
+
+	"gno.land/p/gnoradio/text/v0"
 
 	"gno.land/r/gnoradio/catalog/v0"
 )
 
-// Read API for the GnoRadio app (vm/qeval). Track titles come from the
-// catalog, where they passed its text allowlist (no quotes or backslashes).
-
-func q(s string) string { return `"` + s + `"` }
-
-func boolStr(v bool) string {
-	if v {
-		return "true"
-	}
-	return "false"
-}
+// Read API for the GnoRadio app (vm/qeval).
 
 // ScheduleJSON returns what a station plays from now until now+horizon seconds
 // (60..7200, at most 60 entries): programmed slots and the rotation between
@@ -32,13 +25,13 @@ func ScheduleJSON(stationID, horizon int) string {
 	var b strings.Builder
 	b.WriteString(`{"station":` + itoa(st.id) + `,"now":` + itoa64(ts) + `,"entries":[`)
 	n := 0
-	emit := func(track int, start, stop, offset int64, queued bool, by string) {
+	emit := func(track int, start, stop, offset int64, queued bool, by, note string) {
 		if n > 0 {
 			b.WriteString(",")
 		}
-		b.WriteString(`{"track":` + itoa(track) + `,"title":` + q(catalog.TrackTitle(track)) +
+		b.WriteString(`{"track":` + itoa(track) + `,"title":` + text.Str(catalog.TrackTitle(track)) +
 			`,"start":` + itoa64(start) + `,"end":` + itoa64(stop) + `,"offset":` + itoa64(offset) +
-			`,"queued":` + boolStr(queued) + `,"by":` + q(by) + `}`)
+			`,"queued":` + strconv.FormatBool(queued) + `,"by":` + text.Str(by) + `,"note":` + text.Str(note) + `}`)
 		n++
 	}
 	cur := ts
@@ -58,7 +51,7 @@ func ScheduleJSON(stationID, horizon int) string {
 		if slot != nil {
 			stop := slot.Start + slot.Dur
 			if _, _, _, ok := catalog.TrackBrief(slot.Track); ok {
-				emit(slot.Track, slot.Start, stop, 0, true, slot.By.String())
+				emit(slot.Track, slot.Start, stop, 0, slot.By != "", slot.By.String(), slot.shownNote(ts))
 			}
 			cur = stop
 			continue
@@ -76,7 +69,7 @@ func ScheduleJSON(stationID, horizon int) string {
 			stop = next // the rotation pauses for the programmed slot
 		}
 		if _, _, _, playable := catalog.TrackBrief(track); playable {
-			emit(track, cur-off, stop, off, false, "")
+			emit(track, cur-off, stop, off, false, "", "")
 		}
 		cur = stop
 	}
@@ -94,10 +87,30 @@ func StationsJSON() string {
 		}
 		tracks, loop, queued := StationInfo(st.id)
 		track, offset, isQueued := st.onAir(now())
-		b.WriteString(`{"id":` + itoa(st.id) + `,"name":` + q(StationName(st.id)) + `,"genre":` + itoa(st.genre) +
+		b.WriteString(`{"id":` + itoa(st.id) + `,"name":` + text.Str(StationName(st.id)) + `,"genre":` + itoa(st.genre) +
 			`,"tracks":` + itoa(tracks) + `,"loop":` + itoa64(loop) + `,"queued":` + itoa(queued) +
-			`,"now":{"track":` + itoa(track) + `,"offset":` + itoa64(offset) + `,"queued":` + boolStr(isQueued) + `}}`)
+			`,"now":{"track":` + itoa(track) + `,"offset":` + itoa64(offset) + `,"queued":` + strconv.FormatBool(isQueued) + `}}`)
 	}
 	b.WriteString(`]}`)
 	return b.String()
+}
+
+// PendingNotesJSON lists the dedications written in the last 10 minutes and
+// not hidden, for the moderation robot: [{"station":0,"start":…,"note":"…"}].
+func PendingNotesJSON() string {
+	ts := now()
+	var b strings.Builder
+	b.WriteString("[")
+	for _, st := range stations {
+		for _, s := range st.schedule {
+			if s.Note == "" || s.NoteHidden || s.NoteAt < ts-600 {
+				continue
+			}
+			if b.Len() > 1 {
+				b.WriteString(",")
+			}
+			b.WriteString(`{"station":` + itoa(st.id) + `,"start":` + itoa64(s.Start) + `,"note":` + text.Str(s.Note) + `}`)
+		}
+	}
+	return b.String() + "]"
 }

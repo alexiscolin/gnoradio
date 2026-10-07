@@ -53,10 +53,10 @@ describe("Adena client", () => {
   });
   it("returns the tx hash and height", async () => {
     installAdena({});
-    await expect(call("g1x", "gno.land/r/gnoradio/catalog/v0", "Like", ["1"])).resolves.toMatchObject({ hash: "abc+/=", height: "42" });
+    await expect(call("g1x", { pkg: "gno.land/r/gnoradio/catalog/v0", func: "Like", args: ["1"] })).resolves.toMatchObject({ hash: "abc+/=", height: "42" });
   });
   it("surfaces an on-chain failure", async () => {
     installAdena({ DoContract: () => Promise.resolve(ok("TRANSACTION_SUCCESS", { hash: "h", height: "1", deliverTx: { ResponseBase: { Error: {}, Log: "catalog: already liked" } } })) });
-    await expect(call("g1x", "gno.land/r/gnoradio/catalog/v0", "Like", ["1"])).rejects.toThrow("catalog: already liked");
+    await expect(call("g1x", { pkg: "gno.land/r/gnoradio/catalog/v0", func: "Like", args: ["1"] })).rejects.toThrow("catalog: already liked");
   });
 });

@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build"
+  command = "VITE_SITE_URL=$URL npm run build"
   publish = "dist"
 
 # Production reads onyx through the same-origin /rpc path. Override with
@@ -8,6 +8,22 @@
   VITE_CHAIN_ID = "onyx-1"
   VITE_WALLET_RPC = "https://rpc.onyx.testnets.gno.land:443"
   VITE_GNOWEB = "https://onyx.testnets.gno.land"
+
+# Optional per-page link previews (netlify/edge-functions/meta.ts): preview
+# bots get the artist or track name in the title. Off by default; uncomment to
+# enable (it counts toward the edge function quota, 1M a month on the free plan).
+# [[edge_functions]]
+#   function = "meta"
+#   path = "/artist/*"
+# [[edge_functions]]
+#   function = "meta"
+#   path = "/track/*"
+# [[edge_functions]]
+#   function = "meta"
+#   path = "/album/*"
+# [[edge_functions]]
+#   function = "meta"
+#   path = "/playlist/*"
 
 [[redirects]]
   from = "/rpc"
@@ -23,7 +39,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://rpc.onyx.testnets.gno.land https://rpc.gno.land https://indexer.onyx.testnets.gno.land https://api.audius.co https://*.audius.co https://archive.org https://*.archive.org https://ipfs.io https://arweave.net; media-src 'self' https: blob:; img-src 'self' https: data:; frame-ancestors 'none'; base-uri 'self'; object-src 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://rpc.onyx.testnets.gno.land https://rpc.gno.land https://indexer.onyx.testnets.gno.land https://api.audius.co https://*.audius.co https://archive.org https://*.archive.org https://ipfs.io https://dweb.link https://cloudflare-ipfs.com https://arweave.net; media-src 'self' https: blob:; img-src 'self' https: data:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Content-Type-Options = "nosniff"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"

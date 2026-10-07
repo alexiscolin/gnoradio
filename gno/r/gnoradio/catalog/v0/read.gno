@@ -3,6 +3,9 @@ package catalog
 import (
 	"strings"
 
+	"gno.land/p/gnoradio/store/v0"
+	"gno.land/p/gnoradio/text/v0"
+
 	"gno.land/p/nt/avl/v0"
 )
 
@@ -21,37 +24,27 @@ func ArtistCount() int { return nArtists }
 // TrackBrief is what the radio needs; playable is false for an unknown or
 // hidden track, or one whose artist is hidden.
 func TrackBrief(id int) (artistID, genre int, duration int64, playable_ bool) {
-	t := getTrack(id)
-	if t == nil {
+	a, g, d, hidden, ok := brief(id)
+	if !ok {
 		return 0, 0, 0, false
 	}
-	return t.Artist, t.Genre, t.Duration, playable(t)
+	return a, g, d, !hidden && artistVisible(a)
 }
 
 func TrackTitle(id int) string {
-	if t := getTrack(id); t != nil {
-		return t.Title
+	if rec, ok := trackRec(id); ok {
+		return store.Field(rec, fTitle)
 	}
 	return ""
 }
 
-func ArtistName(artistID int) string {
-	if a := getArtist(artistID); a != nil {
-		return a.Name
-	}
-	return ""
-}
+func ArtistName(artistID int) string { return artistField(artistID, 3) }
 
-func ArtistOwner(artistID int) address {
-	if a := getArtist(artistID); a != nil {
-		return a.Owner
-	}
-	return ""
-}
+func ArtistOwner(artistID int) address { return address(artistField(artistID, 1)) }
 
 func ArtistOf(owner address) int { return artistOf(owner) }
 
-func ArtistVisible(artistID int) bool { return visibleArtist(getArtist(artistID)) }
+func ArtistVisible(artistID int) bool { return artistVisible(artistID) }
 
 // ---- Value getters for the home realm and tools ----
 
@@ -65,17 +58,15 @@ func GetTrack(id int) (Track, bool) {
 
 func GetArtist(id int) (Artist, bool) {
 	if a := getArtist(id); a != nil {
-		return *a, true
+		return *withLists(a), true
 	}
 	return Artist{}, false
 }
 
 // ArtistByName looks a profile up by its (case-insensitive) name.
 func ArtistByName(name string) int {
-	if id, ok := names.Get(skeleton(strings.TrimSpace(name))).(int); ok {
-		return id
-	}
-	return 0
+	v, _ := names.Get(skeleton(strings.TrimSpace(name)))
+	return atoi(v)
 }
 
 func GetAlbum(id int) (Album, bool) {
@@ -94,10 +85,12 @@ func GetPlaylist(id int) (Playlist, bool) {
 
 func AlbumCount() int    { return nAlbums }
 func PlaylistCount() int { return nPlaylists }
-func ReportCount() int   { return nReports }
+
+// ReportCount is the number of open (unresolved) reports.
+func ReportCount() int { return openReports }
 
 func GetReport(id int) (ReportInfo, bool) {
-	if r, ok := reports.Get(key(id)).(*ReportInfo); ok {
+	if r, ok := reports.Get(text.Key(id)).(*ReportInfo); ok {
 		return *r, true
 	}
 	return ReportInfo{}, false
@@ -105,43 +98,120 @@ func GetReport(id int) (ReportInfo, bool) {
 
 // UserStats returns a listener's public counters and playlists.
 func UserStats(addr address) (likes, follows int, tipped int64, lists []int) {
-	if u, ok := users.Get(addr.String()).(*User); ok {
-		return u.NLikes, u.NFollows, u.Tipped, append([]int(nil), u.Playlists...)
+	if u := getUser(addr); u != nil {
+		return store.Count(u.Likes), store.Count(u.Follows), u.Tipped, u.Playlists
 	}
 	return 0, 0, 0, nil
 }
 
-func HasLiked(addr address, trackID int) bool {
-	u, ok := users.Get(addr.String()).(*User)
-	return ok && u.Likes.Has(key(trackID))
-}
-
-func IsFollowing(addr address, artistID int) bool {
-	u, ok := users.Get(addr.String()).(*User)
-	return ok && u.Follows.Has(key(artistID))
-}
-
-// LikedPage lists a listener's liked track ids, newest key last, paginated.
+// LikedPage lists a listener's liked track ids, newest tracks first,
+// paginated. Likes are keyed by track id, so this is the newest music the
+// listener liked, not the order of their likes (that needs an index per like,
+// which would add to every like's storage deposit).
 func LikedPage(addr address, offset, limit int) []int {
+	if u := getUser(addr); u != nil {
+		return store.Page(u.Likes, max0(offset), clampLimit(limit), true)
+	}
+	return nil
+}
+
+// ---- Narrow getters: one field without copying a whole struct ----
+
+// ArtistTrackCount is the number of tracks an artist published.
+func ArtistTrackCount(artistID int) int {
+	if artistID < 1 || artistID > nArtists {
+		return 0
+	}
+	t, _ := lists(artistID)
+	return store.Count(t)
+}
+
+// ArtistTrackPage lists an artist's track ids in publishing order, paginated.
+func ArtistTrackPage(artistID, offset, limit int) []int {
+	if artistID < 1 || artistID > nArtists || offset < 0 {
+		return nil
+	}
+	t, _ := lists(artistID)
+	return store.Page(t, offset, clampLimit(limit), false)
+}
+
+// PlaylistBrief returns a playlist's header without its track ids.
+func PlaylistBrief(id int) (owner address, title string, tracks int, hidden, ok bool) {
+	p := getPlaylist(id)
+	if p == nil {
+		return "", "", 0, false, false
+	}
+	return p.Owner, p.Title, len(p.Tracks), p.Hidden, true
+}
+
+// ---- Migration pages: everything a successor realm needs to copy ----
+
+// UsersPage lists listener addresses in a stable (hash bucket) order, paginated.
+func UsersPage(offset, limit int) []string { return users.Keys(max0(offset), clampLimit(limit)) }
+
+// SupportersPage lists who supported GnoRadio and their lifetime total.
+func SupportersPage(offset, limit int) (addrs []string, totals []int64) {
+	if offset < 0 {
+		offset = 0
+	}
+	supporterTotal.IterateByOffset(offset, clampLimit(limit), func(k string, v any) bool {
+		addrs = append(addrs, k)
+		totals = append(totals, v.(int64))
+		return false
+	})
+	return addrs, totals
+}
+
+// FollowsPage lists the artist ids a listener follows, paginated.
+func FollowsPage(addr address, offset, limit int) []int {
+	if u := getUser(addr); u != nil {
+		return store.Page(u.Follows, max0(offset), clampLimit(limit), false)
+	}
+	return nil
+}
+
+// GenrePage lists the track ids of a genre (hidden ones included), newest first.
+func GenrePage(genre, offset, limit int) []int {
+	if genre < 1 || genre > NumGenres {
+		return nil
+	}
+	return byGenre[genre].Page(offset, clampLimit(limit), true)
+}
+
+// GenreCount is the number of tracks filed under a genre.
+func GenreCount(genre int) int {
+	if genre < 1 || genre > NumGenres {
+		return 0
+	}
+	return byGenre[genre].Len()
+}
+
+// TrackPage lists track ids, newest first when newest is true.
+// Ids are dense (1..count), so these pages are arithmetic.
+func TrackPage(offset, limit int, newest bool) []int { return seqPage(nTracks, offset, limit, newest) }
+func ArtistPage(offset, limit int) []int             { return seqPage(nArtists, offset, limit, false) }
+func AlbumPage(offset, limit int) []int              { return seqPage(nAlbums, offset, limit, true) }
+func PlaylistPage(offset, limit int) []int           { return seqPage(nPlaylists, offset, limit, true) }
+func ReportPage(offset, limit int) []int             { return idPage(&reports, offset, limit, true) }
+
+func seqPage(n, offset, limit int, newest bool) []int {
 	var out []int
-	if u, ok := users.Get(addr.String()).(*User); ok {
-		u.Likes.IterateByOffset(offset, clampLimit(limit), func(k string, _ any) bool {
-			out = append(out, atoiKey(k))
-			return false
-		})
+	for k := max0(offset); k < n && len(out) < clampLimit(limit); k++ {
+		if newest {
+			out = append(out, n-k)
+		} else {
+			out = append(out, k+1)
+		}
 	}
 	return out
 }
 
-// TrackPage lists track ids, newest first when newest is true.
-func TrackPage(offset, limit int, newest bool) []int {
-	return idPage(&tracks, offset, limit, newest)
+func max0(n int) int {
+	if n < 0 {
+		return 0
+	}
+	return n
 }
-
-func ArtistPage(offset, limit int) []int   { return idPage(&artists, offset, limit, false) }
-func AlbumPage(offset, limit int) []int    { return idPage(&albums, offset, limit, true) }
-func PlaylistPage(offset, limit int) []int { return idPage(&playlists, offset, limit, true) }
-func ReportPage(offset, limit int) []int   { return idPage(&reports, offset, limit, true) }
 
 func TopLiked() []Rank   { return append([]Rank(nil), topLiked...) }
 func TopArtists() []Rank { return append([]Rank(nil), topArtists...) }

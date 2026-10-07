@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { fnv } from "../lib/format";
+import { mediaURLs } from "../lib/safe";
 import type { Track } from "../lib/types";
 
 const audiusArt = new Map<string, string>();
@@ -9,7 +10,7 @@ interface AudiusTrack {
 }
 
 /** useArtwork resolves a track's real cover; Audius artwork is read live (session use, per their terms). */
-function useArtwork(t: Track | undefined): string {
+export function useArtwork(t: Track | undefined): string {
   const [url, setUrl] = useState("");
   const id = t?.id;
   const cover = t?.cover ?? "";
@@ -17,12 +18,10 @@ function useArtwork(t: Track | undefined): string {
   useEffect(() => {
     setUrl("");
     if (id === undefined) return;
-    if (cover.startsWith("ipfs://")) {
-      setUrl(`https://ipfs.io/ipfs/${cover.slice(7)}`);
-      return;
-    }
-    if (cover.startsWith("https://")) {
-      setUrl(cover);
+    // ipfs://, ar:// and https:// covers resolve directly (cover is already scheme-checked at load).
+    const direct = cover.startsWith("audius:") ? undefined : mediaURLs(cover)[0];
+    if (direct !== undefined) {
+      setUrl(direct);
       return;
     }
     if (!audio.startsWith("audius:")) return;
@@ -49,15 +48,19 @@ function useArtwork(t: Track | undefined): string {
 /** Cover shows the real artwork, or the same generated composition the realm draws. */
 export function Cover({ t, size = "100%" }: { t: Track | undefined; size?: string }) {
   const art = useArtwork(t);
+  const [loaded, setLoaded] = useState("");
   const [broken, setBroken] = useState("");
   if (!t) return <div className="cover" style={{ width: size }} />;
-  if (art && broken !== art) {
-    return <img key={art} className="cover" style={{ width: size }} src={art} alt={`Cover of ${t.title}`} loading="lazy" onError={() => { setBroken(art); }} />;
-  }
+  // The generated cover is always drawn; the real artwork fades in on top once loaded, so nothing jumps.
+  const show = art && broken !== art;
   return (
     <div className={`cover v${String(fnv(`${t.id}${t.title}`) % 6)}`} style={{ width: size }} role="img" aria-label={`Cover of ${t.title}`}>
       <i />
       <b />
+      {show && (
+        <img key={art} className={`cover-art${loaded === art ? " in" : ""}`} src={art} alt="" loading="lazy" decoding="async"
+          onLoad={() => { setLoaded(art); }} onError={() => { setBroken(art); }} />
+      )}
     </div>
   );
 }

@@ -3,7 +3,9 @@
 
   curate.py fetch  [--seeds seeds.json] [--only SRC[,SRC]] [--seed ID] [--max-items N] [--include-review]
   curate.py hash   [--max N]                 sha256 (+ LUFS if ffmpeg) for non-Audius candidates
-  curate.py batch  [--approved approved.json] build import_batch.json for catalog.ImportTrack
+  curate.py batch  [--approved approved.json] [--dry-run]
+                                             build import_batch.json for catalog.ImportTrack;
+                                             every row is checked against the realm's rules first
 
 Rule: every track comes from a whitelisted seed (seeds.json). Never open-ended search.
 """
@@ -17,6 +19,7 @@ import shutil
 import subprocess
 import sys
 import time
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -137,11 +140,167 @@ def spdx_license(url):
     return spdx, None
 
 
-def attribution(title, artist, license_name, license_url, source_url):
-    s = '"%s" by %s, licensed under %s' % (title, artist, license_name)
-    if license_url:
-        s += " (%s)" % license_url
-    return s + ". Source: " + source_url
+# ---------------------------------------------------------------- realm rules
+# Mirrors gno/r/gnoradio/catalog/v0/validate.gno so a batch never panics on chain.
+
+TEXT_PUNCT = set(" .,'-!?:/&")
+NAME_PUNCT = set(" .'-&")
+URL_CHARS = set("-._~:/?#=&%+@")
+ALLOWED_HOSTS = {"archive.org", "upload.wikimedia.org"}  # catalog init(); AllowHost adds more
+MAX_TITLE, MAX_CREDITS, MAX_ATTRIBUTION, MAX_NAME, MAX_BIO = 64, 160, 160, 40, 280
+CURATED_LIC_RE = re.compile(r"^(CC0-1\.0|CC-BY(-SA)?-(1\.0|2\.0|2\.5|3\.0|4\.0)(-[A-Z0-9]{2})?)$")
+SHA_RE = re.compile(r"^[0-9a-f]{64}$")
+CLOCK_RE = re.compile(r"^(\d{1,3}):([0-5]\d)$")
+
+
+def text_ok(s, lo, hi):
+    """validText: letters (any script), digits, spaces and . , ' - ! ? : / & only."""
+    for ch in s:
+        if not (ch.isalpha() or unicodedata.category(ch) == "Nd" or ch in TEXT_PUNCT):
+            return False
+    return lo <= len(s) <= hi
+
+
+def name_ok(s):
+    """validName: ASCII letters/digits, Latin-1 accents, single spaces and . ' - &."""
+    if s != s.strip() or "  " in s:
+        return False
+    for ch in s:
+        o = ord(ch)
+        if ch.isascii() and ch.isalnum():
+            continue
+        if 0xC0 <= o <= 0xFF and o not in (0xD7, 0xF7):
+            continue
+        if ch in NAME_PUNCT:
+            continue
+        return False
+    return 2 <= len(s) <= MAX_NAME
+
+
+def https_ok(u):
+    return bool(u) and u.startswith("https://") and 10 < len(u) <= 300 and all(
+        (c.isascii() and c.isalnum()) or c in URL_CHARS for c in u)
+
+
+def host_of(u):
+    return u[len("https://"):].split("/", 1)[0].lower()
+
+
+def media_problem(field, uri, sha, audio):
+    """mustMedia: returns None when the realm would accept uri/sha, else why not."""
+    if sha and not SHA_RE.match(sha):
+        return field + " sha256 must be 64 hex characters"
+    if uri.startswith("ipfs://"):
+        cid = uri[7:]
+        return None if 46 <= len(cid) <= 100 and cid.isascii() and cid.isalnum() else field + " ipfs:// needs a CID"
+    if uri.startswith("ar://"):
+        return None if len(uri) - 5 == 43 else field + " ar:// needs a 43-character id"
+    if uri.startswith("audius:"):
+        tid = uri[7:]
+        return None if audio and tid.isascii() and tid.isalnum() and 1 <= len(tid) <= 24 else field + " audius: is audio only"
+    if uri.startswith("https://"):
+        if not https_ok(uri) or host_of(uri) not in ALLOWED_HOSTS:
+            return field + " host not allowed: " + host_of(uri)
+        return None if sha else field + " over https needs its sha256"
+    return field + " must be ipfs://, ar://, audius: or an allowed https link"
+
+
+def clean_text(s, hi):
+    """Rewrite s into validText's alphabet: brackets become ' - ', quotes and
+    symbols go, whitespace collapses, and it is cut at a word under hi runes."""
+    s = unicodedata.normalize("NFC", s or "")
+    s = s.replace("\u2019", "'").replace("\u2018", "'").replace("\u2013", "-").replace("\u2014", "-")
+    s = s.replace("_", " ").replace(";", ",")
+    s = re.sub(r"\s*[\(\[\{]\s*", " - ", s)
+    s = re.sub(r"\s*[\)\]\}]\s*", " ", s)
+    s = "".join(ch if (ch.isalpha() or unicodedata.category(ch) == "Nd" or ch in TEXT_PUNCT) else " " for ch in s)
+    s = re.sub(r"\s+", " ", s)
+    s = re.sub(r"(\s*-\s*){2,}", " - ", s).strip(" -,:")
+    if len(s) > hi:
+        s = s[:hi].rsplit(" ", 1)[0].rstrip(" -,:")
+    return s
+
+
+def license_label(spdx):
+    if spdx == "CC0-1.0":
+        return "CC0 1.0"
+    if spdx == "Audius-OML":
+        return "Audius Open Music License"
+    if spdx and spdx.startswith("CC-"):
+        parts = spdx[3:].split("-")
+        ver = next((i for i, p in enumerate(parts) if "." in p), None)
+        if ver is not None:
+            return "CC " + "-".join(parts[:ver]) + " " + " ".join(parts[ver:])
+    return spdx or ""
+
+
+def attribution(title, artist, spdx, via=""):
+    """'Title by Artist, CC BY 4.0, via archive.org': the realm keeps the source
+    link in sourceURL, so it is not repeated here (and URLs are not validText)."""
+    s = "%s by %s, %s" % (title, artist, license_label(spdx))
+    if via:
+        s += ", via " + via
+    return clean_text(s, MAX_ATTRIBUTION)
+
+
+def track_problems(t):
+    """Every reason catalog.ImportTrack would panic on this batch row."""
+    out = []
+    if not text_ok(t["title"], 1, MAX_TITLE):
+        out.append("title")
+    if not text_ok(t.get("credits", ""), 0, MAX_CREDITS):
+        out.append("credits")
+    if not text_ok(t["attribution"], 2, MAX_ATTRIBUTION):
+        out.append("attribution")
+    if not (1 <= int(t["genre"]) <= len(GENRES)):
+        out.append("genre")
+    m = CLOCK_RE.match(t["duration"] or "")
+    if not m or not (10 <= int(m.group(1)) * 60 + int(m.group(2)) <= 1200):
+        out.append("duration")
+    audius = t["audio"].startswith("audius:")
+    if not audius and not CURATED_LIC_RE.match(t["license"] or ""):
+        out.append("license " + str(t["license"]))
+    if not https_ok(t["source_url"]):
+        out.append("source_url")
+    p = media_problem("audio", t["audio"], t["audio_sha256"], True)
+    if p:
+        out.append(p)
+    if t["cover"]:
+        p = media_problem("cover", t["cover"], t["cover_sha256"], False)
+        if p:
+            out.append(p)
+    return out
+
+
+_LATIN1 = ["a", "a", "a", "a", "a", "a", "ae", "c", "e", "e", "e", "e", "i", "i", "i", "i",
+           "d", "n", "o", "o", "o", "o", "o", "", "o", "u", "u", "u", "u", "y", "th", "ss"] * 2
+
+
+def skeleton(name):
+    """Mirror of catalog validate.gno skeleton(): the key a name is reserved under on chain."""
+    out = []
+    for ch in name:
+        if ch in " .'-&\u3000":
+            continue
+        o = ord(ch)
+        if 0xFF21 <= o <= 0xFF3A or 0xFF41 <= o <= 0xFF5A:
+            ch = chr(ord("a") + (o - 0xFF21) % 32)
+        elif 0xFF10 <= o <= 0xFF19:
+            ch = chr(ord("0") + o - 0xFF10)
+        ch = ch.lower()
+        if 0xC0 <= ord(ch) <= 0xFF and _LATIN1[ord(ch) - 0xC0]:
+            ch = _LATIN1[ord(ch) - 0xC0]
+        out.append({"i": "l", "1": "l", "|": "l", "0": "o"}.get(ch, ch))
+    return "".join(out).replace("rn", "m")
+
+
+def artist_problems(a):
+    out = []
+    if not name_ok(a["name"]):
+        out.append("artist name " + repr(a["name"]))
+    if a["source_url"] and not https_ok(a["source_url"]):
+        out.append("artist source_url")
+    return out
 
 
 def candidate(**kw):
@@ -234,7 +393,7 @@ def archive_item(seed, ident, meta, stats):
             genre=seed["genre"], duration=clock(sec), seconds=round(sec, 1), license=spdx,
             license_url=m.get("licenseurl"), audio="https://archive.org/download/%s/%s" % (ident, urllib.parse.quote(name)),
             cover=cover, source_url=source_url,
-            attribution=attribution(title, artist, spdx, m.get("licenseurl"), source_url),
+            attribution=attribution(title, artist, spdx, "archive.org"),
             kbps=kbps, low_bitrate=bool(kbps and kbps < WARN_KBPS), notes=notes,
             archive_md5=f.get("md5"), archive_sha1=f.get("sha1")))
     return out
@@ -303,7 +462,7 @@ def ccmixter_row(seed, r, stats):
         source="ccmixter", seed=seed["id"], source_id=str(r.get("upload_id")), title=title, artist=artist,
         genre=seed["genre"], duration=clock(sec), seconds=round(sec, 1), license=spdx, license_url=r.get("license_url"),
         credits=credits, audio=mp3.get("download_url"), cover=None, source_url=source_url,
-        attribution=attribution(title, artist, spdx, r.get("license_url"), source_url),
+        attribution=attribution(title, artist, spdx, "ccMixter"),
         needs_mirror=True, kbps=kbps, low_bitrate=bool(kbps and kbps < WARN_KBPS),
         notes=["ccMixter blocks hotlinking: mirror to IPFS/CDN before import", "no artwork: realm SVG cover"],
         ccmixter_sha1_b32=(mp3.get("file_extra") or {}).get("sha1"))
@@ -350,13 +509,14 @@ def audius_seed(seed, max_items, stats):
         cover = art.get("1000x1000") or art.get("480x480")
         source_url = "https://audius.co" + (t.get("permalink") or "/%s" % seed["id"])
         copyright_line = (t.get("copyright_line") or {}).get("text") if isinstance(t.get("copyright_line"), dict) else None
-        attrib = '"%s" by %s © %s. Streamed under the Audius Open Music License. %s' % (
-            title, artist, copyright_line or artist, source_url)
+        attrib = attribution(title, artist, "Audius-OML", "Audius")
+        if copyright_line:
+            attrib = clean_text(attrib + ", copyright " + copyright_line, MAX_ATTRIBUTION)
         out.append(candidate(
             source="audius", seed=seed["id"], source_id=t["id"], title=title, artist=artist,
             genre=audius_genre(t.get("genre"), seed["genre"]), duration=clock(sec), seconds=sec,
             license="Audius-OML", license_url="https://audius.org/open-music-license.pdf",
-            audio="audius:" + t["id"], cover=cover, source_url=source_url, attribution=attrib,
+            audio="audius:" + t["id"], cover=None, preview_cover=cover, source_url=source_url, attribution=attrib,
             notes=["Audius genre: %s" % t.get("genre"), "API terms: session cache only, never mirror"],
             audius_user_id=user["id"], audius_wallets={k: user.get(k) for k in ("erc_wallet", "spl_wallet")}))
         if len(out) >= max_items:
@@ -409,6 +569,16 @@ def cmd_hash(a):
     ff = shutil.which("ffmpeg")
     done = 0
     for c in cands:
+        cov = c.get("cover")
+        if cov and not c.get("cover_sha256") and cov.startswith("https://") and host_of(cov) in ALLOWED_HOSTS:
+            if cov in cache:
+                c["cover_sha256"] = cache[cov]["sha256"]
+            elif done < a.max:
+                digest = sha256_url(cov, {"User-Agent": UA})
+                if digest:
+                    cache[cov] = {"sha256": digest}
+                    c["cover_sha256"] = digest
+                    done += 1
         if c["source"] == "audius" or c.get("audio_sha256"):
             continue
         if c["audio"] in cache:
@@ -447,6 +617,20 @@ def cmd_hash(a):
         print("ffmpeg not found: LUFS skipped (brew install ffmpeg to enable)")
 
 
+def sha256_url(url, headers):
+    h = hashlib.sha256()
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as r:
+            while True:
+                chunk = r.read(1 << 16)
+                if not chunk:
+                    return h.hexdigest()
+                h.update(chunk)
+    except Exception as e:  # noqa: BLE001
+        print("hash failed %s: %s" % (url, e))
+        return None
+
+
 def lufs(ff, url, headers):
     hdr = "".join("%s: %s\r\n" % kv for kv in headers.items())
     try:
@@ -463,9 +647,10 @@ def cmd_batch(a):
     if approved is None:
         sys.exit("missing %s (export it from review.html)" % a.approved)
     artists, tracks, blocked = {}, [], []
+    skeletons = {}  # skeleton -> artist key, to catch on-chain name collisions in --dry-run
     for c in approved:
         if c.get("needs_mirror") and not c.get("mirror_audio"):
-            blocked.append(c)
+            blocked.append((c, ["needs a mirror"]))
             continue
         key = "%s:%s" % (c["source"], c["artist"].lower())
         if key not in artists:
@@ -473,21 +658,42 @@ def cmd_batch(a):
                             "source_url": ("https://audius.co/" + c["seed"]) if c["source"] == "audius" else c["source_url"],
                             "kind": "audius" if c["source"] == "audius" else "curated"}
         if c["source"] != "audius" and not c.get("audio_sha256"):
-            blocked.append(c)
+            blocked.append((c, ["missing audio sha256"]))
             continue
-        tracks.append({
-            "artist_key": key, "title": c["title"], "genre": c["genre"], "duration": c["duration"],
-            "license": c["license"], "credits": c.get("credits", ""), "audio": c.get("mirror_audio") or c["audio"],
-            "audio_sha256": c.get("audio_sha256") or "", "cover": c.get("cover") or "", "cover_sha256": c.get("cover_sha256") or "",
-            "source_url": c["source_url"], "attribution": c["attribution"]})
+        title = clean_text(c["title"], MAX_TITLE)
+        cover, cover_sha = c.get("cover") or "", c.get("cover_sha256") or ""
+        if c["source"] == "audius" or (cover.startswith("https://") and not cover_sha):
+            cover, cover_sha = "", ""  # Audius art is read live; unhashed art falls back to the realm SVG
+        via = {"archive": "archive.org", "ccmixter": "ccMixter", "audius": "Audius"}.get(c["source"], "")
+        row = {
+            "artist_key": key, "title": title, "genre": c["genre"], "duration": c["duration"],
+            "license": c["license"], "credits": clean_text(c.get("credits", ""), MAX_CREDITS),
+            "audio": c.get("mirror_audio") or c["audio"], "audio_sha256": c.get("audio_sha256") or "",
+            "cover": cover, "cover_sha256": cover_sha, "source_url": c["source_url"],
+            "attribution": attribution(title, clean_text(c["artist"], 60), c["license"], via)}
+        problems = track_problems(row) + artist_problems(artists[key])
+        # Two different artists whose names fold to the same skeleton collide on chain.
+        sk = skeleton(c["artist"])
+        if skeletons.setdefault(sk, key) != key:
+            problems.append("artist name collides with %r on chain" % skeletons[sk])
+        if problems:
+            blocked.append((c, problems))
+            continue
+        tracks.append(row)
     counts = {g: 0 for g in GENRES}
     for t in tracks:
         counts[t["genre"]] = counts.get(t["genre"], 0) + 1
     out = {"generated": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()), "artists": list(artists.values()),
            "tracks": tracks, "genre_counts": {GENRES[g]: n for g, n in counts.items()}}
-    save(os.path.join(HERE, "import_batch.json"), out)
-    print("import_batch.json: %d artists, %d tracks (%d blocked: missing mirror or sha256)" % (
-        len(artists), len(tracks), len(blocked)))
+    for c, why in blocked:
+        print("blocked  %-40s %s" % (c["title"][:40], "; ".join(why)))
+    used = {t["artist_key"] for t in tracks}
+    out["artists"] = [x for x in out["artists"] if x["key"] in used]
+    if a.dry_run:
+        print("dry run: %d tracks would import, %d blocked (nothing written)" % (len(tracks), len(blocked)))
+    else:
+        save(os.path.join(HERE, "import_batch.json"), out)
+        print("import_batch.json: %d artists, %d tracks (%d blocked)" % (len(out["artists"]), len(tracks), len(blocked)))
     print("%-24s %5s / %d" % ("genre", "count", TARGET_PER_GENRE))
     for g in GENRES:
         n = counts.get(g, 0)
@@ -508,6 +714,7 @@ def main():
     h.add_argument("--max", type=int, default=20)
     b = sub.add_parser("batch")
     b.add_argument("--approved", default=os.path.join(HERE, "approved.json"))
+    b.add_argument("--dry-run", action="store_true", help="check every row against the realm rules, write nothing")
     a = p.parse_args()
     {"fetch": cmd_fetch, "hash": cmd_hash, "batch": cmd_batch}[a.cmd](a)
 

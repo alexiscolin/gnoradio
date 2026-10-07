@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"gno.land/p/gnoradio/text/v0"
+
 	"gno.land/p/nt/avl/v0"
 )
 
@@ -90,6 +92,12 @@ func SetMonthlyGoal(cur realm, ugnot int64) {
 
 func Treasury() address { return treasury }
 
+// SupportInfo returns GnoRadio's public funding state for this month.
+func SupportInfo() (to address, total int64, supporters int, monthTotal, goal int64) {
+	mt, _ := monthly.Get(month(now())).(int64)
+	return treasury, totalSupport, nSupporters, mt, monthlyGoal
+}
+
 func recordSupport(by address, amt int64) {
 	totalSupport += amt
 	prev, _ := supporterTotal.Get(by.String()).(int64)
@@ -138,7 +146,7 @@ func ActivityJSON(limit int) string {
 		if i > 0 {
 			b.WriteString(",")
 		}
-		b.WriteString(`{"kind":` + q(a.Kind) + `,"by":` + q(a.By.String()) + `,"track":` + itoa(a.Track) +
+		b.WriteString(`{"kind":` + text.Str(a.Kind) + `,"by":` + text.Str(a.By.String()) + `,"track":` + itoa(a.Track) +
 			`,"artist":` + itoa(a.Artist) + `,"amount":` + itoa64(a.Amount) + `,"at":` + itoa64(a.At) + `}`)
 	}
 	b.WriteString("]")
@@ -150,13 +158,13 @@ func SupportJSON() string {
 	m := month(now())
 	mt, _ := monthly.Get(m).(int64)
 	var b strings.Builder
-	b.WriteString(`{"treasury":` + q(treasury.String()) + `,"total":` + itoa64(totalSupport) + `,"supporters":` + itoa(nSupporters) +
-		`,"month":` + q(m) + `,"monthTotal":` + itoa64(mt) + `,"goal":` + itoa64(monthlyGoal) + `,"top":[`)
+	b.WriteString(`{"treasury":` + text.Str(treasury.String()) + `,"total":` + itoa64(totalSupport) + `,"supporters":` + itoa(nSupporters) +
+		`,"month":` + text.Str(m) + `,"monthTotal":` + itoa64(mt) + `,"goal":` + itoa64(monthlyGoal) + `,"top":[`)
 	for i, r := range topSupport {
 		if i > 0 {
 			b.WriteString(",")
 		}
-		b.WriteString(`{"address":` + q(r.Key) + `,"amount":` + itoa64(r.Value) + `}`)
+		b.WriteString(`{"address":` + text.Str(r.Key) + `,"amount":` + itoa64(r.Value) + `}`)
 	}
 	b.WriteString(`]}`)
 	return b.String()

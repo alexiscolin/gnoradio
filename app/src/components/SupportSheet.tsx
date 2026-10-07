@@ -1,11 +1,13 @@
+import { Help } from "./Help";
+import { Icon } from "./Icons";
 import { useEffect, useRef, useState } from "react";
-import { gnot, shortAddr } from "../lib/format";
+import { UGNOT, gnot, shortAddr } from "../lib/format";
 import type { Artist, Track } from "../lib/types";
 import { Shape } from "./Shapes";
 
 const AMOUNTS = [1, 5, 20] as const;
-const UGNOT = 1_000_000;
 export const DEFAULT_SUPPORT_PCT = 10;
+const MAX_GNOT = 1_000_000;
 
 export type SupportTarget =
   | { readonly kind: "tip"; readonly track: Track; readonly artist: Artist }
@@ -31,7 +33,7 @@ export function SupportSheet({ target, codeURL, onClose, onTip, onSupport }: Pro
   const [custom, setCustom] = useState("");
   const [pct, setPct] = useState(DEFAULT_SUPPORT_PCT);
   const gnots = custom ? Number.parseFloat(custom.replace(",", ".")) : amount;
-  const valid = Number.isFinite(gnots) && gnots >= 0.1 && gnots <= 1_000_000;
+  const valid = Number.isFinite(gnots) && gnots >= 0.1 && gnots <= MAX_GNOT;
   const artistUgnot = Math.round((valid ? gnots : 0) * UGNOT);
   const isTip = target.kind === "tip";
   const platformUgnot = isTip ? Math.round((artistUgnot * pct) / 100) : artistUgnot;
@@ -52,7 +54,7 @@ export function SupportSheet({ target, codeURL, onClose, onTip, onSupport }: Pro
         <div className="sheet-head">
           <Shape g="square" size={18} />
           <span>{isTip ? <>Support <b>{target.artist.name}</b></> : <>Keep <b>GnoRadio</b> on air</>}</span>
-          <button className="x" onClick={onClose} aria-label="Close">×</button>
+          <button className="x" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
         </div>
         {isTip && <p className="muted small">For “{target.track.title}”. Sent in one transaction, straight to their wallet.</p>}
         {!isTip && <p className="muted small">Pays for hosting, storage and the indexer. Goes to the public GnoRadio treasury.</p>}
@@ -65,7 +67,7 @@ export function SupportSheet({ target, codeURL, onClose, onTip, onSupport }: Pro
           ))}
           <label className={`custom${custom ? " on" : ""}`}>
             <span className="sr">Custom amount in GNOT</span>
-            <input inputMode="decimal" placeholder="Other" value={custom} onChange={(e) => { setCustom(e.target.value); }} />
+            <input inputMode="decimal" autoComplete="off" placeholder="Other" value={custom} onChange={(e) => { setCustom(e.target.value); }} />
           </label>
         </div>
 
@@ -73,6 +75,7 @@ export function SupportSheet({ target, codeURL, onClose, onTip, onSupport }: Pro
           <label className="toggle">
             <input type="checkbox" checked={pct > 0} onChange={(e) => { setPct(e.target.checked ? DEFAULT_SUPPORT_PCT : 0); }} />
             <span>Add {DEFAULT_SUPPORT_PCT}% to keep GnoRadio running</span>
+            <Help text="100% of your tip goes to the artist, in the same transaction. The optional 10% is added on top and goes to the GnoRadio treasury: hosting, storage, indexer." />
           </label>
         )}
 
@@ -98,7 +101,7 @@ export function SupportSheet({ target, codeURL, onClose, onTip, onSupport }: Pro
             onClose();
           }}
         >
-          Send {gnot(total)} with Adena
+          {valid ? `Send ${gnot(total)} with Adena` : "Enter between 0.1 and 1,000,000 GNOT"}
         </button>
         <p className="fine">
           <Shape g="quarter" size={10} /> {isTip ? "0% taken from the artist." : "Every GNOT is visible on-chain."} <a href={codeURL} target="_blank" rel="noreferrer">Read the code</a>

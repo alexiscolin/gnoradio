@@ -53,8 +53,9 @@ Statut : **0.3** = ce chantier · **dApp** = côté app · **0.4+** = plus tard 
 | Stations : principale + une par genre | 0.3 |
 | Rotation par station, structure scalable (§4.2), stable aux ajouts et retraits | 0.3 |
 | Programmation par les auditeurs : démarre à la fin du titre en cours ; quotas | 0.3 |
-| Synchronisation permissionless du catalogue vers les stations (`Sync`, `Prune`) | 0.3 |
+| Synchronisation permissionless du catalogue vers les stations (`Sync`, `Refresh`, `RefreshArtist`) | 0.3 |
 | `ScheduleJSON(station)` pour la dApp | 0.3 |
+| Flow de Main comme une vraie radio : sets de 3 à 5 morceaux d'un genre, transition vers un genre voisin sur une ligne d'énergie, horloge du jour (calme la nuit, énergie le soir), jamais deux fois le même artiste ; `Sync` écrit l'heure suivante, appelé toutes les 30 min par le robot (`app/netlify/functions/sync.mts`) | 0.5 |
 | Stations éditoriales basées sur une playlist, émissions à heure fixe, jingles | 0.4+ |
 | Enchères de créneaux | ✕ (radio commerciale) |
 
@@ -163,7 +164,7 @@ func ArtistVisible(artistID int) bool
 
 // radio
 func Sync(cur realm, max int)        // permissionless : intègre les nouveaux morceaux du catalogue
-func Prune(cur realm, trackID int)   // permissionless : retire un morceau devenu injouable
+func RefreshArtist(cur realm, artistID, offset int) int // permissionless : rafraîchit 50 morceaux d'un artiste, renvoie l'offset suivant (0 = fini)
 func Queue(cur realm, station, trackID int)
 func NowPlaying(station int) (trackID int, offset int64, queued bool)
 func ScheduleJSON(station, horizon int) string
@@ -201,7 +202,8 @@ Les flux d'activité sont des anneaux de 64 entrées de taille fixe : le stockag
 func ResolveReport(cur realm, id int)        // admin : clôt un signalement ; ≤5 ouverts par signaleur, maxReports = signalements OUVERTS
 func ReleaseName(cur realm, name string)     // admin : libère un nom réservé qu'aucun artiste visible n'utilise
 // radio
-func DropSlot(cur realm, stationID, trackID int) // admin : coupe le créneau de rotation (durée 0) et retire le titre de la file
+func DropSlot(cur realm, stationID, trackID int) // admin : coupe le créneau de rotation (durée 0, persistant malgré Refresh) et retire le titre de la file
+func RestoreSlot(cur realm, stationID, trackID int) // admin : annule DropSlot
 func Unqueue(cur realm, stationID, trackID int)  // admin : retire le titre de la file d'attente
 ```
 
@@ -250,3 +252,43 @@ Genres (liste fixe, `genre` = indice) : 1 Electronic · 2 Synthwave · 3 Ambient
 | Front | style sobre « suisse » (canvas de design) |
 | Programmation | gratuite avec quotas (ouvert) |
 | Contrepartie bêta artistes | ouvert |
+
+### Revue v0.4.1 (lecture et gnoweb)
+
+- catalog : `GenrePage(genre, offset, limit)`, `GenreCount(genre)` (index par genre), `FollowsPage(addr, offset, limit)`, `SupportInfo()`, `AudiusLicense` exporté ; `ReportCount()` compte désormais les signalements **ouverts**. `Unlike`, `Unfollow` et `Report` respectent `Freeze`. Les noms d'artiste sont réservés sous un squelette sans espaces ni ponctuation, avec les confusables repliés (i/l/1, 0/o, rn/m) ; les doubles espaces sont refusés.
+- radio : `Prune` supprimé (doublon de `Refresh`) ; `RefreshArtist`, `RestoreSlot`.
+- tickets : un billet d'un concert masqué n'affiche plus titre, lieu ni artiste ; `CheckIn` refuse un concert annulé ; `&` accepté.
+- JSON : les champs validés (texte, noms, URLs, hashes, licences, adresses) sortent avec `text.Str()` sans échappement, car échapper coûte ~1 M de gas par champ (`TracksJSON(0,50)` passait de ~96 M à ~300 M) ; des tests vérifient que les validateurs refusent `"`, `\` et les caractères de contrôle.
+- home : `SetAppURL(cur, url)` (admin du catalog, https, 100 caractères max) et liens « Open in the app » ; lien d'achat = prix + frais de service ; licences CC toutes versions/ports ; `catalog?g=N`, pagination (artiste, playlist, auditeur, concerts passés, modération) ; soutien GnoRadio, fil d'activité, liens `$source` ; chaque realm a un `Render` qui renvoie vers home.
+
+### Revue v0.4.2 (gas et dépôt)
+
+- **Qui paie `Sync` :** `Sync` est ouvert à tous et le dépôt de stockage est payé par l'appelant, environ 0,1 à 0,2 Ko par morceau depuis la v0.4.4 (≈ 0,02 GNOT ; un lot de 200 ≈ 4 GNOT). En pratique c'est l'admin (Studio, lots de 20) qui le lance après une vague d'imports ; un artiste peut aussi le lancer pour passer à l'antenne sans attendre. La station principale ne tient plus d'index (le morceau `id` est au créneau `id-1`) et un index `homes` (morceau → stations de genre) limite `Refresh`/`RefreshArtist` aux stations qui tiennent le morceau.
+- `PublishPlaylist` / `UpdatePlaylist` ne vérifient plus que la plage d'ids et les doublons (≈ 4× moins de gas pour 200 morceaux) ; les morceaux masqués sont filtrés à la lecture.
+- `EventsJSON(offset, limit, false)` saute directement à `offset` (offset et limit comptent les concerts stockés, masqués compris) et renvoie `"next"`.
+- tickets : `ownedCount` supprimé (écrit, jamais lu).
+- catalog : `LikedPage` renvoie les morceaux les plus récents d'abord ; getters étroits `PlaylistBrief`, `ArtistTrackCount`, `ArtistTrackPage` ; pages de migration `UsersPage`, `SupportersPage` ; radio : `RotationPage(station, offset, limit)`.
+
+### Revue v0.4.4 (dépôt de stockage compact)
+
+- Nouveau paquet `p/gnoradio/store/v0`, déployé avant les realms (après `text`) : `Seq` (liste en morceaux de 16 enregistrements), `Map` (table de hachage à seaux fixes), enregistrements compacts (`Rec`/`Field`/`With`, en-tête de longueurs en base 64), listes d'ids prêtes pour le JSON (8 caractères + virgule), `IDs` (ensemble trié en morceaux de 512).
+- catalog : morceaux, artistes, albums, playlists et auditeurs sont des chaînes compactes dans des `Seq` ; index par propriétaire / nom / auditeur dans des `Map` ; `Like`/`Unlike` réécrivent un seul champ sans décoder le morceau.
+- radio : blocs de rotation en chaînes (4 caractères base 64 par id, 2 par durée : id ≤ 16 777 215, durée ≤ 4095 s) ; `homes` et `lastQ` compacts.
+- Mesuré sur gnodev (devseed, 116 morceaux) — dépôt par opération : morceau importé ≈ 6,1 Ko → 0,31 Ko ; morceau publié ≈ 6,4 Ko → 0,28 Ko ; `Sync` ≈ 4,2 Ko → 0,08–0,22 Ko par morceau ; like suivant ≈ 2,5 Ko → 0,1 Ko. Lectures moins chères (`TracksJSON(0,100)` 181 M → 122 M de gas).
+- Changements visibles : `UsersPage` suit l'ordre des seaux (stable, non trié) ; les tableaux d'ids du JSON contiennent des espaces (mêmes valeurs) ; une liste de likes par auditeur plafonne à ~29 000 ; dépôt initial des realms plus élevé (seaux vides).
+
+### Revue v0.4.3 (simplification)
+
+- Paquets partagés : `p/gnoradio/svg/v0` (canevas SVG, `Escape`, `Clip`, `FNV`) et `p/gnoradio/text/v0` (`Key`, `Str`, `Valid`, `Digits`, `GNOT`), déployés avant les realms ; rendu SVG identique à l'octet près (tests « golden »).
+- API retirée : `catalog.HasLiked`, `catalog.IsFollowing` (remplacés par `LikedPage` / `FollowsPage` / `UserJSON`) et `home.AppURL` (lien lisible dans le rendu).
+
+### Revue v0.5 (vérification, stockage, flow)
+
+- **Vérification des artistes sans humain** (`catalog/verify.gno`, `docs/VERIFICATION.md`) : tips et billets payants réservés aux artistes vérifiés ; preuve sur une page de l'artiste lue par un robot à rôle limité, délai public de 72 h, `CancelClaim` / `ResetOwner` pour l'admin ; aucun séquestre.
+- **Stockage en arbre** (`store/v0`) : `Seq`, `Map` et `IDs` reposent sur un arbre clairsemé de fanout 32 avec compteurs. Une écriture réécrit une feuille et un chemin (log32 du nombre de feuilles : 3 niveaux pour 32 000 feuilles) au lieu du tableau de tous les morceaux ou seaux, qui faisait croître le gas avec le catalogue. Les pages à un offset quelconque (`Keys`, `IDs.Page`) descendent par les compteurs. Seaux des `Map` clairsemés : dimensionnés pour 1 M d'auditeurs sans coût tant qu'ils sont vides.
+- `updateTop` ne réécrit plus le classement quand il ne change pas.
+- **Flow de Main** (`radio/flow.gno`) : voir §2 Radio.
+- **Dédicaces** (`radio.QueueWithNote`, `p/gnoradio/safe/v0`) : un pick peut porter une dédicace de 40 caractères affichée à l'antenne. Filtrage sans humain : caractères simples, ni lien ni numéro de téléphone, liste multilingue (LDNOOBW en/fr/es/de/it/pt/nl, CC BY 4.0, mots-clés forts de gnolang/gno#5178, insultes et termes haineux ajoutés), après normalisation (accents, leet, lettres répétées ou espacées). `ReportNote` : trois signalements distincts masquent la dédicace aussitôt et suspendent les dédicaces de l'auteur 7 jours. À remplacer par `p/gnoland/antispam` quand gnolang/gno#5178 sera déployé.
+- **Pick prioritaire** : un pick prend immédiatement la place du flow à l'antenne (fondu côté app) et remplace son prochain titre ; après un pick d'auditeur en cours, il passe à la suite.
+- **Modération des dédicaces en 3 couches, sans humain** : (1) on-chain, `p/gnoradio/safe` refuse la transaction (≈2 000 mots et expressions, 20 langues, contournements) ; (2) une dédicace attend 90 s (`noteGrace`) avant de s'afficher : l'app réveille le robot (`app/netlify/functions/moderate.mts`), et une tâche planifiée chaque minute (`moderate-cron.mts`) rattrape les dédicaces envoyées hors de l'app ; le robot relit `PendingNotesJSON()` sur la chaîne, interroge le modèle de modération d'OpenAI (gratuit, multilingue, contextuel) et appelle `HideNote` au-delà des seuils (`app/src/lib/moderation.ts`) ; sans clé ou en cas de panne, la dédicace s'affiche après le délai ; (3) trois signalements la masquent et coupent les dédicaces de l'auteur 7 jours. Le robot ne peut que masquer (100/jour) ; l'admin peut `RestoreNote`, `Unmute`, `SetModBot("")`. Masquée sur la chaîne = masquée partout (app et gnoweb).
+

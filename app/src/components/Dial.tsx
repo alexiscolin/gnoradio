@@ -7,6 +7,7 @@ interface DialProps {
   readonly caption: string;
   readonly live: boolean;
   readonly onSeek?: ((frac: number) => void) | undefined;
+  readonly buffering?: boolean;
 }
 
 const TICKS = 60;
@@ -16,7 +17,7 @@ const R = 100;
  * Dial is the player's Bauhaus clock: a full circle of ticks, an ink arc for
  * the elapsed time and a coloured marker on the rim (red when live).
  */
-export function Dial({ frac, seconds, caption, live, onSeek }: DialProps) {
+export function Dial({ frac, seconds, caption, live, onSeek, buffering = false }: DialProps) {
   const f = Math.min(1, Math.max(0, Number.isFinite(frac) ? frac : 0));
   const angle = f * 2 * Math.PI - Math.PI / 2;
   const mx = 120 + R * Math.cos(angle);
@@ -53,14 +54,9 @@ export function Dial({ frac, seconds, caption, live, onSeek }: DialProps) {
         viewBox="0 0 240 240"
         onClick={click}
         onKeyDown={key}
-        role="slider"
-        tabIndex={onSeek ? 0 : -1}
-        aria-label="Position"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(f * 100)}
-        aria-valuetext={clock(seconds)}
-        aria-disabled={!onSeek}
+        {...(onSeek
+          ? { role: "slider", tabIndex: 0, "aria-label": "Position", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": Math.round(f * 100), "aria-valuetext": `${clock(seconds)} · ${caption}` }
+          : { role: "img", "aria-label": `${clock(seconds)} · ${caption}` })}
         className={onSeek ? "seekable" : ""}
       >
         {Array.from({ length: TICKS }, (_, i) => {
@@ -77,6 +73,7 @@ export function Dial({ frac, seconds, caption, live, onSeek }: DialProps) {
               y2={120 + 118 * Math.sin(a)}
               stroke={done ? "var(--ink)" : "var(--tick)"}
               strokeWidth={long ? 1.6 : 1}
+              style={buffering ? { animationDelay: `${String((i / TICKS) * 1.2)}s` } : undefined}
             />
           );
         })}
@@ -86,7 +83,9 @@ export function Dial({ frac, seconds, caption, live, onSeek }: DialProps) {
       </svg>
       <div className="dial-center">
         <span className="dial-time" aria-label={clock(seconds)}><span>{lead}</span>{t.slice(lead.length)}</span>
-        <span className="muted small">{caption}</span>
+        {buffering
+          ? <span className="dial-loading" role="status" aria-label="Buffering"><i className="c" /><i className="s" /><i className="t" /></span>
+          : <span className="muted small">{caption}</span>}
       </div>
     </div>
   );

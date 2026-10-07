@@ -27,11 +27,12 @@ var realmAddr = chain.PackageAddress("gno.land/r/gnoradio/tickets/v0")
 func reset() {
 	events, byArtist, artistEvents, tickets = avl.Tree{}, avl.Tree{}, avl.Tree{}, avl.Tree{}
 	upcoming, artistAhead = avl.Tree{}, avl.Tree{}
-	owned, ownedCount, attended = avl.Tree{}, avl.Tree{}, avl.Tree{}
+	owned, attended = avl.Tree{}, avl.Tree{}
 	nEvents, nTickets = 0, 0
 	ticketTok, ticketLed = nil, nil
 	frozen = false
 	admin = bob
+	artistVerified = func(int) bool { return true }
 }
 
 func ugnots(n int64) chain.Coins { return chain.Coins{{Denom: denom, Amount: n}} }
@@ -70,6 +71,9 @@ func TestCreateAndBuy(cur realm, t *testing.T) {
 	uassert.AbortsContains(t, cur, "price must be", func() {
 		CreateEvent(cross(cur), "Cheap", "Here", "", inHours(72), "0.01", 10)
 	})
+	uassert.AbortsContains(t, cur, "venue holds a slur", func() {
+		CreateEvent(cross(cur), "Party", "Heil Hitler Hall", "", inHours(72), "0", 10)
+	})
 
 	testing.SetRealm(testing.NewUserRealm(carol))
 	uassert.AbortsContains(t, cur, "artist profile first", func() {
@@ -96,6 +100,14 @@ func TestCreateAndBuy(cur realm, t *testing.T) {
 	urequire.True(t, ok)
 	uassert.Equal(t, 1, e.Sold)
 	urequire.True(t, strings.Contains(EventsJSON(0, 10, true), `"title":"Release Party"`))
+
+	// Paid tickets of an unverified artist are refused, like tips.
+	artistVerified = catalog.ArtistVerified
+	testing.SetRealm(testing.NewUserRealm(carol))
+	testing.SetOriginSend(ugnots(2_500_000))
+	uassert.AbortsContains(t, cur, "not verified", func() { BuyTicket(cross(cur), 1) })
+	testing.SetOriginSend(nil)
+	artistVerified = func(int) bool { return true }
 }
 
 func TestFreeLimitAndSoldOut(cur realm, t *testing.T) {

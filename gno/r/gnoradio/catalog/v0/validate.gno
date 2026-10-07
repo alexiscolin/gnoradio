@@ -4,42 +4,34 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"gno.land/p/gnoradio/safe/v0"
+	"gno.land/p/gnoradio/text/v0"
 )
 
-// validText accepts letters (any script), digits, spaces and a little
-// punctuation. Markdown, HTML, XML and JSON specials are refused, so user
-// text is safe to emit anywhere without escaping.
-func validText(s string, min, max int) bool {
-	n := 0
-	for _, r := range s {
-		n++
-		if unicode.IsLetter(r) || unicode.IsDigit(r) {
-			continue
-		}
-		switch r {
-		case ' ', '.', ',', '\'', '-', '!', '?', ':', '/', '&':
-			continue
-		}
-		return false
-	}
-	return n >= min && n <= max
-}
-
 func mustText(field, s string, min, max int) {
-	if !validText(s, min, max) {
+	if !text.Valid(s, min, max) {
 		panic("catalog: " + field + " must be " + itoa(min) + "-" + itoa(max) +
 			" characters: letters, digits, spaces and . , ' - ! ? : / & only")
+	}
+	// A report reason may quote what it reports (/moderation masks it).
+	if field != "reason" && safe.Slur(s) {
+		panic("catalog: " + field + " holds a slur")
 	}
 }
 
 // validName restricts artist names to ASCII letters and digits plus the
 // Latin-1 accented letters, so look-alike names cannot impersonate an artist.
 func validName(s string) bool {
-	n := 0
+	if strings.TrimSpace(s) != s || strings.Contains(s, "  ") {
+		return false
+	}
+	n, alnum := 0, 0
 	for _, r := range s {
 		n++
 		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') ||
 			(r >= 0xC0 && r <= 0xFF && r != 0xD7 && r != 0xF7) {
+			alnum++
 			continue
 		}
 		switch r {
@@ -48,7 +40,8 @@ func validName(s string) bool {
 		}
 		return false
 	}
-	return n >= 2 && n <= 40
+	// At least one letter or digit, so the reserved skeleton is never empty.
+	return n >= 2 && n <= 40 && alnum > 0
 }
 
 // latin1 folds the Latin-1 letters 0xC0-0xFF (lowercased) to ASCII.
@@ -60,11 +53,17 @@ var latin1 = [64]string{
 }
 
 // skeleton is the key an artist name is reserved under: lowercase, common
-// Latin accents stripped and fullwidth letters and digits mapped to ASCII,
-// so "Beyonce", "BEYONCÉ" and "Ｂｅｙｏｎｃｅ" collide.
+// Latin accents stripped, fullwidth letters and digits mapped to ASCII,
+// spaces and punctuation dropped and look-alikes folded (i/l/1 → l, 0 → o,
+// rn → m), so "Beyonce", "BEYONCÉ", "Ｂｅｙｏｎｃｅ", "Daft  Punk" and
+// "DAFT PUNK" all collide.
 func skeleton(s string) string {
 	var b strings.Builder
 	for _, r := range s {
+		switch r {
+		case ' ', '.', '\'', '-', '&', 0x3000:
+			continue
+		}
 		switch {
 		case r >= 0xFF21 && r <= 0xFF3A:
 			r = r - 0xFF21 + 'a'
@@ -75,17 +74,31 @@ func skeleton(s string) string {
 		}
 		r = unicode.ToLower(r)
 		if r >= 0xC0 && r <= 0xFF && latin1[r-0xC0] != "" {
-			b.WriteString(latin1[r-0xC0])
+			b.WriteString(confusable(latin1[r-0xC0]))
 			continue
 		}
-		b.WriteRune(r)
+		b.WriteString(confusable(string(r)))
 	}
-	return b.String()
+	return strings.ReplaceAll(b.String(), "rn", "m")
+}
+
+// confusable folds characters that look alike in common fonts.
+func confusable(s string) string {
+	switch s {
+	case "i", "1", "|":
+		return "l"
+	case "0":
+		return "o"
+	}
+	return s
 }
 
 func mustName(s string) {
 	if !validName(s) {
 		panic("catalog: artist name must be 2-40 characters: Latin letters (a-z and Latin-1 accents), digits, spaces and . ' - &")
+	}
+	if safe.Slur(s) {
+		panic("catalog: artist name holds a slur")
 	}
 }
 
@@ -209,13 +222,13 @@ func parseClock(s string) (int64, bool) {
 	s = strings.TrimSpace(s)
 	m, sec, hasColon := strings.Cut(s, ":")
 	if !hasColon {
-		if !digits(s) || len(s) > 5 {
+		if !text.Digits(s) || len(s) > 5 {
 			return 0, false
 		}
 		v, _ := strconv.ParseInt(s, 10, 64)
 		return v, true
 	}
-	if len(m) > 3 || len(sec) != 2 || !digits(m) || !digits(sec) {
+	if len(m) > 3 || len(sec) != 2 || !text.Digits(m) || !text.Digits(sec) {
 		return 0, false
 	}
 	mv, _ := strconv.ParseInt(m, 10, 64)
@@ -226,7 +239,7 @@ func parseClock(s string) (int64, bool) {
 	return mv*60 + sv, true
 }
 
-// parseIDs parses "12,40,7" into ids, at most max of them.
+// parseIDs parses "12,40,7" into distinct ids, at most max of them.
 func parseIDs(s string, max int) []int {
 	s = strings.TrimSpace(s)
 	if s == "" {
@@ -237,27 +250,20 @@ func parseIDs(s string, max int) []int {
 		panic("catalog: at most " + itoa(max) + " tracks")
 	}
 	out := make([]int, 0, len(parts))
+	seen := map[int]bool{}
 	for _, p := range parts {
 		p = strings.TrimSpace(p)
 		n, err := strconv.Atoi(p)
-		if err != nil || n < 1 || !digits(p) {
+		if err != nil || n < 1 || !text.Digits(p) {
 			panic("catalog: track ids as 12,40,7")
 		}
+		if seen[n] {
+			panic("catalog: duplicate track " + itoa(n))
+		}
+		seen[n] = true
 		out = append(out, n)
 	}
 	return out
-}
-
-func digits(s string) bool {
-	if s == "" {
-		return false
-	}
-	for _, c := range s {
-		if c < '0' || c > '9' {
-			return false
-		}
-	}
-	return true
 }
 
 // curatedLicense accepts the redistributable licenses curated imports may

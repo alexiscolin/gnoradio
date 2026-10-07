@@ -10,8 +10,8 @@ import (
 	"gno.land/r/gnoradio/catalog/v0"
 )
 
-// The artist page lists at most maxCovers+40 tracks, and the tip line says
-// where the artist share goes when a track has collaborators.
+// The artist page pages its tracks (pageSize per page, covers first on page
+// 1), and the tip line says where the artist share goes with collaborators.
 func TestArtistPageCapAndSplitText(cur realm, t *testing.T) {
 	prolific := testutils.TestAddress("prolific")
 	collab := testutils.TestAddress("collab")
@@ -22,7 +22,12 @@ func TestArtistPageCapAndSplitText(cur realm, t *testing.T) {
 		last = catalog.PublishTrack(cross(cur), "Take "+itoa(i), 2, "3:30", "cc by", "none", "", ipfs, "", "", "", "", "yes")
 	}
 	out := Render("artist/" + itoa(aid))
-	urequire.Equal(t, 40, strings.Count(out, "\n- [Take "))
+	urequire.Equal(t, pageSize-maxCovers, strings.Count(out, "\n- [Take "))
+	urequire.True(t, strings.Contains(out, "Next →"))
+	urequire.Equal(t, pageSize, strings.Count(Render("artist/"+itoa(aid)+"?p=2"), "\n- [Take "))
+	last3 := Render("artist/" + itoa(aid) + "?p=3")
+	urequire.Equal(t, maxCovers+45-2*pageSize, strings.Count(last3, "\n- [Take "))
+	urequire.False(t, strings.Contains(last3, "Next →"))
 	urequire.True(t, strings.Contains(Render("track/"+itoa(last)), "100% of the artist share"))
 
 	split := catalog.PublishTrack(cross(cur), "Duet", 2, "3:30", "cc by", "none", "", ipfs, "", "", "", collab.String()+":30", "yes")

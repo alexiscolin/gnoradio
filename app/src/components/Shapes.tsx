@@ -1,8 +1,9 @@
-// GnoRadio's Bauhaus vocabulary: four primary shapes, each with a meaning.
+// GnoRadio's Bauhaus vocabulary. As functional glyphs, each shape has one meaning:
 //   circle   (red)    live, likes
 //   square   (yellow) money: tips, support, tickets
-//   quarter  (blue)   community, on-chain proof, queue
+//   quarter  (blue)   community, on-chain proof, programming the radio
 //   triangle (ink)    new music: publish, albums, playlists
+// Anything else (save, report, claim, close…) uses a plain line Icon, never a shape.
 
 export type Glyph = "circle" | "square" | "quarter" | "triangle";
 
@@ -24,7 +25,6 @@ export function Shape({ g, size = 14, fill }: { readonly g: Glyph; readonly size
     </svg>
   );
 }
-
 /** Composition is a small Bauhaus poster used for cards and the splash. */
 export function Composition({ variant = 0 }: { readonly variant?: number }) {
   const v = variant % 3;

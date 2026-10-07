@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { CHAIN_ID, account, connect, hasAdena, isCancel, onWalletChange, switchNetwork } from "../lib/gno";
 import { errorMessage } from "../lib/format";
+import { endSession, savedSession, startSession } from "../lib/session";
 
 export type WalletState =
   | { readonly status: "missing" }
@@ -16,7 +17,20 @@ const fromAccount = (acc: { address: string; chainId: string } | undefined): Wal
     : { status: "wrong-network", address: acc.address, chainId: acc.chainId };
 };
 
-/** useWallet tracks the Adena wallet: installed, connected, on the right network. */
+// Adena has no disconnect API: "Disconnect" makes the app forget the wallet,
+// remembered across reloads so it never reconnects silently. Connect clears it.
+const FORGOT = "gnoradio.walletForgotten";
+export const isForgotten = (): boolean => { try { return localStorage.getItem(FORGOT) === "1"; } catch { return false; } };
+const setForgotten = (on: boolean) => {
+  try { if (on) localStorage.setItem(FORGOT, "1"); else localStorage.removeItem(FORGOT); } catch { /* private mode: forget for this session only */ }
+};
+
+/** Signer is how actions get signed: in Adena, or as a gnokey command the user runs. */
+export type Signer = "adena" | "gnokey";
+const SIGNER = "gnoradio.signer";
+const savedSigner = (): Signer => { try { return localStorage.getItem(SIGNER) === "gnokey" ? "gnokey" : "adena"; } catch { return "adena"; } };
+
+/** useWallet tracks the Adena wallet (installed, connected, on the right network), the signer and quick actions. */
 export function useWallet(onError: (msg: string) => void) {
   const [state, setState] = useState<WalletState>(() => (hasAdena() ? { status: "idle" } : { status: "missing" }));
 
@@ -25,7 +39,7 @@ export function useWallet(onError: (msg: string) => void) {
       setState({ status: "missing" });
       return;
     }
-    setState(fromAccount(await account()));
+    setState(isForgotten() ? { status: "idle" } : fromAccount(await account()));
   }, []);
 
   useEffect(() => {
@@ -44,7 +58,9 @@ export function useWallet(onError: (msg: string) => void) {
   const connectWallet = useCallback(async () => {
     setState({ status: "connecting" });
     try {
-      setState(fromAccount(await connect()));
+      const acc = await connect();
+      setForgotten(false); // only once the user actually accepted: a cancelled prompt keeps the Disconnect
+      setState(fromAccount(acc));
     } catch (e) {
       if (!isCancel(e)) onError(errorMessage(e));
       await refresh();
@@ -62,8 +78,9 @@ export function useWallet(onError: (msg: string) => void) {
 
   /** ensure returns a usable address, prompting for connection or network as needed. */
   const ensure = useCallback(async (): Promise<string> => {
-    let acc = await account();
+    let acc = isForgotten() ? undefined : await account();
     acc ??= await connect();
+    setForgotten(false); // cleared only after a successful connect
     if (acc.chainId !== CHAIN_ID) {
       await switchNetwork();
       acc = await account();
@@ -74,8 +91,33 @@ export function useWallet(onError: (msg: string) => void) {
     return acc.address;
   }, []);
 
-  const disconnect = useCallback(() => { setState({ status: "idle" }); }, []);
-  return useMemo(() => ({ state, connectWallet, fixNetwork, ensure, disconnect }), [state, connectWallet, fixNetwork, ensure, disconnect]);
+  const disconnect = useCallback(() => { setForgotten(true); setState({ status: "idle" }); }, []);
+
+  const [signer, setSignerState] = useState(savedSigner);
+  const setSigner = useCallback((s: Signer) => {
+    try { localStorage.setItem(SIGNER, s); } catch { /* private mode: this visit only */ }
+    setSignerState(s);
+  }, []);
+
+  // Quick actions: the account session this browser holds for the connected address (lib/session).
+  const [, recheck] = useReducer((n: number) => n + 1, 0);
+  const quick = state.status === "connected" && savedSession(state.address) !== undefined;
+  const setQuick = useCallback(async (on: boolean) => {
+    try {
+      const address = await ensure();
+      await (on ? startSession(address) : endSession(address));
+      onError(on ? "Quick actions on" : "Quick actions off");
+    } catch (e) {
+      if (!isCancel(e)) onError(errorMessage(e));
+    } finally {
+      recheck();
+    }
+  }, [ensure, onError]);
+
+  return useMemo(
+    () => ({ state, connectWallet, fixNetwork, ensure, disconnect, signer, setSigner, quick, setQuick }),
+    [state, connectWallet, fixNetwork, ensure, disconnect, signer, setSigner, quick, setQuick],
+  );
 }
 
 export type Wallet = ReturnType<typeof useWallet>;

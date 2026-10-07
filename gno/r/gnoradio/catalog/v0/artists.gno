@@ -1,6 +1,11 @@
 package catalog
 
-import "strings"
+import (
+	"strings"
+
+	"gno.land/p/gnoradio/store/v0"
+	"gno.land/p/gnoradio/text/v0"
+)
 
 // RegisterArtist creates or updates the caller's artist profile. Names use
 // Latin letters so look-alike names in other scripts cannot impersonate.
@@ -16,12 +21,14 @@ func RegisterArtist(cur realm, name, bio string) int {
 		a := getArtist(id)
 		rename(a, name)
 		a.Bio = bio
+		putArtist(a)
 		emitEvent("ArtistUpdated", "id", itoa(id), "name", name)
 		return id
 	}
 	a := newArtist(OriginArtist, name, bio, "")
 	a.Owner = caller
-	byOwner.Set(caller.String(), a.ID)
+	putArtist(a)
+	byOwner.Set(caller.String(), itoa(a.ID))
 	emitEvent("ArtistRegistered", "id", itoa(a.ID), "owner", caller.String(), "name", name)
 	return a.ID
 }
@@ -57,7 +64,9 @@ func AssignArtist(cur realm, artistID int, owner address) {
 	}
 	a.Owner = owner
 	a.Verified = true
-	byOwner.Set(owner.String(), a.ID)
+	putArtist(a)
+	claims.Remove(text.Key(a.ID))
+	byOwner.Set(owner.String(), itoa(a.ID))
 	recordActivity("claim", owner, 0, a.ID, 0)
 	emitEvent("ArtistClaimed", "id", itoa(a.ID), "owner", owner.String())
 }
@@ -72,12 +81,14 @@ func Follow(cur realm, artistID int) {
 		panic("catalog: you cannot follow yourself")
 	}
 	u := user(caller)
-	if u.Follows.Has(key(artistID)) {
+	follows, ok := store.Add(u.Follows, artistID)
+	if !ok {
 		panic("catalog: already following")
 	}
-	u.Follows.Set(key(artistID), true)
-	u.NFollows++
+	u.Follows = follows
+	putUser(caller, u)
 	a.Followers++
+	putArtist(a)
 	recordActivity("follow", caller, 0, artistID, 0)
 	emitEvent("Followed", "artist", itoa(artistID), "by", caller.String())
 }
@@ -85,13 +96,17 @@ func Follow(cur realm, artistID int) {
 func Unfollow(cur realm, artistID int) {
 	caller := userCaller(cur)
 	noPayment()
+	notFrozen()
 	u := user(caller)
-	if _, ok := u.Follows.Remove(key(artistID)); !ok {
+	follows, ok := store.Remove(u.Follows, artistID)
+	if !ok {
 		panic("catalog: not following")
 	}
-	u.NFollows--
+	u.Follows = follows
+	putUser(caller, u)
 	if a := getArtist(artistID); a != nil && a.Followers > 0 {
 		a.Followers--
+		putArtist(a)
 	}
 	emitEvent("Unfollowed", "artist", itoa(artistID), "by", caller.String())
 }
@@ -103,13 +118,14 @@ func newArtist(kind, name, bio, source string) *Artist {
 	}
 	nArtists++
 	a := &Artist{ID: nArtists, Kind: kind, Name: name, Bio: bio, Source: source, Joined: now()}
-	artists.Set(key(a.ID), a)
-	names.Set(k, a.ID)
+	artists.Append(artistRecord(a))
+	artistLists.Append(store.Rec("", ""))
+	names.Set(k, itoa(a.ID))
 	return a
 }
 
-// rename moves the artist to a new name and frees the old one. A hidden
-// artist keeps its name so it cannot dodge moderation by renaming.
+// rename moves the artist to a new name and frees the old one (the caller
+// saves a). A hidden artist keeps its name so it cannot dodge moderation.
 func rename(a *Artist, name string) {
 	k, old := skeleton(name), skeleton(a.Name)
 	if k == old {
@@ -119,26 +135,31 @@ func rename(a *Artist, name string) {
 	if a.Hidden {
 		panic("catalog: a hidden artist cannot change its name")
 	}
-	if id, ok := names.Get(k).(int); ok && id != a.ID {
+	if id, ok := names.Get(k); ok && atoi(id) != a.ID {
 		panic("catalog: this artist name is already taken")
 	}
-	names.Set(k, a.ID)
-	if id, ok := names.Get(old).(int); ok && id == a.ID {
+	names.Set(k, itoa(a.ID))
+	if id, ok := names.Get(old); ok && atoi(id) == a.ID {
 		names.Remove(old)
 	}
 	a.Name = name
+	if a.Verified {
+		emitEvent("Verified", "artist", itoa(a.ID), "verified", "false")
+	}
 	a.Verified = false
+	// A pending claim was checked for the old name: a rename must not inherit it.
+	claims.Remove(text.Key(a.ID))
 }
 
 // ReleaseName frees a reserved name no visible artist is using. Admin only.
 func ReleaseName(cur realm, name string) {
 	onlyAdmin(cur)
 	k := skeleton(strings.TrimSpace(name))
-	id, ok := names.Get(k).(int)
+	v, ok := names.Get(k)
 	if !ok {
 		panic("catalog: this name is not reserved")
 	}
-	if a := getArtist(id); a != nil && !a.Hidden && skeleton(a.Name) == k {
+	if a := getArtist(atoi(v)); a != nil && !a.Hidden && skeleton(a.Name) == k {
 		panic("catalog: this name belongs to a visible artist")
 	}
 	names.Remove(k)

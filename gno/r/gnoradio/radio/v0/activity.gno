@@ -1,6 +1,10 @@
 package radio
 
-import "strings"
+import (
+	"strings"
+
+	"gno.land/p/gnoradio/text/v0"
+)
 
 const activitySize = 64
 
@@ -51,7 +55,7 @@ func ActivityJSON(limit int) string {
 		if i > 0 {
 			b.WriteString(",")
 		}
-		b.WriteString(`{"kind":` + q(a.Kind) + `,"by":` + q(a.By.String()) + `,"track":` + itoa(a.Track) +
+		b.WriteString(`{"kind":` + text.Str(a.Kind) + `,"by":` + text.Str(a.By.String()) + `,"track":` + itoa(a.Track) +
 			`,"station":` + itoa(a.Station) + `,"start":` + itoa64(a.Start) + `,"at":` + itoa64(a.At) + `}`)
 	}
 	b.WriteString("]")

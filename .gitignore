@@ -7,3 +7,6 @@ dist/
 *.log
 .vite/
 coverage/
+gno/r/gnoradio/devseed/
+app/tsconfig.tsbuildinfo
+__pycache__/

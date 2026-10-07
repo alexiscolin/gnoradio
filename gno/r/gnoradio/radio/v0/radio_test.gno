@@ -5,6 +5,8 @@ import (
 	"testing"
 	"time"
 
+	"gno.land/p/gnoradio/store/v0"
+
 	"gno.land/p/gnoradio/blocks/v0"
 	"gno.land/p/nt/avl/v0"
 	"gno.land/p/nt/testutils/v0"
@@ -31,9 +33,15 @@ func reset() {
 		stations = append(stations, &station{id: i, genre: i, rot: blocks.New()})
 	}
 	synced = catalog.TrackCount()
+	mainBase = synced
+	homes = store.NewSeq(128)
 	frozen = false
 	admin = erin
-	lastQ = avl.Tree{}
+	lastQ = store.NewMap(128)
+	noteReports, muted = store.NewMap(1024), store.NewMap(1024)
+	modBot, hideDay, hides = "", 0, 0
+	dropped = avl.Tree{}
+	setGenre, setLeft, cursor = 0, 0, [catalog.NumGenres + 1]int{}
 }
 
 // publish adds a track of the current caller's artist profile.
@@ -120,7 +128,7 @@ func TestRotationAndQueue(cur realm, t *testing.T) {
 // package's tests: its admin is the empty deployer address under gno test).
 func hide(stationID, trackID int, on bool) {
 	st := stations[stationID]
-	i := st.slotOf.Get(key(trackID)).(int)
+	i, _ := st.slot(trackID)
 	d := int64(0)
 	if !on {
 		_, _, d, _ = catalog.TrackBrief(trackID)

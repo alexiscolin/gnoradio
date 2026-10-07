@@ -3,9 +3,11 @@ package catalog
 import (
 	"chain"
 	"chain/banker"
+	"crypto/ed25519"
 	"strings"
 	"testing"
 
+	"gno.land/p/gnoradio/store/v0"
 	"gno.land/p/nt/avl/v0"
 	"gno.land/p/nt/testutils/v0"
 	"gno.land/p/nt/uassert/v0"
@@ -30,13 +32,23 @@ const (
 )
 
 func reset() {
-	artists, byOwner, names, tracks, albums = avl.Tree{}, avl.Tree{}, avl.Tree{}, avl.Tree{}, avl.Tree{}
-	playlists, users, reports, hosts = avl.Tree{}, avl.Tree{}, avl.Tree{}, avl.Tree{}
+	artists, artistLists, tracks, albums, playlists = store.NewSeq(16), store.NewSeq(8), store.NewSeq(16), store.NewSeq(16), store.NewSeq(16)
+	byOwner, names, users, userRecs = store.NewMap(128), store.NewMap(128), store.NewMap(256), store.NewSeq(16)
+	reports, hosts = avl.Tree{}, avl.Tree{}
+	byGenre = [NumGenres + 1]store.IDs{}
 	hosts.Set("archive.org", true)
 	nArtists, nTracks, nAlbums, nPlaylists, nReports, openReports = 0, 0, 0, 0, 0, 0
 	topLiked, topArtists, topFans = nil, nil, nil
 	frozen, successor = false, ""
 	admin = boss
+	botKey, claims, proofs, botDay, botCount = nil, avl.Tree{}, avl.Tree{}, 0, 0
+	verifySig = ed25519.Verify
+}
+
+// verified marks an artist as verified, as FinalizeClaim would (verify_test covers the flow).
+func verified(cur realm, artistID int) {
+	testing.SetRealm(testing.NewUserRealm(admin))
+	Verify(cross(cur), artistID, true)
 }
 
 func ugnots(n int64) chain.Coins { return chain.Coins{{Denom: denom, Amount: n}} }
@@ -128,16 +140,16 @@ func TestCuratedAudiusAndClaim(cur realm, t *testing.T) {
 	})
 	t2 := ImportTrack(cross(cur), au, "Midnight Drive", 1, "3:41", "", "", "audius:Dk3aQ", "", "", "",
 		"https://audius.co/nighttapes/midnight-drive", "Night Tapes, Audius Open Music License")
-	uassert.Equal(t, audiusLicense, getTrack(t2).License)
+	uassert.Equal(t, AudiusLicense, getTrack(t2).License)
 	uassert.AbortsContains(t, cur, "audius:<trackId>", func() {
 		ImportTrack(cross(cur), au, "X", 1, "2:00", "", "", ipfs, "", "", "", "https://audius.co/x", "Night Tapes")
 	})
 
-	// Unclaimed artists cannot be tipped.
+	// Unverified artists cannot be tipped.
 	testing.IssueCoins(realmAddr, ugnots(ugnot))
 	testing.SetOriginSend(ugnots(ugnot))
 	testing.SetRealm(testing.NewUserRealm(carol))
-	uassert.AbortsContains(t, cur, "not claimed", func() { Tip(cross(cur), t1) })
+	uassert.AbortsContains(t, cur, "not verified", func() { Tip(cross(cur), t1) })
 	testing.SetOriginSend(nil)
 
 	// Claim: the admin assigns the profile; tips then flow to the owner.
@@ -157,6 +169,7 @@ func TestTipSplitsAndGuards(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(alice))
 	RegisterArtist(cross(cur), "Alice", "")
 	id := PublishTrack(cross(cur), "Song", 2, "1:40", "CC-BY", "none", "", ipfs, "", "", "", bob.String()+":30", "yes")
+	verified(cur, 1)
 
 	testing.IssueCoins(realmAddr, ugnots(20*ugnot))
 	testing.SetOriginSend(ugnots(10 * ugnot))
@@ -199,8 +212,8 @@ func TestLikesFollowsAlbumsPlaylists(cur realm, t *testing.T) {
 	uassert.AbortsContains(t, cur, "already liked", func() { Like(cross(cur), a) })
 	Follow(cross(cur), 1)
 	uassert.Equal(t, 1, getArtist(1).Followers)
-	uassert.True(t, HasLiked(carol, a))
-	uassert.True(t, IsFollowing(carol, 1))
+	uassert.Equal(t, a, LikedPage(carol, 0, 1)[0])
+	uassert.Equal(t, 1, FollowsPage(carol, 0, 1)[0])
 	uassert.Equal(t, carol, getTrack(a).Early[0])
 	Unlike(cross(cur), a)
 	uassert.Equal(t, 0, getTrack(a).Likes)
@@ -211,6 +224,9 @@ func TestLikesFollowsAlbumsPlaylists(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(alice))
 	al := CreateAlbum(cross(cur), 1, "First Light", "", "", 2026, itoa(a)+","+itoa(b))
 	uassert.Equal(t, al, getTrack(b).Album)
+	uassert.AbortsContains(t, cur, "duplicate", func() {
+		CreateAlbum(cross(cur), 1, "Twice", "", "", 2026, itoa(a)+","+itoa(a))
+	})
 	uassert.AbortsContains(t, cur, "already in an album", func() {
 		CreateAlbum(cross(cur), 1, "Again", "", "", 2026, itoa(a))
 	})
@@ -229,7 +245,7 @@ func TestLikesFollowsAlbumsPlaylists(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(bob))
 	uassert.AbortsContains(t, cur, "not your playlist", func() { UpdatePlaylist(cross(cur), p, "Mine", itoa(a)) })
 
-	urequire.True(t, strings.Contains(AlbumJSON(al), `"tracks":[1,2]`))
+	urequire.True(t, strings.Contains(strings.ReplaceAll(AlbumJSON(al), " ", ""), `"tracks":[1,2]`)) // ids are space-padded in storage
 	urequire.True(t, strings.Contains(PlaylistJSON(p), `"title":"Late night v2"`))
 	urequire.True(t, strings.Contains(UserJSON(carol), `"playlists":[1]`))
 }

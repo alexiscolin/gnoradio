@@ -1,10 +1,18 @@
 // Minimal gno.land client: reads realm JSON exports through vm/qeval and
-// sends transactions through the Adena wallet. Listening never touches it.
+// sends transactions through the Adena wallet (or a session, or gnokey). Listening never touches it.
 
 import { check, type Guard } from "./guard";
 
 export const RPC = import.meta.env.VITE_RPC ?? "/rpc";
 export const CHAIN_ID = import.meta.env.VITE_CHAIN_ID ?? (import.meta.env.PROD ? "onyx-1" : "dev");
+
+/** networkLabel names a non-mainnet chain for the network badge; "" on mainnet. */
+export function networkLabel(chainId: string): string {
+  if (chainId === "gnoland-1") return "";
+  if (chainId === "dev") return "Local devnet";
+  if (/^(onyx|test)/.test(chainId)) return `Testnet · ${chainId}`;
+  return chainId;
+}
 
 export const REALMS = {
   catalog: "gno.land/r/gnoradio/catalog/v0",
@@ -12,7 +20,18 @@ export const REALMS = {
   tickets: "gno.land/r/gnoradio/tickets/v0",
 } as const;
 
-export type RealmPath = (typeof REALMS)[keyof typeof REALMS];
+export type RealmPath = (typeof REALMS)[keyof typeof REALMS] | SysPath;
+/** gno.land system realms the app reads: names (r/sys/users) and the name registrar. */
+export type SysPath = "gno.land/r/sys/users" | "gno.land/r/sys/namereg/v0" | "gno.land/r/sys/namereg/v1" | typeof SAFE;
+
+/** SAFE screens dedications (p/gnoradio/safe); the app asks it before signing. */
+export const SAFE = "gno.land/p/gnoradio/safe/v0";
+export const MAX_NOTE = 40;
+
+/** noteProblem is why a dedication would be refused ("" when fine): a free read. */
+export async function noteProblem(note: string): Promise<string> {
+  return note === "" ? "" : unquote(await qeval(SAFE, `Note(${JSON.stringify(note)}, ${String(MAX_NOTE)})`));
+}
 
 const toBase64 = (s: string) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
 const fromBase64 = (s: string) => new TextDecoder().decode(Uint8Array.from(atob(s), (c) => c.charCodeAt(0)));
@@ -25,6 +44,13 @@ interface AbciResponse {
 export class RealmError extends Error {
   override name = "RealmError";
 }
+
+/** DataError is a reply that does not parse or match its schema: one bad record, not an outage. */
+export class DataError extends Error {
+  override name = "DataError";
+}
+
+const TIMEOUT_MS = 8000;
 
 // At most MAX_INFLIGHT queries at once, so a big catalog never floods the public RPC.
 const MAX_INFLIGHT = 6;
@@ -54,7 +80,7 @@ export function qeval(pkg: RealmPath, expr: string): Promise<string> {
       try {
         return await qevalOnce(pkg, expr);
       } catch (e) {
-        // Retry rate limits and network errors with backoff; realm errors are final.
+        // Retry rate limits, timeouts and network errors with backoff; realm errors are final.
         if (e instanceof RealmError || attempt >= 3) throw e;
         await sleep(400 * 2 ** attempt);
       }
@@ -67,6 +93,8 @@ async function qevalOnce(pkg: RealmPath, expr: string): Promise<string> {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "abci_query", params: { path: "vm/qeval", data: toBase64(`${pkg}.${expr}`) } }),
+    // A hung node must not hold one of the few query slots forever.
+    signal: AbortSignal.timeout(TIMEOUT_MS),
   });
   if (!res.ok) throw new Error(`RPC returned ${res.status}`);
   const base = ((await res.json()) as AbciResponse).result?.response?.ResponseBase;
@@ -75,14 +103,22 @@ async function qevalOnce(pkg: RealmPath, expr: string): Promise<string> {
   return fromBase64(base.Data ?? "");
 }
 
+/** unquote unwraps a qeval string result, ("…" string) → …; "" when it isn't one. */
+import { unquote } from "./proof";
+export { unquote };
+
 /** qjson evaluates a realm function returning a JSON string, parses it and validates it with guard. */
 export async function qjson<T>(pkg: RealmPath, expr: string, guard: Guard<T>): Promise<T> {
   const raw = await qeval(pkg, expr);
-  const quoted = /^\((".*") string\)$/s.exec(raw)?.[1];
-  if (quoted === undefined) throw new Error(`Unexpected result from ${expr}`);
-  const inner: unknown = JSON.parse(quoted);
-  if (typeof inner !== "string") throw new Error(`Unexpected result from ${expr}`);
-  return check(JSON.parse(inner), guard, expr);
+  try {
+    const quoted = /^\((".*") string\)$/s.exec(raw)?.[1];
+    if (quoted === undefined) throw new Error(`Unexpected result from ${expr}`);
+    const inner: unknown = JSON.parse(quoted);
+    if (typeof inner !== "string") throw new Error(`Unexpected result from ${expr}`);
+    return check(JSON.parse(inner), guard, expr);
+  } catch (e) {
+    throw new DataError(e instanceof Error ? e.message : String(e));
+  }
 }
 
 const ADDRESS = /^g1[02-9ac-hj-np-z]{38}$/;
@@ -126,16 +162,21 @@ export interface TxResult {
 
 type AdenaEvent = "changedAccount" | "changedNetwork";
 
+/** A message Adena signs: a realm call, or (Adena 1.22+) an account session's creation or revocation. */
+export type AdenaMessage =
+  | { type: "/vm.m_call"; value: { caller: string; send: string; pkg_path: string; func: string; args: string[] } }
+  | { type: "/auth.m_create_session"; value: { creator: string; session_key: SessionKey; expires_at: string; allow_paths: string[]; spend_limit: string; spend_period: string } }
+  | { type: "/auth.m_revoke_session"; value: { creator: string; session_key: SessionKey } };
+/** SessionKey is a secp256k1 public key as an Any, its bytes as numbers (they cross Adena's message channel as JSON). */
+export interface SessionKey { type_url: string; value: number[] }
+
 interface AdenaWallet {
   AddEstablish(name: string, chainIds?: string | string[]): Promise<AdenaResponse<unknown>>;
   GetAccount(): Promise<AdenaResponse<AdenaAccount>>;
   AddNetwork(net: { chainId: string; chainName: string; rpcUrl: string }): Promise<AdenaResponse<unknown>>;
   SwitchNetwork(chainId: string): Promise<AdenaResponse<unknown>>;
   On?: (event: AdenaEvent, cb: (value: string) => void) => boolean;
-  DoContract(tx: {
-    messages: { type: "/vm.m_call"; value: { caller: string; send: string; pkg_path: string; func: string; args: string[] } }[];
-    memo?: string;
-  }): Promise<AdenaResponse<TxResult>>;
+  DoContract(tx: { messages: AdenaMessage[]; memo?: string }): Promise<AdenaResponse<TxResult>>;
 }
 
 declare global {
@@ -207,17 +248,27 @@ export async function switchNetwork(): Promise<void> {
   if (again.status !== "success" && again.type !== "REDUNDANT_CHANGE_REQUEST") fail(again);
 }
 
-/** call sends a MsgCall signed by the user's wallet (Adena estimates the gas) and returns the tx. */
-export async function call(caller: string, pkg: RealmPath, func: string, args: readonly string[], sendUgnot = 0): Promise<TxResult> {
-  const res = await adena().DoContract({
-    messages: [{ type: "/vm.m_call", value: { caller, send: sendUgnot > 0 ? `${String(sendUgnot)}ugnot` : "", pkg_path: pkg, func, args: [...args] } }],
-    memo: "gnoradio",
-  });
+/** Call is one realm function call, whoever signs it (Adena, a session, gnokey). */
+export interface Call {
+  readonly pkg: RealmPath;
+  readonly func: string;
+  readonly args: readonly string[];
+  /** ugnot sent with the call (a tip, a ticket); none when 0 or absent */
+  readonly send?: number | undefined;
+}
+
+/** sign has Adena sign and broadcast messages; it returns the tx or throws its failure. */
+export async function sign(messages: AdenaMessage[]): Promise<TxResult> {
+  const res = await adena().DoContract({ messages, memo: "gnoradio" });
   if (res.status !== "success" || !res.data) fail(res);
   const base = res.data.deliverTx?.ResponseBase;
   if (base?.Error) throw new Error(base.Log ?? "The transaction failed on-chain.");
   return res.data;
 }
+
+/** call sends c as a MsgCall signed by the user's wallet (Adena estimates the gas) and returns the tx. */
+export const call = (caller: string, c: Call): Promise<TxResult> =>
+  sign([{ type: "/vm.m_call", value: { caller, send: c.send ? `${String(c.send)}ugnot` : "", pkg_path: c.pkg, func: c.func, args: [...c.args] } }]);
 
 /** explorerURL links a tx on gnoscan (public chains only). */
 export function explorerURL(hash: string): string | undefined {

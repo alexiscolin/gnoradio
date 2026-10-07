@@ -47,6 +47,21 @@ describe("qjson", () => {
     expect(f).toHaveBeenCalledTimes(2);
     vi.useRealTimers();
   });
+  it("retries a timed-out query", async () => {
+    vi.useFakeTimers();
+    const good = { result: { response: { ResponseBase: { Error: null, Data: b64(`(${JSON.stringify('"ok"')} string)`), Log: "" } } } };
+    const f = vi.fn()
+      .mockRejectedValueOnce(new DOMException("The operation timed out.", "TimeoutError"))
+      .mockResolvedValue({ ok: true, status: 200, json: () => Promise.resolve(good) });
+    vi.stubGlobal("fetch", f);
+    const p = qjson(REALMS.catalog, "Info()", str);
+    await vi.runAllTimersAsync();
+    await expect(p).resolves.toBe("ok");
+    expect(f).toHaveBeenCalledTimes(2);
+    const init = f.mock.calls[0]?.[1] as RequestInit | undefined;
+    expect(init?.signal).toBeInstanceOf(AbortSignal);
+    vi.useRealTimers();
+  });
   it("never runs more than 6 queries at once", async () => {
     let live = 0;
     let peak = 0;
@@ -72,5 +87,15 @@ describe("guards", () => {
   it("only quotes valid addresses into expressions", () => {
     expect(gnoAddress("g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5")).toBe('"g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5"');
     expect(() => gnoAddress('g1"); Freeze(true); ("')).toThrow("Invalid");
+  });
+});
+
+describe("networkLabel", () => {
+  it("names devnets and testnets, says nothing on mainnet", async () => {
+    const { networkLabel } = await import("./gno");
+    expect(networkLabel("dev")).toBe("Local devnet");
+    expect(networkLabel("onyx-1")).toBe("Testnet · onyx-1");
+    expect(networkLabel("test11")).toBe("Testnet · test11");
+    expect(networkLabel("gnoland-1")).toBe("");
   });
 });

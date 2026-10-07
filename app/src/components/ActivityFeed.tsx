@@ -1,10 +1,11 @@
-import { gnot, shortAddr } from "../lib/format";
+import { gnot } from "../lib/format";
+import { useNames } from "../lib/names";
 import type { Activity, Catalog, Navigate } from "../lib/types";
 import { type Glyph, Shape } from "./Shapes";
 
 const GLYPH: Record<Activity["kind"], Glyph> = {
   like: "circle",
-  follow: "circle",
+  follow: "quarter",
   tip: "square",
   support: "square",
   queue: "quarter",
@@ -15,7 +16,8 @@ const GLYPH: Record<Activity["kind"], Glyph> = {
   playlist: "triangle",
 };
 
-function ago(at: number, now: number): string {
+/** ago is how long ago a unix time was: 42s, 5m, 3h, 2d. */
+export function ago(at: number, now: number): string {
   const s = Math.max(0, Math.round(now - at));
   if (s < 60) return `${String(s)}s`;
   if (s < 3600) return `${String(Math.floor(s / 60))}m`;
@@ -31,6 +33,7 @@ export function ActivityFeed({ items, cat, go, now, compact = false }: {
   readonly now: number;
   readonly compact?: boolean;
 }) {
+  const shown = useNames(items.map((a) => a.by));
   if (items.length === 0) return <p className="muted">No activity yet. Be the first: like, tip or queue a track.</p>;
   return (
     <ol className={`feed${compact ? " compact" : ""}`}>
@@ -66,9 +69,9 @@ export function ActivityFeed({ items, cat, go, now, compact = false }: {
         return (
           <li key={`${String(idx)}-${a.kind}-${String(a.at)}-${a.by}-${String(a.track)}`}>
             <Shape g={GLYPH[a.kind]} size={12} />
-            <button className="feed-txt" onClick={open} disabled={!target}>
-              <span className="mono who">{shortAddr(a.by)}</span> {text}
-            </button>
+            {target
+              ? <button className="feed-txt" onClick={open}><span className="mono who">{shown(a.by)}</span> {text}</button>
+              : <span className="feed-txt"><span className="mono who">{shown(a.by)}</span> {text}</span>}
             <span className="mono muted">{ago(a.at, now)}</span>
           </li>
         );

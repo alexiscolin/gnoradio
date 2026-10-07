@@ -3,6 +3,8 @@ package catalog
 import (
 	"strconv"
 	"strings"
+
+	"gno.land/p/gnoradio/text/v0"
 )
 
 // Report flags a track, album, artist or playlist for the moderators
@@ -10,6 +12,7 @@ import (
 func Report(cur realm, kind string, target int, reason string) {
 	caller := userCaller(cur)
 	noPayment()
+	notFrozen()
 	reason = strings.TrimSpace(reason)
 	mustText("reason", reason, 4, 200)
 	switch kind {
@@ -36,16 +39,17 @@ func Report(cur realm, kind string, target int, reason string) {
 		panic("catalog: you have " + itoa(maxUserReports) + " open reports, wait for the moderators")
 	}
 	u.Reports++
+	putUser(caller, u)
 	openReports++
 	nReports++
-	reports.Set(key(nReports), &ReportInfo{ID: nReports, Kind: kind, Target: itoa(target), Reason: reason, By: caller, At: now()})
+	reports.Set(text.Key(nReports), &ReportInfo{ID: nReports, Kind: kind, Target: itoa(target), Reason: reason, By: caller, At: now()})
 	emitEvent("Reported", "kind", kind, "target", itoa(target), "by", caller.String())
 }
 
 // ResolveReport closes a report once handled. Admin only.
 func ResolveReport(cur realm, id int) {
 	onlyAdmin(cur)
-	v, ok := reports.Remove(key(id))
+	v, ok := reports.Remove(text.Key(id))
 	if !ok {
 		panic("catalog: unknown report")
 	}
@@ -53,15 +57,16 @@ func ResolveReport(cur realm, id int) {
 	if openReports > 0 {
 		openReports--
 	}
-	if u, ok := users.Get(r.By.String()).(*User); ok && u.Reports > 0 {
+	if u := getUser(r.By); u != nil && u.Reports > 0 {
 		u.Reports--
+		putUser(r.By, u)
 	}
 	emitEvent("ReportResolved", "id", itoa(id))
 }
 
 // Hide or restore content. Admin only. Hidden content stays on-chain (and on
 // IPFS); it is no longer listed, played or tippable. Radio stations drop a
-// hidden track on their next Prune.
+// hidden track on their next Refresh (radio.RefreshArtist for a whole artist).
 func HideTrack(cur realm, trackID int, hidden bool) {
 	onlyAdmin(cur)
 	t := getTrack(trackID)
@@ -69,6 +74,7 @@ func HideTrack(cur realm, trackID int, hidden bool) {
 		panic("catalog: unknown track")
 	}
 	t.Hidden = hidden
+	putTrack(t)
 	emitEvent("Moderated", "kind", "track", "target", itoa(trackID), "hidden", strconv.FormatBool(hidden))
 }
 
@@ -79,6 +85,7 @@ func HideAlbum(cur realm, albumID int, hidden bool) {
 		panic("catalog: unknown album")
 	}
 	al.Hidden = hidden
+	putAlbum(al)
 	emitEvent("Moderated", "kind", "album", "target", itoa(albumID), "hidden", strconv.FormatBool(hidden))
 }
 
@@ -89,6 +96,7 @@ func HideArtist(cur realm, artistID int, hidden bool) {
 		panic("catalog: unknown artist")
 	}
 	a.Hidden = hidden
+	putArtist(a)
 	emitEvent("Moderated", "kind", "artist", "target", itoa(artistID), "hidden", strconv.FormatBool(hidden))
 }
 
@@ -99,13 +107,20 @@ func HidePlaylist(cur realm, playlistID int, hidden bool) {
 		panic("catalog: unknown playlist")
 	}
 	p.Hidden = hidden
+	putPlaylist(p)
 	emitEvent("Moderated", "kind", "playlist", "target", itoa(playlistID), "hidden", strconv.FormatBool(hidden))
 }
 
 // Verify marks an artist whose identity was checked off-chain.
 func Verify(cur realm, artistID int, verified bool) {
 	onlyAdmin(cur)
-	mustArtist(artistID).Verified = verified
+	a := mustArtist(artistID)
+	a.Verified = verified
+	putArtist(a)
+	claims.Remove(text.Key(artistID)) // settled by the admin either way
+	if !verified {
+		proofs.Remove(text.Key(artistID))
+	}
 	emitEvent("Verified", "artist", itoa(artistID), "verified", strconv.FormatBool(verified))
 }
 

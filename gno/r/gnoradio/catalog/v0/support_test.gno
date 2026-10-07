@@ -58,6 +58,7 @@ func TestTipWithSupport(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(alice))
 	RegisterArtist(cross(cur), "Alice", "")
 	id := PublishTrack(cross(cur), "Song", 2, "1:40", "CC-BY", "none", "", ipfs, "", "", "", bob.String()+":30", "yes")
+	verified(cur, 1)
 
 	// 11 GNOT with 10% support: 10 to the artist side (3 bob, 7 alice), 1 to GnoRadio.
 	testing.IssueCoins(realmAddr, ugnots(11*ugnot))
