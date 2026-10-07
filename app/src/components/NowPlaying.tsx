@@ -105,7 +105,7 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
       <div className="now-top">
         {live
           ? <button className="chip station-chip" onClick={() => { go({ k: "stations" }); }} title={`${stationLine(stationName, st?.genre)} · change station`}><Shape g="circle" size={9} />{stationName}</button>
-          : <span className="chip">Library</span>}
+          : <button className="chip station-chip" onClick={() => { go({ k: "library", genre: 0 }); }} title="Open the Library"><Shape g="quarter" size={9} />Library</button>}
         <span className="seg small" role="group" aria-label="Mode">
           <button className={live ? "" : "on"} aria-pressed={!live} onClick={p.toLibrary} title="Library: play any track you choose, just for you">Lib</button>
           <button className={live ? "on live" : ""} aria-pressed={live} onClick={() => { p.goLive(p.station); }} title="Live: tune into a station, everyone hears the same second">Live</button>
@@ -231,12 +231,12 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
         {live && (
           <button className="pickbtn" onClick={() => { openPick(p.station); }}
             aria-label={`Pick what plays next on ${stationName}`} title={`Pick what plays next on ${stationName} · public, on-chain`}>
-            <Shape g="quarter" size={16} fill="#fff" /><span>Pick next</span>
+            <Icon name="on-air" size={18} /><span>Pick next</span>
           </button>
         )}
       </div>
       {!live && t && (
-        <button className="golive" onClick={() => { openPick(0, t.id); }} title="Listeners program the radio together: your pick airs next on Main for everyone"><Shape g="quarter" size={10} /><span className="golive-txt"><span>Share it with everyone on the radio</span><small>Airs next on Main · one quick signature</small></span></button>
+        <button className="golive" onClick={() => { openPick(0, t.id); }} title="Listeners program the radio together: your pick airs next on Main for everyone"><Icon name="on-air" size={14} /><span className="golive-txt"><span>Share it with everyone on the radio</span><small>Airs next on Main · one quick signature</small></span></button>
       )}
 
       <div className="volume">
@@ -258,7 +258,7 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
           ))}
           {upNext.length > 0 && !upNext.some((e) => e.queued) && (
             <button className="pick-cta" onClick={() => { openPick(p.station); }}>
-              <Shape g="quarter" size={16} />
+              <Icon name="on-air" size={18} />
               <span>Next {upNext.length === 1 ? "track is" : `${String(upNext.length)} tracks are`} up for grabs<small>Pick one: your name on air, a share of its tips</small></span>
               <span aria-hidden="true">+</span>
             </button>

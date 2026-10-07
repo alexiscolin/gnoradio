@@ -8,6 +8,7 @@ export type Mode = "library" | "live";
 
 /** The note shown when no source of a track answers. */
 export const NOT_RESPONDING = "This track isn't responding.";
+const NOT_RESPONDING_AFTER_MS = 6000;
 
 const RESYNC_MS = 5 * 60_000; // the schedule covers an hour; resync also on track end
 const DRIFT_S = 4;
@@ -71,6 +72,7 @@ export function usePlayer(cat: Catalog | null) {
   userVolume.current = volume;
   const [entries, setEntries] = useState<readonly ScheduleEntry[]>([]);
   const [error, setError] = useState("");
+  const failNote = useRef(0); // the pending "not responding" note, dropped if sound comes back
   const skew = useRef(0); // chain clock minus local clock, seconds
   const syncSeq = useRef(0); // drops stale schedule responses
   const pendingSeek = useRef<(() => void) | null>(null);
@@ -89,6 +91,7 @@ export function usePlayer(cat: Catalog | null) {
     (trackId: number, at = 0, autoplay = true) => {
       const t = cat?.byId.get(trackId);
       if (!t) return;
+      window.clearTimeout(failNote.current);
       setError("");
       setCurrent(trackId);
       const urls = audioURLs(t);
@@ -286,6 +289,13 @@ export function usePlayer(cat: Catalog | null) {
         if (wantsPlay.current) void audio.play().catch(() => undefined);
         return;
       }
+      // On the radio, a stream that drops (a CDN hiccup, a rate limit) is tuned again once,
+      // silently, before the listener is told anything.
+      if (latest.current.mode === "live" && skips.current === 0) {
+        skips.current++;
+        void syncLive(latest.current.station, wantsPlay.current);
+        return;
+      }
       // Every source failed: stop, and in an album or playlist go on with the next track
       // (at most once round the queue, so a dead list does not spin). The note stays until sound.
       audio.pause();
@@ -296,12 +306,15 @@ export function usePlayer(cat: Catalog | null) {
         skips.current++;
         step(1);
       }
-      setError(NOT_RESPONDING);
+      // Say it only if no sound came back within 6 s: a short drop is not worth a red line.
+      window.clearTimeout(failNote.current);
+      failNote.current = window.setTimeout(() => { setError(NOT_RESPONDING); }, NOT_RESPONDING_AFTER_MS);
     };
     const onPause = () => { wantsPlay.current = false; setPlaying(false); setBuffering(false); };
     const onPlay = () => { wantsPlay.current = true; setPlaying(true); };
     const onSound = () => {
       skips.current = 0;
+      window.clearTimeout(failNote.current);
       setError((e) => (e === NOT_RESPONDING ? "" : e));
     };
     // waiting/stalled: the network is behind; playing/canplay: sound again.
@@ -331,6 +344,7 @@ export function usePlayer(cat: Catalog | null) {
 
   useEffect(
     () => () => {
+      window.clearTimeout(failNote.current);
       audio.pause();
       audio.removeAttribute("src");
       audio.load();

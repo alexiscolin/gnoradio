@@ -1,4 +1,4 @@
-import { type KeyboardEvent, type PointerEvent, useEffect, useRef, useState } from "react";
+import { type KeyboardEvent, type PointerEvent, useCallback, useEffect, useRef, useState } from "react";
 import { clock } from "../lib/format";
 
 interface DialProps {
@@ -16,33 +16,48 @@ const TICKS = 60;
 const GLIDE_MS = 700;
 
 /**
- * useGlide follows frac, but a jump (tuning in, a new track, a seek) glides
- * there instead of snapping; the steady second-by-second advance is followed as is.
+ * useGlide follows frac without ever swinging back and forth:
+ * - forward jumps (tuning in, a seek ahead) glide there; backward ones snap;
+ * - a 0 while the next station or track loads keeps the last position (up to 2 s)
+ *   instead of falling to the top and climbing again;
+ * - place(v) shows a seek at once and ignores stale positions until the player reaches it.
  */
-function useGlide(frac: number): number {
+function useGlide(frac: number): readonly [number, (v: number) => void] {
   const [shown, setShown] = useState(0);
   const from = useRef(0);
+  const pin = useRef<{ v: number; until: number } | null>(null);
   useEffect(() => {
+    const p = pin.current;
+    if (p) {
+      if (Math.abs(frac - p.v) > 0.03 && performance.now() < p.until) return; // the player has not caught up yet
+      pin.current = null;
+    }
+    const snap = (v: number) => { from.current = v; setShown(v); };
+    if (frac === 0 && from.current > 0) {
+      const id = window.setTimeout(() => { snap(0); }, 2000);
+      return () => { window.clearTimeout(id); };
+    }
     const start = from.current;
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce || Math.abs(frac - start) < 0.02) {
-      from.current = frac;
-      setShown(frac);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || frac < start || frac - start < 0.02) {
+      snap(frac);
       return;
     }
     const t0 = performance.now();
     let id = 0;
     const step = (now: number) => {
       const k = Math.min(1, (now - t0) / GLIDE_MS);
-      const v = start + (frac - start) * (1 - (1 - k) ** 3); // ease-out cubic
-      from.current = v;
-      setShown(v);
+      snap(start + (frac - start) * (1 - (1 - k) ** 3)); // ease-out cubic
       if (k < 1) id = requestAnimationFrame(step);
     };
     id = requestAnimationFrame(step);
     return () => { cancelAnimationFrame(id); };
   }, [frac]);
-  return shown;
+  const place = useCallback((v: number) => {
+    pin.current = { v, until: performance.now() + 1500 };
+    from.current = v;
+    setShown(v);
+  }, []);
+  return [shown, place] as const;
 }
 const R = 100;
 
@@ -52,7 +67,7 @@ const R = 100;
  */
 export function Dial({ frac, seconds, caption, live, onSeek, buffering = false, tuning = false }: DialProps) {
   const target = Math.min(1, Math.max(0, Number.isFinite(frac) ? frac : 0));
-  const glided = useGlide(target);
+  const [glided, place] = useGlide(target);
   // Library only: drag the ring (forwards or back); the time follows, the seek happens on release.
   const [drag, setDrag] = useState<number | null>(null);
   const f = drag ?? glided;
@@ -79,6 +94,7 @@ export function Dial({ frac, seconds, caption, live, onSeek, buffering = false, 
   const move = (e: PointerEvent<SVGSVGElement>) => { if (drag !== null) setDrag(at(e)); };
   const up = () => {
     if (drag === null || !onSeek) return;
+    place(drag); // the ring stays where it was let go, no flash back to the old time
     onSeek(drag);
     setDrag(null);
   };
@@ -91,6 +107,7 @@ export function Dial({ frac, seconds, caption, live, onSeek, buffering = false, 
     const to = moves[e.key];
     if (to === undefined) return;
     e.preventDefault();
+    place(Math.min(1, Math.max(0, to)));
     onSeek(Math.min(1, Math.max(0, to)));
   };
 

@@ -28,6 +28,10 @@ export function viewToPath(v: View, name = ""): string {
       return `/${v.k}/${withName(v.id, name)}`;
     case "listener": // /listener/alice-g1… or /listener/g1…: the address is the id
       return `/listener/${slug(name) ? `${slug(name)}-` : ""}${v.address}`;
+    case "collection": // Your library lives in the Library section
+      return `/library/${v.list}`;
+    case "door": // /door/7-g1…: the ticket and the holder its QR was made for
+      return `/door/${String(v.ticket)}-${v.holder}`;
     case "stations":
       return v.live === undefined ? "/stations" : v.live === 0 ? "/live" : `/live/${withName(v.live, name)}`;
     default:
@@ -60,7 +64,7 @@ export function pathToView(path: string): View {
     case "legal":
       return { k };
     case "library":
-      return { k, genre: n };
+      return arg === "saved" || arg === "liked" ? { k: "collection", list: arg } : { k, genre: n };
     case "track":
     case "artist":
     case "album":
@@ -70,13 +74,17 @@ export function pathToView(path: string): View {
       const a = arg.slice(-40);
       return isAddress(a) && (arg.length === 40 || arg.at(-41) === "-") ? { k, address: a } : { k: "listen" };
     }
+    case "door": {
+      const [t = "", holder = ""] = arg.split("-");
+      return Number(t) > 0 && isAddress(holder) ? { k, ticket: Number(t), holder } : { k: "concerts" };
+    }
     default:
       return { k: "listen" };
   }
 }
 
 /** A top-level screen, one per navigation entry. Detail pages live under one. */
-export type Section = Exclude<View["k"], "artist" | "album" | "playlist" | "track" | "listener">;
+export type Section = Exclude<View["k"], "artist" | "album" | "playlist" | "track" | "listener" | "door" | "collection">;
 
 /** sectionOf is the navigation entry a screen belongs to, so the menu always shows where you are. */
 export function sectionOf(v: View): Section {
@@ -88,6 +96,10 @@ export function sectionOf(v: View): Section {
       return "library";
     case "listener":
       return "community";
+    case "collection":
+      return "library";
+    case "door":
+      return "concerts";
     default:
       return v.k;
   }

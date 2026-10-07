@@ -24,6 +24,8 @@ import { Community, Me, Studio } from "./views/Community";
 import { About } from "./views/About";
 import { Legal } from "./views/Legal";
 import { ListenerView } from "./views/Listener";
+import { DoorView } from "./views/Door";
+import { CollectionView } from "./views/Collection";
 import { Contribute } from "./views/Contribute";
 import { AlbumView, ArtistView, Concerts, PlaylistView, TrackView } from "./views/Detail";
 
@@ -213,7 +215,7 @@ function renderView(a: RenderArgs) {
     case "community":
       return <Community cat={cat} go={go} support={a.support} activity={a.activity} now={a.now} onSupport={() => { a.openSupport({ kind: "platform" }); }} openPick={a.openPick} />;
     case "me":
-      return <Me cat={cat} go={go} player={player} actions={actions} saved={a.saved} openPick={a.openPick} />;
+      return <Me cat={cat} go={go} actions={actions} saved={a.saved} openPick={a.openPick} />;
     case "studio":
       return a.isAdmin ? <Studio cat={cat} go={go} actions={actions} /> : <p className="muted">The studio is for the GnoRadio admin.</p>;
     case "track":
@@ -226,6 +228,10 @@ function renderView(a: RenderArgs) {
       return <PlaylistView cat={cat} player={player} go={go} id={view.id} actions={actions} saved={a.saved} />;
     case "listener":
       return <ListenerView cat={cat} go={go} address={view.address} me={a.me} />;
+    case "collection":
+      return <CollectionView cat={cat} player={player} go={go} actions={actions} saved={a.saved} list={view.list} />;
+    case "door":
+      return <DoorView cat={cat} go={go} ticket={view.ticket} holder={view.holder} actions={actions} />;
     case "contribute":
       return <Contribute cat={cat} go={go} path={view.path} actions={actions} isAdmin={a.isAdmin} openPick={a.openPick} />;
     case "about":

@@ -8,7 +8,7 @@ describe("router", () => {
   const views: View[] = [
     { k: "listen" }, { k: "stations" }, { k: "stations", live: 0 }, { k: "stations", live: 3 }, { k: "library", genre: 0 }, { k: "library", genre: 4 }, { k: "community" },
     { k: "me" }, { k: "studio" }, { k: "about" }, { k: "track", id: 12 }, { k: "artist", id: 2 }, { k: "album", id: 1 }, { k: "playlist", id: 9 },
-    { k: "listener", address: A },
+    { k: "listener", address: A }, { k: "door", ticket: 7, holder: A }, { k: "collection", list: "saved" }, { k: "collection", list: "liked" },
   ];
   it.each(views)("round-trips %o, with or without a name", (v) => {
     expect(pathToView(viewToPath(v))).toEqual(v);
@@ -27,6 +27,7 @@ describe("router", () => {
     expect(pathToView("#/station/3")).toEqual({ k: "stations", live: 3 });
     expect(pathToView("/track/abc")).toEqual({ k: "listen" });
     expect(pathToView("/nope")).toEqual({ k: "listen" });
+    expect(pathToView("/door/7-nope")).toEqual({ k: "concerts" });
     expect(pathToView("/")).toEqual({ k: "listen" });
     expect(pathToView("/track/scott-buckley-x")).toEqual({ k: "listen" });
   });

@@ -14,7 +14,7 @@ gno/r/gnoradio/tickets/v0    concerts and GRC721 tickets
 gno/r/gnoradio/home/v0       the gnoweb site
 app/                         web app (Vite + React + strict TypeScript)
 tools/curate/                launch catalog selection (see its README)
-docs/SPEC.md                 full product and technical spec (French)
+docs/SPEC.md                 full product and technical spec
 ```
 
 The realms target gno.land v1.5.0, the release running on onyx and mainnet.

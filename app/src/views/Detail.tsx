@@ -1,6 +1,6 @@
 import { Icon } from "../components/Icons";
 import { useNames } from "../lib/names";
-import { type Crumb, Crumbs, FollowButton, Head, LikeButton, ShareButton, TrackCards, TrackRows, Who, rightsLabel, sharedValue } from "../components/common";
+import { type Crumb, Crumbs, FollowButton, Head, LIBRARY, LikeButton, ShareButton, TrackCards, TrackRows, Who, rightsLabel, sharedValue } from "../components/common";
 import { Cover } from "../components/Cover";
 import { tracksOf } from "../lib/catalog";
 import { clock, gnot, hostOf, licenseLabel, licenseURL, plural, shortAddr } from "../lib/format";
@@ -18,7 +18,6 @@ import { VerifyPanel, VerifyStatus, tippable, useClaim } from "../components/Ver
 import { useEffect, useState } from "react";
 import type { SupportTarget } from "../components/SupportSheet";
 
-const LIBRARY: Crumb = { label: "Library", to: { k: "library", genre: 0 } };
 const artistCrumb = (cat: Catalog, id: number): Crumb => ({ label: cat.artists.get(id)?.name ?? "Artist", to: { k: "artist", id } });
 
 /** License names a license and links its text when it has one. */
@@ -247,6 +246,12 @@ export function Concerts({ cat, go, player, actions }: { readonly cat: Catalog; 
             <div className="concert-chips" role="group" aria-label="Filter concerts">
               {chip("This week", f.when === "week", { when: f.when === "week" ? "" : "week" })}
               {chip("This month", f.when === "month", { when: f.when === "month" ? "" : "month" })}
+              <label className={`chip date-chip${f.day ? " on" : ""}`} title="Concerts on a day">
+                <Icon name="calendar" size={15} />
+                <input type="date" aria-label="Concerts on a day" value={f.day} min={new Date().toISOString().slice(0, 10)}
+                  onChange={(ev) => { set({ day: ev.target.value }); }} onClick={(ev) => { try { ev.currentTarget.showPicker(); } catch { /* older browsers open it themselves */ } }} />
+                {f.day && <button type="button" className="date-clear" aria-label="Any day" onClick={(ev) => { ev.preventDefault(); set({ day: "" }); }}><Icon name="close" size={12} /></button>}
+              </label>
               {chip("Free", f.free, { free: !f.free })}
               {cities(cat.events).map((c) => chip(c, f.city === c, { city: f.city === c ? "" : c }))}
             </div>
@@ -291,7 +296,7 @@ export function TrackView({ cat, player, go, id, actions, openSupport, openPick 
             <PlayButton onClick={() => { player.playList([t.id], 0); }} />
             {tippable(a) && a && <button className="cta yellow" onClick={() => { openSupport({ kind: "tip", track: t, artist: a }); }}><Shape g="square" size={12} fill="var(--ink)" /> Support</button>}
             <LikeButton t={t} actions={actions} />
-            <button className="onchain" title="Choose a station in the next step · public, on-chain" onClick={() => { openPick(0, t.id); }}><Shape g="quarter" size={12} /> Pick next</button>
+            <button className="onchain" title="Choose a station in the next step · public, on-chain" onClick={() => { openPick(0, t.id); }}><Icon name="on-air" size={14} /> Pick next</button>
             <ShareButton title={t.title} />
           </div>
         </div>

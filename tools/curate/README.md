@@ -1,53 +1,53 @@
-# Sélection du catalogue de lancement
+# Picking the launch catalog
 
-Ce pipeline produit les morceaux importés par l'admin via `catalog.ImportTrack` (voir `docs/SPEC.md` §5).
-Il n'utilise que la bibliothèque standard de Python 3 ; `ffmpeg` est optionnel (mesure du volume en LUFS).
+This pipeline produces the tracks the admin imports with `catalog.ImportTrack` (see `docs/SPEC.md` §5).
+It only uses the Python 3 standard library; `ffmpeg` is optional (loudness in LUFS).
 
-**Règle d'or : tout part de la liste blanche `seeds.json`.** Le pipeline ne fait jamais de recherche ouverte.
-La qualité vient des artistes et des labels qu'on a choisis et écoutés, pas des archives.
+**Golden rule: everything starts from the allowlist `seeds.json`.** The pipeline never runs an open search.
+Quality comes from artists and labels we chose and listened to, not from the archives.
 
-## Étapes
+## Steps
 
 ```sh
 cd tools/curate
-python3 curate.py fetch                      # seeds "approved" uniquement
-python3 curate.py fetch --include-review     # + seeds "to_review"
-python3 curate.py fetch --seed "Komiku"      # une seule seed (statut ignoré)
-python3 curate.py hash --max 50              # sha256 (+ LUFS si ffmpeg) des fichiers non Audius
-python3 -m http.server 8077                  # puis ouvrir http://localhost:8077/review.html
+python3 curate.py fetch                      # "approved" seeds only
+python3 curate.py fetch --include-review     # + "to_review" seeds
+python3 curate.py fetch --seed "Komiku"      # a single seed (status ignored)
+python3 curate.py hash --max 50              # sha256 (+ LUFS with ffmpeg) of non-Audius files
+python3 -m http.server 8077                  # then open http://localhost:8077/review.html
 python3 curate.py batch                      # approved.json → import_batch.json
 ```
 
-1. **`seeds.json`** : la liste blanche. Chaque seed indique une source (`archive`, `ccmixter`, `audius`), un artiste, une collection ou une requête, un genre par défaut (1 à 20) et un statut :
-   - `approved` : écouté, on récupère ;
-   - `to_review` : à vérifier avant de l'utiliser (originalité, qualité) ;
-   - `paused` : ignoré.
-2. **`fetch`** lit les métadonnées via les API officielles et filtre :
-   - **licence** : CC0, CC BY ou CC BY-SA uniquement (normalisées en SPDX, ports nationaux compris, par exemple `CC-BY-SA-3.0-DE`) ;
-   - **durée** : 1:30 à 10:00 ;
-   - **débit** : au moins 128 kbps, signalé « low bitrate » sous 192 ;
-   - **pour Audius** : ni remix, ni reprise, ni stem, ni morceau à accès restreint, et une pochette obligatoire.
+1. **`seeds.json`**: the allowlist. Each seed gives a source (`archive`, `ccmixter`, `audius`), an artist, a collection or a query, a default genre (1 to 20) and a status:
+   - `approved`: listened to, fetch it;
+   - `to_review`: check before use (originality, quality);
+   - `paused`: ignored.
+2. **`fetch`** reads the metadata through the official APIs and filters:
+   - **licence**: CC0, CC BY or CC BY-SA only (normalised to SPDX, national ports included, for example `CC-BY-SA-3.0-DE`);
+   - **length**: 1:30 to 10:00;
+   - **bitrate**: at least 128 kbps, flagged "low bitrate" under 192;
+   - **for Audius**: no remix, cover, stem or gated track, and a cover image is required.
 
-   Le résultat va dans `candidates.json`, au format de `ImportTrack`.
-3. **`hash`** télécharge les fichiers non Audius pour calculer leur sha256. Le résultat est mis en cache dans `hashes.json`.
-4. **`review.html`** : écoute d'un extrait par morceau (à partir de 30 % de sa durée).
-   - Touches : `K` garder, `D` jeter, `N`/`P` suivant/précédent ; `1`–`9`, `0` pour corriger le genre (1 à 10, avec `Maj` 11 à 20).
-   - Les décisions restent dans le navigateur. **Export approved.json** produit le fichier final.
-5. **`batch`** produit `import_batch.json` : les artistes à créer d'abord, puis les morceaux, avec le décompte par genre (objectif : 80 par station). Il bloque les morceaux sans sha256 et les morceaux ccMixter sans copie.
+   The result goes to `candidates.json`, in the `ImportTrack` format.
+3. **`hash`** downloads the non-Audius files to compute their sha256. The result is cached in `hashes.json`.
+4. **`review.html`**: listen to a clip of each track (from 30% of its length).
+   - Keys: `K` keep, `D` drop, `N`/`P` next/previous; `1`–`9`, `0` to fix the genre (1 to 10, with `Shift` 11 to 20).
+   - Decisions stay in the browser. **Export approved.json** writes the final file.
+5. **`batch`** writes `import_batch.json`: the artists to create first, then the tracks, with the count per genre (target: 80 per station). It blocks tracks without a sha256 and ccMixter tracks without a mirror.
 
-## Règles juridiques par source
+## Legal rules per source
 
-| Source | Ce qu'on a le droit de faire | Obligations |
+| Source | What we may do | Obligations |
 |---|---|---|
-| **archive.org** (artistes, netlabels) | lire depuis `https://archive.org/download/…`, recopier (CC) | attribution : titre, artiste, licence avec lien, source. Les items sans `licenseurl` sont rejetés, même si le titre contient « (CC-BY) ». |
-| **ccMixter** (sélections éditoriales) | recopier (CC BY) | **copie obligatoire** sur IPFS/CDN avant import : ccMixter bloque la lecture depuis un autre site (403). Renseigner `mirror_audio` dans `approved.json`. Attribution complète. |
-| **Audius** | streamer et diffuser en public via l'API (Open Music License §1.2, droit accordé aux « Music Players ») | attribution OML §1.5 : artiste, ©, mention de l'OML, lien vers le morceau. **Cache limité à la session** (conditions API §2) : jamais de copie ni d'empreinte. Pas d'extraction massive au-delà de la liste blanche. **Pas d'entraînement d'IA** sur les morceaux. `app_name=GnoRadio` dans chaque appel ; demander une clé sur api.audius.co/plans avant la mise en ligne. |
+| **archive.org** (artists, netlabels) | play from `https://archive.org/download/…`, copy (CC) | attribution: title, artist, licence with a link, source. Items without `licenseurl` are rejected, even if the title says "(CC-BY)". |
+| **ccMixter** (editorial picks) | copy (CC BY) | **mirror required** on IPFS/CDN before import: ccMixter blocks playback from other sites (403). Fill `mirror_audio` in `approved.json`. Full attribution. |
+| **Audius** | stream and play in public through the API (Open Music License §1.2, the right granted to "Music Players") | OML §1.5 attribution: artist, ©, OML notice, link to the track. **Cache limited to the session** (API terms §2): never a copy or a fingerprint. No bulk extraction beyond the allowlist. **No AI training** on the tracks. `app_name=GnoRadio` in every call; request a key at api.audius.co/plans before going live. |
 
-Exclus : Free Music Archive (liens directs interdits par ses conditions), SoundCloud (radio et agrégation interdites), Jamendo (licence commerciale à demander), licences NC et ND.
+Excluded: Free Music Archive (its terms forbid direct links), SoundCloud (radio and aggregation forbidden), Jamendo (commercial licence on request), NC and ND licences.
 
-## Points connus
+## Known points
 
-- **Débit** : beaucoup de bonnes sorties archive.org sont en MP3 VBR autour de 128 à 190 kbps (Scott Buckley en 128). Elles passent, avec un signalement.
-- **Pochettes** : ccMixter n'en fournit pas ; le realm dessine alors une pochette SVG.
-- **Genres** : le genre de la seed sert par défaut. Pour Audius, il est déduit du genre déclaré par l'artiste. Il se corrige à l'écoute.
-- **Volume en LUFS** : nécessite `ffmpeg` (`brew install ffmpeg`).
+- **Bitrate**: many good archive.org releases are VBR MP3 around 128 to 190 kbps (Scott Buckley at 128). They pass, with a flag.
+- **Covers**: ccMixter has none; the realm then draws an SVG cover.
+- **Genres**: the seed's genre is the default. For Audius, it comes from the genre the artist declared. It can be fixed while listening.
+- **Loudness in LUFS**: needs `ffmpeg` (`brew install ffmpeg`).

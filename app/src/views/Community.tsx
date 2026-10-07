@@ -1,19 +1,21 @@
 import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { SearchPick } from "../components/SearchPick";
 import { hhmm } from "../components/PickNext";
 import { useNames } from "../lib/names";
 import { ActivityFeed, FeedItem, ago } from "../components/ActivityFeed";
-import { Head, Proof, Stats, TrackRows, Who } from "../components/common";
+import { Head, Proof, Stats, Who } from "../components/common";
 import { codeURL, gnowebOf, realmPage, txURL } from "../lib/links";
 import { Icon } from "../components/Icons";
 import { Shape } from "../components/Shapes";
+import { Qr } from "../components/Qr";
+import { MineLinks } from "./Collection";
+import { viewToPath } from "../lib/router";
 import { type RadioPick, loadPicks, loadTicketsOf, loadUser } from "../lib/community";
 import { ALL_STATIONS, type Curator, MAX_PROMO, type Promo, type TopCurators, collectable, loadCurator, loadPromo, loadTopCurators, useSponsored } from "../lib/incentives";
 import { DEFAULT_GOAL, UGNOT, gnot, plural } from "../lib/format";
-import { tracksOf } from "../lib/catalog";
-import type { Activity, Catalog, Navigate, SupportInfo, Track, UserInfo } from "../lib/types";
+import type { Activity, Catalog, Navigate, SupportInfo, UserInfo } from "../lib/types";
 import type { Actions, HideKind } from "../player/useActions";
-import type { Player } from "../player/usePlayer";
 import type { Saved } from "../lib/saved";
 
 interface Base {
@@ -180,12 +182,13 @@ function PromoBudget({ artist, me, actions }: { readonly artist: number; readonl
  * Me shows what the connected listener did on-chain. Without a wallet the same
  * sections show empty, so a visitor sees what connecting fills in.
  */
-export function Me({ cat, go, player, actions, saved, openPick }: Base & { readonly player: Player; readonly actions: Actions; readonly saved: Saved & { readonly ids: readonly number[] }; readonly openPick: (station: number) => void }) {
+export function Me({ cat, go, actions, saved, openPick }: Base & { readonly actions: Actions; readonly saved: Saved & { readonly ids: readonly number[] }; readonly openPick: (station: number) => void }) {
   const s = actions.wallet.state;
   const address = s.status === "connected" || s.status === "wrong-network" ? s.address : "";
   const [user, setUser] = useState<UserInfo | null>(null);
   const [tickets, setTickets] = useState<{ id: number; event: number; serial: number; attended: boolean }[]>([]);
   const [curator, setCurator] = useState<Curator | null>(null);
+  const [door, setDoor] = useState(0); // the ticket whose QR is shown big
   const sponsored = useSponsored(address, actions.pending);
   const show = useNames(address ? [address] : []);
   useEffect(() => {
@@ -206,11 +209,6 @@ export function Me({ cat, go, player, actions, saved, openPick }: Base & { reado
   const myArtist = user?.artist ? cat.artists.get(user.artist) : undefined;
   const week = curator?.week;
   const ready = collectable(sponsored);
-  const likedTracks = tracksOf(cat, [...actions.liked]);
-  const savedTracks = tracksOf(cat, saved.ids);
-  // Saves and likes can run into the hundreds: a count, Play all, and only the newest rows until asked.
-  const count = (title: string, n: number) => n > 0 ? <span>{title} <span className="muted">· {n.toLocaleString("en")}</span></span> : title;
-  const playAll = (tracks: readonly Track[]) => tracks.length > 1 && <button className="link small" onClick={() => { player.playList(tracks.map((t) => t.id), 0); }}>Play all</button>;
   return (
     <section>
       {address
@@ -224,16 +222,16 @@ export function Me({ cat, go, player, actions, saved, openPick }: Base & { reado
         </div>
       )}
       <div className="actions inline">
-        <button className="cta blue" onClick={() => { openPick(0); }}><Shape g="quarter" size={12} fill="#fff" /> Pick next</button>
+        <button className="cta blue" onClick={() => { openPick(0); }}><Icon name="on-air" size={16} /> Pick next</button>
         <button onClick={() => { go({ k: "contribute", path: "listener" }); }}>Make a playlist</button>
       </div>
       <nav className="chips me-nav" aria-label="Sections">
         {ME_SECTIONS.map((t) => <button key={t} className="chip" onClick={() => { document.getElementById(anchor(t))?.scrollIntoView({ behavior: "smooth" }); }}>{t.replace(/^My (.)/, (_, c: string) => c.toUpperCase())}</button>)}
       </nav>
 
-      {/* Saved tracks live in this browser: shown and usable with or without a wallet. */}
-      <h3 className="sub sub-row" id="me-saved">{count("Saved", savedTracks.length)} {playAll(savedTracks)}</h3>
-      {savedTracks.length === 0 ? <p className="me-empty">Save a track with the bookmark on any track. Stored in this browser only.</p> : <TrackRows tracks={savedTracks} player={player} actions={actions} saved={saved} first={ME_ROWS} />}
+      {/* Saves and likes can run into the thousands: they open in Your library, under Library. */}
+      <h3 className="sub" id="me-library">My library</h3>
+      <MineLinks go={go} saved={saved.ids.length} liked={actions.liked.size} />
 
       {section("My curator stats", "Your picks and what they earned show up here.")}
       {address && (
@@ -253,11 +251,6 @@ export function Me({ cat, go, player, actions, saved, openPick }: Base & { reado
           <p className="muted small">While your pick plays, each tip to its artist sends you their promo share. Tips through links you share pay you too, straight to your wallet (not counted here). Paid by tippers, never by GnoRadio.</p>
         </>
       )}
-
-      {section("My likes", "Tracks you like show up here, public and on-chain.", playAll(likedTracks))}
-      {address && (likedTracks.length > 0
-        ? <TrackRows tracks={likedTracks} player={player} actions={actions} saved={saved} first={ME_ROWS} />
-        : <p className="muted">No like yet: tap ♥ on any track.</p>)}
 
       {section("My playlists", "Your public playlists show up here.", <button className="cta small" onClick={() => { go({ k: "contribute", path: "listener" }); }}>New playlist</button>)}
       {address && (user && user.playlists.length > 0
@@ -280,12 +273,23 @@ export function Me({ cat, go, player, actions, saved, openPick }: Base & { reado
             return (
               <article key={tk.id} className="ticket">
                 <div><span className="lbl light">Admit one · #{tk.serial}</span><b>{e?.title ?? `Concert ${String(tk.event)}`}</b><span className="muted small">{tk.attended ? "I was there" : "Valid"}</span></div>
-                <div className="stub"><Shape g={tk.attended ? "circle" : "square"} size={26} /></div>
+                {tk.attended || e?.cancelled
+                  ? <div className="stub"><Shape g={tk.attended ? "circle" : "triangle"} size={26} /></div>
+                  : <button className="stub" aria-label={`Show the QR code of ticket #${String(tk.serial)}`} onClick={() => { setDoor(tk.id); }}><Qr text={doorURL(tk.id, address)} size={64} label="" /></button>}
               </article>
             );
           })}
         </div>
       ))}
+
+      {door !== 0 && createPortal(
+        <dialog className="qr-sheet" open aria-label="Ticket QR code" onClick={() => { setDoor(0); }}>
+          <Qr text={doorURL(door, address)} size={280} label={`QR code of ticket ${String(door)}`} />
+          <b>Show this at the door</b>
+          <span className="muted small">The artist scans it to check you in. Tap to close.</span>
+        </dialog>,
+        document.body, // above the player and tab bar, whatever stacking the page has
+      )}
 
       {section("My support", "What you give to artists and the artists you follow show up here.")}
       {address && (
@@ -326,10 +330,11 @@ export function Me({ cat, go, player, actions, saved, openPick }: Base & { reado
   );
 }
 
-// Rows shown at first in Saved and My likes.
-const ME_ROWS = 5;
+// A ticket's QR opens its door page, for the holder it was shown by.
+const doorURL = (ticket: number, holder: string) => location.origin + viewToPath({ k: "door", ticket, holder });
+
 // The Me sections, in page order, for the jump links under the actions.
-const ME_SECTIONS = ["Saved", "My curator stats", "My likes", "My playlists", "My tickets", "My support", "Make music"];
+const ME_SECTIONS = ["My library", "My curator stats", "My playlists", "My tickets", "My support", "Make music"];
 const anchor = (title: string) => `me-${title.replace("My ", "").toLowerCase().replace(/ /g, "-")}`;
 
 /** Studio is the admin and curator desk. Only shown to the catalog admin. */

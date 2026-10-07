@@ -6,9 +6,10 @@ export interface ConcertFilter {
   readonly when: "" | "week" | "month";
   readonly free: boolean;
   readonly city: string;
+  readonly day: string; // "2026-12-13" (UTC, like the times on the page), "" for any day
 }
 
-export const NO_FILTER: ConcertFilter = { q: "", when: "", free: false, city: "" };
+export const NO_FILTER: ConcertFilter = { q: "", when: "", free: false, city: "", day: "" };
 
 /** cityOf reads the city from a venue written "Place, City"; "" when there is no comma. */
 export function cityOf(venue: string): string {
@@ -26,7 +27,7 @@ const monthKey = (start: number): string =>
 
 /**
  * filterConcerts keeps the concerts matching the search (artist, city, venue, title)
- * and the chips. "This week" is the next 7 days, "This month" the current UTC month.
+ * and the chips (and the calendar's day). "This week" is the next 7 days, "This month" the current UTC month.
  */
 export function filterConcerts(events: readonly ConcertEvent[], f: ConcertFilter, artistName: (id: number) => string, now: number): ConcertEvent[] {
   const q = f.q.trim().toLowerCase();
@@ -35,6 +36,7 @@ export function filterConcerts(events: readonly ConcertEvent[], f: ConcertFilter
     if (f.city && cityOf(e.venue) !== f.city) return false;
     if (f.when === "week" && !(e.start >= now - 6 * 3600 && e.start < now + 7 * 86400)) return false;
     if (f.when === "month" && monthKey(e.start) !== monthKey(now)) return false;
+    if (f.day && new Date(e.start * 1000).toISOString().slice(0, 10) !== f.day) return false;
     return !q || [artistName(e.artist), e.venue, e.title].some((s) => s.toLowerCase().includes(q));
   });
 }

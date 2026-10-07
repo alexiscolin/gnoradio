@@ -653,6 +653,7 @@ dialog.sheet.pick { max-width: min(440px, calc(100% - 32px)); }
 .track { border-top-color: var(--line); }
 /* sidebar: badge sits under the wordmark, flush left; mobile top bar keeps it inline */
 .side .brand .net { display: table; margin: 8px 0 0; }
+.net.dev { background: var(--red); color: #fff; } /* local devnet red, testnet yellow */
 /* on-air card: let the lines breathe */
 .onair { padding: 28px 32px 30px; gap: 14px; align-content: end; }
 .onair .chip { margin-bottom: 6px; }
@@ -1240,7 +1241,7 @@ button.feed-title:hover { text-decoration: underline; text-underline-offset: 3px
 .month { margin: 0; font-size: 18px; font-weight: 500; letter-spacing: -.01em; }
 @container (min-width: 600px) {
   .concerts { grid-template-columns: minmax(0, 1fr) 200px; gap: 28px; }
-  .concerts-side { grid-column: 2; grid-row: 1; position: sticky; top: 0; }
+  .concerts-side { grid-column: 2; grid-row: 1; position: sticky; top: 16px; align-self: start; }
   .concerts-list { grid-column: 1; grid-row: 1; }
   .concert-chips { flex-wrap: wrap; }
 }
@@ -1279,3 +1280,40 @@ button.feed-title:hover { text-decoration: underline; text-underline-offset: 3px
 .more-links > * { white-space: nowrap; }
 /* Library: room between the search and the genre cards */
 .bigsearch { margin-bottom: 28px; }
+/* tickets: the stub holds the QR the artist scans at the door; tapping it shows it big */
+button.stub { border-top: 0; border-right: 0; border-bottom: 0; background: none; cursor: zoom-in; padding: 0; }
+.stub .qr { border-radius: 6px; transition: transform .45s var(--e-out); }
+button.stub:hover .qr { transform: scale(1.06); }
+.qr-sheet { position: fixed; inset: 0; z-index: 90; width: 100%; height: 100%; max-width: none; max-height: none; margin: 0; border: 0; display: grid; place-content: center; justify-items: center; gap: 10px; background: color-mix(in srgb, var(--card) 96%, transparent); color: var(--ink); cursor: zoom-out; }
+.qr-sheet .qr { border-radius: 14px; box-shadow: 0 0 0 1px var(--line); }
+.qr-sheet b { margin-top: 10px; font-size: 22px; letter-spacing: -.02em; }
+/* door page: the ticket, a verdict and one big Check in */
+.door { display: grid; gap: 16px; justify-items: start; }
+.door-ticket { width: min(100%, 560px); }
+.door-ticket.void { opacity: .55; }
+.door-ok { color: var(--ink); font-size: 22px; font-weight: 500; letter-spacing: -.02em; margin: 0; }
+.door .pick-blocked { font-size: 18px; margin: 0; }
+/* Your library: two doors (Me, Library) and the tabs of its page */
+.mine-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 0 0 32px; max-width: 560px; }
+.mine-link { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 16px 18px; border-radius: 16px; background: var(--card); box-shadow: 0 0 0 1px var(--line); text-align: left; font-size: 16px; transition: box-shadow .3s var(--e-out), transform .3s var(--e-out); }
+.mine-link:hover { box-shadow: 0 0 0 1px var(--ink); transform: translateY(-2px); }
+.mine-link:first-child svg:first-child { color: var(--blue); }
+.mine-link:nth-child(2) svg:first-child { color: var(--red); }
+.mine-tabs { gap: 20px; }
+.mine-tabs .chip { font-size: 20px; font-weight: 500; letter-spacing: -.02em; color: var(--faint); }
+.mine-tabs .chip[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); }
+.mine-link b .muted { font-weight: 400; margin-left: 4px; }
+/* Library: the order of the track list, quiet beside its title */
+.sort-tabs { gap: 4px 16px; font-weight: 400; }
+.sort-tabs .chip[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+.genre-play { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+/* concerts: a day from the calendar, as one more chip */
+.date-chip { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.date-chip input { border: 0; background: none; padding: 0; height: auto; font: inherit; color: inherit; width: 0; min-width: 0; opacity: 0; transition: width .3s var(--e-out); }
+.date-chip.on input, .date-chip:focus-within input { width: 7.2em; opacity: 1; }
+.date-chip input::-webkit-calendar-picker-indicator { display: none; }
+.date-chip.on { background: var(--ink); color: var(--card); }
+.date-clear { display: grid; place-items: center; padding: 2px; color: inherit; }
+/* the on-air icon sits on the text line of every pick button */
+.push, .cta.blue, button.onchain { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.push { display: flex; }

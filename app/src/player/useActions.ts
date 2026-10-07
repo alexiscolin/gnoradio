@@ -183,6 +183,7 @@ export function useActions(onDone: (c?: Call) => void) {
         const fee = e.price > 0 ? (await qjson(REALMS.tickets, "FeesJSON()", isFees)).serviceFee : 0;
         return c(REALMS.tickets, "BuyTicket", [id(e.id)], e.price > 0 ? e.price + fee : 0);
       }),
+    checkIn: (ticket: number, after: () => void) => void run("Check in", () => c(REALMS.tickets, "CheckIn", [id(ticket)]), { after }),
     // a gno.land name (r/sys/users), registered through the chain's registrar; no fee on onyx or mainnet
     registerName: (name: string) =>
       void run("Register name", async () => {

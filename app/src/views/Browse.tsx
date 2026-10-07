@@ -1,5 +1,6 @@
 import { Icon } from "../components/Icons";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { type TrackOrder, sortTracks } from "../lib/catalog";
 import { BigList, type Crumb, Count, Crumbs, Head, TrackCards, TrackRows } from "../components/common";
 import { DEFAULT_GOAL, clock, gnot, plural } from "../lib/format";
 import { ActivityFeed } from "../components/ActivityFeed";
@@ -14,6 +15,7 @@ import { PlayButton } from "../components/PlayButton";
 import type { SupportTarget } from "../components/SupportSheet";
 import type { Activity, Catalog, Navigate, SupportInfo } from "../lib/types";
 import type { Saved } from "../lib/saved";
+import { MineLinks } from "./Collection";
 import type { Actions } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
 
@@ -147,8 +149,10 @@ function Mark({ text, q }: { readonly text: string; readonly q: string }) {
   return <>{text.slice(0, i)}<mark>{text.slice(i, i + q.length)}</mark>{text.slice(i + q.length)}</>;
 }
 
+const ORDERS: readonly (readonly [TrackOrder, string])[] = [["mix", "Mix of the day"], ["liked", "Most liked"], ["tipped", "Most tipped"], ["new", "Newest"]];
+
 /** Library leads with a search and genre filters, then the tracks. */
-export function Library({ cat, player, go, genre, actions, saved }: ViewProps & { readonly genre: number; readonly actions: Actions; readonly saved: Saved }) {
+export function Library({ cat, player, go, genre, actions, saved }: ViewProps & { readonly genre: number; readonly actions: Actions; readonly saved: Saved & { readonly ids: readonly number[] } }) {
   const [raw, setRaw] = useState("");
   const [q, setQ] = useState("");
   useEffect(() => { const id = window.setTimeout(() => { setQ(raw.trim()); }, 120); return () => { window.clearTimeout(id); }; }, [raw]);
@@ -182,7 +186,13 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
   const counts = new Map<number, number>();
   const usedArtists = new Set<number>(); // genre cards: one cover per artist
   for (const t of cat.tracks) counts.set(t.genre, (counts.get(t.genre) ?? 0) + 1);
-  const inGenre = genre ? cat.tracks.filter((t) => t.genre === genre) : cat.tracks;
+  const [order, setOrder] = useState<TrackOrder>("mix");
+  const inGenre = useMemo(() => sortTracks(genre ? cat.tracks.filter((t) => t.genre === genre) : cat.tracks, order), [cat.tracks, genre, order]);
+  const orders = (
+    <div className="chips sort-tabs" role="group" aria-label="Order">
+      {ORDERS.map(([o, label]) => <button key={o} className="chip" aria-pressed={o === order} onClick={() => { setOrder(o); }}>{label}</button>)}
+    </div>
+  );
   const tab = (id: number, label: string, n: number) => (
     <button key={id} className={`gtab${genre === id ? " on" : ""}`} aria-pressed={genre === id} onClick={() => { go({ k: "library", genre: id }); }}>
       {id ? <GenreGlyph id={id} muted={genre !== id} /> : <Shape g="circle" size={12} fill={genre === 0 ? "var(--ink)" : "var(--tick)"} />}
@@ -244,6 +254,7 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
         </div>
       ) : (
         <>
+          {genre === 0 && <MineLinks go={go} saved={saved.ids.length} liked={actions.liked.size} />}
           {genre === 0 ? (
             // Browse: one colour card per genre, Spotify-style, with a tilted cover from that genre.
             <div className="gcards" role="list" aria-label="Genres">
@@ -267,10 +278,10 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
               {cat.genres.filter((g) => counts.has(g.id)).map((g) => tab(g.id, g.name, counts.get(g.id) ?? 0))}
             </div>
           )}
-          {genre === 0 ? <h3 className="sub">All tracks</h3> : inGenre.length > 0 && (
-            <div className="head-actions genre-play"><PlayButton label="Play all" onClick={() => { player.playList(inGenre.map((t) => t.id), 0); }} /></div>
+          {genre === 0 ? <h3 className="sub sub-row">All tracks {orders}</h3> : inGenre.length > 0 && (
+            <div className="head-actions genre-play"><PlayButton label="Play all" onClick={() => { player.playList(inGenre.map((t) => t.id), 0); }} />{orders}</div>
           )}
-          <TrackRows key={genre} tracks={inGenre} player={player} actions={actions} saved={saved} />
+          <TrackRows key={`${String(genre)}/${order}`} tracks={inGenre} player={player} actions={actions} saved={saved} />
           {cat.albums.length > 0 && (
             <>
               <h3 className="sub">Albums</h3>

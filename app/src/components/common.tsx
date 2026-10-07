@@ -67,12 +67,12 @@ export function sharedValue(tracks: readonly Track[], of: (t: Track) => string):
  * TrackRows lists tracks to play in order. What all rows share (one artist,
  * one license, as in an album) is said once by the page, not on every row.
  */
-export function TrackRows({ tracks, player, actions, saved, first = ROWS_PAGE }: { readonly tracks: readonly Track[]; readonly player: Player; readonly actions: Actions; readonly saved: Saved; readonly first?: number }) {
+export function TrackRows({ tracks, player, actions, saved }: { readonly tracks: readonly Track[]; readonly player: Player; readonly actions: Actions; readonly saved: Saved }) {
   const ids = tracks.map((t) => t.id);
   const oneArtist = sharedValue(tracks, (t) => t.artistName) !== "";
   const oneRights = sharedValue(tracks, rightsLabel) !== "";
-  // Long lists render `first` rows, then 100 more at a time (each row may fetch its cover); play still uses the whole list.
-  const [shown, setShown] = useState(first);
+  // Long lists render 100 rows at a time (each row may fetch its cover); play still uses the whole list.
+  const [shown, setShown] = useState(ROWS_PAGE);
   const left = tracks.length - shown;
   return (
     <div className="rows">
@@ -191,6 +191,9 @@ export interface Crumb {
   readonly label: string;
   readonly to?: View;
 }
+
+/** LIBRARY is the crumb every page under Library starts from. */
+export const LIBRARY: Crumb = { label: "Library", to: { k: "library", genre: 0 } };
 
 /**
  * Crumbs shows where a detail page sits (Library / Artist / Album) and

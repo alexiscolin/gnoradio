@@ -27,7 +27,7 @@ const MOBILE_TABS = new Set<Section>(["listen", "stations", "library", "communit
 
 /** Net is the small "which chain" badge; nothing on mainnet. */
 const NET = networkLabel(CHAIN_ID);
-const Net = () => (NET ? <span className="net" title={`${NET}: test GNOT, no real value. Perfect to try everything.`}>{NET} · test GNOT</span> : null);
+const Net = () => (NET ? <span className={`net${CHAIN_ID === "dev" ? " dev" : ""}`} title={`${NET}: test GNOT, no real value. Perfect to try everything.`}>{NET} · test GNOT</span> : null);
 
 // Each nav item gets its own pure Bauhaus shape; it pops in on hover and stays on the current screen.
 const NAV_GLYPHS = [

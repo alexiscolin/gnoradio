@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { audioURLs, batched, settle } from "./catalog";
+import { audioURLs, batched, settle, sortTracks } from "./catalog";
+import type { Track } from "./types";
 import { DataError, RealmError } from "./gno";
 
 describe("audioURLs", () => {
@@ -31,5 +32,21 @@ describe("batched", () => {
     expect(out).not.toContain(2);
     expect(out).toContain(101);
     warn.mockRestore();
+  });
+});
+
+describe("sortTracks", () => {
+  const t = (id: number, likes = 0, tips = 0) => ({ id, likes, tips, created: id }) as Track;
+  const ids = (ts: readonly Track[]) => ts.map((x) => x.id);
+  const all = Array.from({ length: 50 }, (_, i) => t(i + 1, i % 3, (i * 7) % 5));
+  it("mixes the same way all day and differently the next day", () => {
+    expect(ids(sortTracks(all, "mix", 100))).toEqual(ids(sortTracks(all, "mix", 100)));
+    expect(ids(sortTracks(all, "mix", 101))).not.toEqual(ids(sortTracks(all, "mix", 100)));
+    expect(new Set(ids(sortTracks(all, "mix", 100))).size).toBe(50);
+  });
+  it("puts the most liked, most tipped and newest first", () => {
+    expect(sortTracks(all, "liked", 1)[0]?.likes).toBe(2);
+    expect(sortTracks(all, "tipped", 1)[0]?.tips).toBe(4);
+    expect(sortTracks(all, "new", 1)[0]?.id).toBe(50);
   });
 });

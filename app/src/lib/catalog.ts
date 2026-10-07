@@ -234,6 +234,23 @@ export const loadSchedule = (station: number, horizon = 3600): Promise<Schedule>
 /** audioURLs resolves an on-chain audio reference to URLs an <audio> element plays, best first. */
 export const audioURLs = (t: Pick<Track, "audio">): string[] => mediaURLs(t.audio);
 
+/** How a track list is ordered: a daily mix, or by likes, tips or age. */
+export type TrackOrder = "mix" | "liked" | "tipped" | "new";
+
+/** mixKey scatters ids in a fresh order each day (integer hash of id and day): no track sits on top for good. */
+const mixKey = (id: number, day: number): number => {
+  let h = Math.imul(id ^ Math.imul(day, 0x9e3779b1), 0x85ebca6b);
+  h ^= h >>> 13;
+  h = Math.imul(h, 0xc2b2ae35);
+  return (h ^ (h >>> 16)) >>> 0;
+};
+
+/** sortTracks orders tracks; ties (same likes, same tips) fall back to the day's mix, so they rotate too. */
+export function sortTracks(tracks: readonly Track[], order: TrackOrder, day = Math.floor(Date.now() / 86_400_000)): Track[] {
+  const by = { mix: () => 0, liked: (t: Track) => -t.likes, tipped: (t: Track) => -t.tips, new: (t: Track) => -t.created }[order];
+  return [...tracks].sort((a, b) => by(a) - by(b) || mixKey(a.id, day) - mixKey(b.id, day));
+}
+
 /** tracksOf resolves ids to tracks, dropping unknown or hidden ones. */
 export const tracksOf = (cat: Catalog, ids: readonly number[]): Track[] =>
   ids.flatMap((id) => {

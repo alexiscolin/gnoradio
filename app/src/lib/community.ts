@@ -28,6 +28,10 @@ export const loadUser = (address: string): Promise<UserInfo> => qjson(REALMS.cat
 export const loadTicketsOf = (address: string): Promise<OwnedTicket[]> =>
   qjson(REALMS.tickets, `TicketsOfJSON(${gnoAddress(address)})`, isTickets).catch((): OwnedTicket[] => []);
 
+/** loadTicketOwner reads who holds a ticket now ("" if none). */
+export const loadTicketOwner = async (ticket: number): Promise<string> =>
+  /g1[a-z0-9]{38}/.exec(await qeval(REALMS.tickets, `TicketOwner(${String(ticket)})`))?.[0] ?? "";
+
 export const RIGHTS_FALLBACK = "I own or control the rights to this recording and its composition, or hold a licence that allows this, and I grant the operator of GnoRadio and its users a worldwide, non-exclusive, royalty-free licence to store, stream, broadcast and display it through GnoRadio and gno.land for as long as it is published.";
 
 /** loadRightsTerms reads the statement an artist accepts when publishing. */

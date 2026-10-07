@@ -39,7 +39,9 @@ export type View =
   | { readonly k: "artist"; readonly id: number }
   | { readonly k: "album"; readonly id: number }
   | { readonly k: "playlist"; readonly id: number }
-  | { readonly k: "listener"; readonly address: string };
+  | { readonly k: "listener"; readonly address: string }
+  | { readonly k: "collection"; readonly list: "saved" | "liked" }
+  | { readonly k: "door"; readonly ticket: number; readonly holder: string };
 
 /** The four ways to contribute, each with its own URL (/contribute/artist…). */
 export type ContribPath = "listener" | "artist" | "claim" | "report";

@@ -350,7 +350,7 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
             {sponsoredPick && chosen && <b className="pick-freeline">Free pick: {chosen.artistName} refunds it</b>}
             {earn && <span className="pick-earn">{earn}</span>}
             <button className="push" disabled={!chosen || blocked !== "" || sent !== 0 || (noteWhy !== "" && !sponsoredPick)} onClick={push}>
-              {sent ? "Signing…" : "Push on air"}
+              {sent ? "Signing…" : <><Icon name="on-air" size={18} /> Push on air</>}
             </button>
             <span className="fine pick-cost">Costs about {PICK_FEE} GNOT<br />+ about {PICK_DEPOSIT} GNOT locked for storage (up to {PICK_DEPOSIT_FIRST} the first time)</span>
             {asked && notice && (

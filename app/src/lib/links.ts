@@ -1,5 +1,5 @@
 // Links from the app to gnoweb: the same pages rendered by the chain, and the
-// code that runs them. Route map: docs/SPEC.md (home/v0 paths ↔ app paths).
+// code that runs them.
 
 import { GNOWEB, REALMS } from "./gno";
 import type { View } from "./types";
@@ -30,9 +30,12 @@ export function gnowebOf(v: View): string {
       return realmPage("home", `listener/${v.address}`);
     case "stations":
       return realmPage("home", "stations");
+    case "collection":
+      return realmPage("home", "catalog");
     case "library":
       return realmPage("home", v.genre ? `catalog?g=${String(v.genre)}` : "catalog");
     case "concerts":
+    case "door":
       return realmPage("home", "concerts");
     case "community":
       return realmPage("home", "charts");

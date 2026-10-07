@@ -32,6 +32,7 @@ describe("concerts", () => {
     expect(ids({ free: true })).toEqual([1, 4]);
     expect(ids({ city: "Paris" })).toEqual([3]);
     expect(ids({ city: "Paris", free: true })).toEqual([]);
+    expect(ids({ day: "2026-11-21" })).toEqual([4]);
   });
 
   it("groups by month", () => {
