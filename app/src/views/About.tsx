@@ -46,7 +46,7 @@ const MONEY = [
   ["Free pick", "Paid by the artist", "An artist may fund a promo budget that refunds a pick of their track (0.01 to 0.05 GNOT, about the pick's cost) once it has played in full; you collect it within 7 days. Wallets with some pick history only, a few a day. GnoRadio holds no key to it: the artist withdraws the rest at any time."],
   ["Optional, on top of a tip", "+10% to the treasury", "Optional, off by default."],
   ["Paid concert ticket", "Price to the artist", "A service fee on top goes to the treasury."],
-  ["Direct support", "To the treasury", "Pays hosting, storage and the indexer."],
+  ["Direct support", "To the treasury", "Funds the project's work; GnoRadio pays nothing to run."],
   ["Storage deposit", "Locked by gno.land", "Returned to whoever's transaction frees the data, e.g. your own Unlike."],
 ] as const;
 

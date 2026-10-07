@@ -17,7 +17,7 @@ func topCurators(st int) string {
 	var b strings.Builder
 	b.WriteString("## Top curators this week\n\nA pick and a tip received while it is on air score one point each. Pickers earn the artist's promo share of those tips.\n\n")
 	for i, c := range top {
-		b.WriteString(itoa(i+1) + ". " + who(c.Address) + " · picks " + itoa(c.Picks) + " · tips " + itoa(c.Tips) + " · earned " + text.GNOT(c.Earned) + "\n")
+		b.WriteString(itoa(i+1) + ". " + who(c.Address) + " · " + plural(c.Picks, "pick") + " · " + plural(c.Tips, "tip") + " · earned " + text.GNOT(c.Earned) + "\n")
 	}
 	return b.String() + "\n"
 }

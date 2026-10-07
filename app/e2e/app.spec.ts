@@ -76,7 +76,7 @@ test("2b. deep links render", async ({ page }) => {
     await expect(page).toHaveURL(url);
     if (title) await expect(page).toHaveTitle(title);
     else await expect(page).toHaveTitle(/ · GnoRadio$/);
-    await expect(page.getByRole("main")).not.toContainText(/not found|is not available/i);
+    await expect(page.getByRole("main")).not.toContainText(/This (track|artist|album|playlist) is not available\./); // the app's own missing-page line, not a track title
     await expect(page.getByRole("main")).not.toBeEmpty();
   }
 });
@@ -120,13 +120,14 @@ test("4. library: search, play (no jingle), drag the dial", async ({ page, mobil
   const track = await rpc.track(1);
   await open(page, "/library");
   await page.getByRole("textbox", { name: /Search tracks, artists/ }).fill(`${track.title} ${track.artistName}`);
-  const row = page.getByRole("main").getByRole("button", { name: new RegExp(esc(track.title)) }).first();
+  // the row whose name ends with the title: "Air", not "Air Pocket"
+  const row = page.getByRole("main").getByRole("button", { name: new RegExp(`${esc(track.title)}$`) }).first();
   await expect(row).toBeVisible();
   await row.click();
 
   const p = await player(page, mobile);
   await expect(p.getByRole("button", { name: "Pause" })).toContainText("Pause");
-  await expect(p.getByRole("button", { name: "Lib" })).toHaveAttribute("aria-pressed", "true");
+  await expect(p.getByRole("button", { name: "Lib", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(p.getByRole("button", { name: track.title, exact: true })).toBeVisible();
   expect(jingles, "no jingle in the library").toEqual([]);
 

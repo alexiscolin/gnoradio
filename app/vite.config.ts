@@ -37,8 +37,6 @@ function robot(): Plugin {
 // The site's public URL (Netlify sets URL at build, see netlify.toml) makes the
 // Open Graph image absolute and goes into robots.txt and the sitemap.
 process.env.VITE_SITE_URL ??= "";
-// Each release gets its own id (Netlify sets COMMIT_REF): the browser's catalog cache is keyed on it.
-process.env.VITE_BUILD_ID ??= process.env.COMMIT_REF ?? "dev";
 const SITE = process.env.VITE_SITE_URL;
 const SECTIONS = ["", "live", "stations", "library", "community", "concerts", "contribute", "about", "legal"];
 
@@ -61,6 +59,8 @@ function seoFiles(): Plugin {
 // device that reaches this dev server (e.g. through Tailscale Serve).
 export default defineConfig({
   plugins: [react(), robot(), seoFiles()],
+  // Fonts stay files: CSP font-src 'self' refuses data: URLs, and the CSS stays small.
+  build: { assetsInlineLimit: 0 },
   server: {
     host: "127.0.0.1",
     port: 5173,

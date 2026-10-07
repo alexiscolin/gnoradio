@@ -223,7 +223,7 @@ export function Crumbs({ trail, go }: { readonly trail: readonly Crumb[]; readon
  * ShareButton shares a link, this page's by default: the system sheet on
  * phones, the clipboard elsewhere. `to` shares another screen, `text` adds a line.
  */
-export function ShareButton({ title, to, text, refBy = "" }: { readonly title: string; readonly to?: View; readonly text?: string; readonly refBy?: string }) {
+export function ShareButton({ title, to, text, refBy = "", compact = false }: { readonly title: string; readonly to?: View; readonly text?: string; readonly refBy?: string; readonly compact?: boolean }) {
   const [copied, setCopied] = useState(false);
   const share = async () => {
     // refBy makes the link earn: tips made from it share the artist's promo share with them.
@@ -236,6 +236,9 @@ export function ShareButton({ title, to, text, refBy = "" }: { readonly title: s
     setCopied(true);
     setTimeout(() => { setCopied(false); }, 1800);
   };
+  if (compact) {
+    return <button className="mini-act" onClick={() => void share()} aria-label={copied ? "Link copied" : "Share"} title="Share a link"><Icon name={copied ? "check" : "share"} size={20} /></button>;
+  }
   return (
     <button className="btn share" onClick={() => void share()} title="Share a link">
       <Icon name="share" size={15} /> {copied ? "Link copied" : "Share"}

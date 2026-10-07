@@ -7,6 +7,7 @@ import type { Actions } from "../player/useActions";
 import { type Player, usePosition } from "../player/usePlayer";
 import { WalletCard, WalletPill } from "../wallet/WalletCard";
 import { Cover } from "./Cover";
+import { ShareButton } from "./common";
 import { Shape } from "./Shapes";
 import { openSearch } from "../lib/search";
 import { type Section, sectionOf, sectionView } from "../lib/router";
@@ -21,8 +22,6 @@ const TABS: readonly (readonly [Section, string])[] = [
   ["contribute", "Contribute"],
   ["me", "Me"],
 ];
-/** The phone tab bar: Concerts, Contribute and About open from Me. */
-const MOBILE_TABS = new Set<Section>(["listen", "stations", "library", "community", "me"]);
 
 
 /** Net is the small "which chain" badge; nothing on mainnet. */
@@ -63,7 +62,7 @@ export function Sidebar({ view, go, actions, isAdmin }: { readonly view: View; r
   );
 }
 
-export function MiniPlayer({ cat, player: p, onOpen }: { readonly cat: Catalog; readonly player: Player; readonly onOpen: () => void }) {
+export function MiniPlayer({ cat, player: p, onOpen, openPick, me }: { readonly cat: Catalog; readonly player: Player; readonly onOpen: () => void; readonly openPick: (station: number, track?: number) => void; readonly me: string }) {
   const pos = usePosition(p.audio);
   const t = cat.byId.get(p.current);
   const progress = t && t.duration > 0 ? Math.min(1, pos / t.duration) : 0;
@@ -73,17 +72,23 @@ export function MiniPlayer({ cat, player: p, onOpen }: { readonly cat: Catalog; 
         <Cover t={t} size="44px" />
         <span className="mini-txt"><b>{t?.title ?? "GnoRadio"}</b><span>{t ? t.artistName : "Tap to play"}</span></span>
       </button>
+      {/* The same reach as the full player: put it on air, share it (a link that earns), play. */}
+      <button className="mini-act" onClick={() => { if (p.mode === "live" || !t) openPick(p.station); else openPick(0, t.id); }} aria-label="Pick next" title="Pick what plays next on the radio"><Icon name="on-air" size={20} /></button>
+      {t && <ShareButton compact title={t.title} to={p.mode === "live" ? { k: "stations", live: p.station } : { k: "track", id: t.id }} refBy={me} />}
       <button className="mini-play" onClick={p.toggle} aria-label={p.playing ? "Pause" : "Play"}><Icon name={p.playing ? "pause" : "play"} size={20} /></button>
       <i style={{ width: `${String(progress * 100)}%` }} />
     </div>
   );
 }
 
+/** TabBar is the phone's menu: every section of the sidebar, each with its shape. */
 export function TabBar({ view, go }: { readonly view: View; readonly go: Navigate }) {
   return (
     <nav className="tabbar" aria-label="Main">
-      {TABS.filter(([k]) => MOBILE_TABS.has(k)).map(([k, label]) => (
-        <button key={k} className={sectionOf(view) === k ? "on" : ""} aria-current={sectionOf(view) === k ? "page" : undefined} onClick={() => { go(sectionView(k)); }}>{label}</button>
+      {TABS.map(([k, label], i) => (
+        <button key={k} className={sectionOf(view) === k ? "on" : ""} aria-current={sectionOf(view) === k ? "page" : undefined} onClick={() => { go(sectionView(k)); }}>
+          <span className="tab-glyph" aria-hidden="true"><Shape {...(NAV_GLYPHS[i % NAV_GLYPHS.length] ?? NAV_GLYPHS[0])} size={16} /></span>{label}
+        </button>
       ))}
     </nav>
   );
@@ -94,7 +99,7 @@ export function MobileTop({ actions }: { readonly actions: Actions }) {
   return (
     <header className="mtop">
       <span className="brand">GnoRadio<i className="dot" /> <Net /></span>
-      <WalletPill wallet={actions.wallet} />
+      <WalletPill wallet={actions.wallet} onRegister={actions.registerName} />
     </header>
   );
 }

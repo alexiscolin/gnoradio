@@ -54,10 +54,11 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
   // Live but not listening: the radio goes on, so the dial shows what is on air now and keeps turning.
   const [, setTick] = useState(0);
   useEffect(() => {
-    if (!live || p.playing) return;
+    // Not while the sheet is closed on a phone (opening it renders anyway); the desktop column is always on screen.
+    if (!live || p.playing || (!open && window.matchMedia("(max-width: 900px)").matches)) return;
     const id = window.setInterval(() => { setTick((n) => n + 1); }, 1000);
     return () => { window.clearInterval(id); };
-  }, [live, p.playing]);
+  }, [live, p.playing, open]);
   const airing = live && !p.playing ? p.entries.find((e) => e.start <= chainNow && e.end > chainNow) : undefined;
   const t = cat.byId.get(airing?.track ?? p.current);
   const artist = t ? cat.artists.get(t.artist) : undefined;

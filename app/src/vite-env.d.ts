@@ -9,8 +9,6 @@ interface ImportMetaEnv {
   readonly VITE_WALLET_RPC?: string;
   /** gnoweb base URL, for "read the code" links. */
   readonly VITE_GNOWEB?: string;
-  /** The release this build is (commit), set in vite.config.ts. */
-  readonly VITE_BUILD_ID?: string;
 }
 
 interface ImportMeta {

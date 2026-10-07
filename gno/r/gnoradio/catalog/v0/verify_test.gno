@@ -58,6 +58,8 @@ func TestVerifyFlow(cur realm, t *testing.T) {
 
 	submit(cur, k, proofURL, exp, good)
 	uassert.True(t, strings.Contains(ClaimJSON(k), `"pending":true`))
+	pending, _, readyAt := ClaimState(k)
+	uassert.True(t, pending && readyAt > now())
 	uassert.True(t, strings.Contains(ClaimJSON(k), `"bot":true`))
 
 	// Still not verified during the delay: no tips, no early finalize.

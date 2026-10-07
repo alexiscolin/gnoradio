@@ -62,19 +62,60 @@ describe("qjson", () => {
     expect(init?.signal).toBeInstanceOf(AbortSignal);
     vi.useRealTimers();
   });
-  it("never runs more than 6 queries at once", async () => {
+  it("never sends more than 6 requests at once", async () => {
     let live = 0;
     let peak = 0;
     const good = { result: { response: { ResponseBase: { Error: null, Data: b64(`(${JSON.stringify('"ok"')} string)`), Log: "" } } } };
-    vi.stubGlobal("fetch", vi.fn(async () => {
+    vi.stubGlobal("fetch", vi.fn(async (_: string, init: RequestInit) => {
       live++;
       peak = Math.max(peak, live);
       await new Promise((r) => setTimeout(r, 5));
       live--;
-      return { ok: true, status: 200, json: () => Promise.resolve(good) };
+      const body = JSON.parse(init.body as string) as { id: number } | { id: number }[];
+      return { ok: true, status: 200, json: () => Promise.resolve(Array.isArray(body) ? body.map((b) => ({ ...good, id: b.id })) : good) };
     }));
-    await Promise.all(Array.from({ length: 20 }, () => qjson(REALMS.catalog, "Info()", str)));
+    await Promise.all(Array.from({ length: 200 }, () => qjson(REALMS.catalog, "Info()", str)));
     expect(peak).toBe(6);
+    expect(fetch).toHaveBeenCalledTimes(50); // batches of 4
+  });
+  it("settles each query of a batch on its own reply", async () => {
+    const ok = (s: string) => ({ result: { response: { ResponseBase: { Error: null, Data: b64(`(${JSON.stringify(JSON.stringify(s))} string)`), Log: "" } } } });
+    const refused = { result: { response: { ResponseBase: { Error: { msg: "x" }, Data: null, Log: "catalog: unknown track" } } } };
+    const answer = (init: RequestInit): unknown => {
+      const body = JSON.parse(init.body as string) as { id: number } | { id: number }[];
+      return Array.isArray(body) ? body.map((q) => ({ ...ok("b"), id: q.id })) : ok("b");
+    };
+    // 13 queries go out 4 per request; the first request's replies come out of order, one refused, two missing.
+    const f = vi.fn((_: string, init: RequestInit) => Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(answer(init)) }))
+      .mockResolvedValueOnce({ ok: true, status: 200, json: () => Promise.resolve([{ ...refused, id: 1 }, { ...ok("a"), id: 0 }]) });
+    vi.stubGlobal("fetch", f);
+    const out = await Promise.allSettled(Array.from({ length: 13 }, (_, i) => qjson(REALMS.catalog, `Q${String(i)}()`, str)));
+    expect(out.map((r) => (r.status === "fulfilled" ? r.value : (r.reason as Error).name))).toEqual(["a", "RealmError", ...Array<string>(11).fill("b")]);
+    expect(f).toHaveBeenCalledTimes(6); // 4 requests, and the two missing replies asked again
+  });
+  it("falls back to one query per request when the RPC does not batch", async () => {
+    const good = { result: { response: { ResponseBase: { Error: null, Data: b64(`(${JSON.stringify('"ok"')} string)`), Log: "" } } } };
+    const f = vi.fn((_: string, init: RequestInit) => Promise.resolve({
+      ok: true, status: 200,
+      json: () => Promise.resolve((init.body as string).startsWith("[") ? { error: { code: -32600, message: "batch not supported" } } : good),
+    }));
+    vi.stubGlobal("fetch", f);
+    const all = () => Promise.all(Array.from({ length: 12 }, () => qjson(REALMS.catalog, "Info()", str)));
+    await expect(all()).resolves.toHaveLength(12);
+    expect(f).toHaveBeenCalledTimes(3 + 12); // three refused batches of 4, then each query alone
+    await all();
+    expect(f).toHaveBeenCalledTimes(15 + 12); // and from then on, no more batches
+  });
+  it("falls back to one query per request when the RPC refuses a batch with an HTTP error", async () => {
+    const good = { result: { response: { ResponseBase: { Error: null, Data: b64(`(${JSON.stringify('"ok"')} string)`), Log: "" } } } };
+    const f = vi.fn((_: string, init: RequestInit) => Promise.resolve((init.body as string).startsWith("[")
+      ? { ok: false, status: 400, json: () => Promise.resolve({}) }
+      : { ok: true, status: 200, json: () => Promise.resolve(good) }));
+    vi.stubGlobal("fetch", f);
+    vi.resetModules(); // a fresh client, batching still on
+    const fresh = await import("./gno");
+    await expect(Promise.all(Array.from({ length: 12 }, () => fresh.qjson(REALMS.catalog, "Info()", str)))).resolves.toHaveLength(12);
+    expect(f).toHaveBeenCalledTimes(3 + 12);
   });
 });
 

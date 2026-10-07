@@ -56,7 +56,7 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
         </button>
       </div>
       <button className="bethedj" onClick={() => { openPick(0); }}>
-        <Shape g="quarter" size={44} fill="#fff" />
+        <Icon name="on-air" size={48} className="bethedj-icon" />
         <span className="bethedj-txt">
           <b>Be the DJ</b>
           <span>Pick a track: it plays on Main for everyone tuned in.</span>

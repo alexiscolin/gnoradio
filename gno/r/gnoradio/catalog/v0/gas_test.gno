@@ -62,6 +62,10 @@ func TestNarrowGettersAndPages(cur realm, t *testing.T) {
 	uassert.Equal(t, ids[3], page[0])
 	uassert.Equal(t, 0, len(ArtistTrackPage(aid, 5, 10)))
 	uassert.Equal(t, 0, ArtistTrackCount(999))
+	name, verified, hidden, ok := ArtistBrief(aid)
+	uassert.True(t, ok && name == "Pages Alice" && !verified && !hidden)
+	_, _, _, ok = ArtistBrief(999)
+	uassert.False(t, ok)
 
 	testing.SetRealm(testing.NewUserRealm(carol))
 	Like(cross(cur), ids[0])

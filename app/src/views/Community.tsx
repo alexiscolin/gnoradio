@@ -83,7 +83,7 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
           <span className="lbl">GnoRadio treasury · {support.month || "this month"}</span>
           <span className="big">{gnot(support.monthTotal)}<span className="muted"> / {gnot(goal)}</span></span>
           <div className="bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Monthly running costs covered"><i style={{ width: `${String(pct)}%` }} /></div>
-          <span className="muted small">{plural(support.supporters, "supporter")} · {gnot(support.total)} since launch. Pays hosting, storage and the indexer.</span>
+          <span className="muted small">{plural(support.supporters, "supporter")} · {gnot(support.total)} since launch. Funds the project's work; GnoRadio pays nothing to run.</span>
           <button className="cta" onClick={onSupport}><Shape g="square" size={12} /> Support GnoRadio</button>
         </div>
       </div>

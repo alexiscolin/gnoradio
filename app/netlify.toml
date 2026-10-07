@@ -48,3 +48,9 @@
   for = "/assets/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
+
+# Jingles are fixed files, not hashed: a week, then revalidated.
+[[headers]]
+  for = "/jingles/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"

@@ -11,14 +11,14 @@ import (
 
 // The catalog admin is unreachable under gno test, so artists cannot be
 // verified here: render tests treat every claimed artist as verified.
-func init() { tippable = func(a catalog.Artist) bool { return a.Owner != "" } }
+func init() { tippable = func(owner address, _ bool) bool { return owner != "" } }
 
 func TestUnverifiedHasNoTip(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("seam_artist")))
 	catalog.RegisterArtist(cross(cur), "Seam Artist", "")
 	tr := catalog.PublishTrack(cross(cur), "Seam Song", 2, "3:30", "cc by", "none", "", ipfs, "", "", "", "", "yes")
-	tippable = func(a catalog.Artist) bool { return a.Owner != "" && a.Verified }
-	defer func() { tippable = func(a catalog.Artist) bool { return a.Owner != "" } }()
+	tippable = func(owner address, verified bool) bool { return owner != "" && verified }
+	defer func() { tippable = func(owner address, _ bool) bool { return owner != "" } }()
 	out := Render("track/" + itoa(tr))
 	uassert.False(t, strings.Contains(out, "func=TipWithSupport"))
 	uassert.True(t, strings.Contains(out, "verifies this profile"))

@@ -175,6 +175,15 @@ func mustClaimable(a *Artist, to address) {
 // paid tickets need it).
 func ArtistVerified(artistID int) bool { return artistField(artistID, aVerified) == "1" }
 
+// ClaimState is an artist's pending verification: the wallet it goes to and
+// when FinalizeClaim may apply it; pending is false when there is none.
+func ClaimState(artistID int) (pending bool, to address, readyAt int64) {
+	if c, _ := claims.Get(text.Key(artistID)).(*claim); c != nil && c.Gen == botGen {
+		return true, c.To, c.At + claimDelay
+	}
+	return false, "", 0
+}
+
 // ClaimJSON is the verification state of an artist for the app:
 // {"verified":b,"proof":"…","pending":b,"to":"…","pendingProof":"…","readyAt":n,"bot":"…"}.
 func ClaimJSON(artistID int) string {

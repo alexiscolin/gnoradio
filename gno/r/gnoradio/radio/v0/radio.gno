@@ -1338,3 +1338,11 @@ func atoi64(s string) int64 {
 	n, _ := strconv.ParseInt(s, 10, 64)
 	return n
 }
+
+// PickRules returns the limits on listeners' picks, for pages that explain
+// them: one pick per cooldown per station, a track not again within replay,
+// at most ahead seconds and queue slots waiting, perArtist waiting per artist,
+// booked picks bookFrom to bookTo ahead and bookedPerHour per clock hour.
+func PickRules() (cooldown, replay, ahead int64, queue, perArtist int, bookFrom, bookTo int64, bookedPerHour int) {
+	return queueCooldown, replayGap, maxAheadAir, maxQueue, maxPerArtistQ, bookMin, bookMax, maxBookedHour
+}

@@ -49,7 +49,7 @@ func TestPages(cur realm, t *testing.T) {
 	urequire.True(t, strings.Contains(Render(""), "Listeners' choice"))
 	urequire.True(t, strings.Contains(Render("station/"+itoa(radio.NewStation)), "New this week"))
 	urequire.True(t, strings.Contains(Render("station/0"), "## Top curators this week\n\n"), Render("station/0"))
-	urequire.True(t, strings.Contains(Render("station/0"), "picks 1 · tips 0 · earned 0 GNOT"))
+	urequire.True(t, strings.Contains(Render("station/0"), "1 pick · 0 tips · earned 0 GNOT"))
 }
 
 func TestGasHome(cur realm, t *testing.T) { Render("") }

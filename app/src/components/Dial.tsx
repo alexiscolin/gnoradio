@@ -17,7 +17,8 @@ const GLIDE_MS = 700;
 
 /**
  * useGlide follows frac without ever swinging back and forth:
- * - forward jumps (tuning in, a seek ahead) glide there; backward ones snap;
+ * - a jump (tuning in, another station, Lib/Live) glides straight there, forward or back,
+ *   the short way round (a new track goes on past the top, not back around the dial);
  * - a 0 while the next station or track loads keeps the last position (up to 2 s)
  *   instead of falling to the top and climbing again;
  * - place(v) shows a seek at once and ignores stale positions until the player reaches it.
@@ -38,16 +39,19 @@ function useGlide(frac: number): readonly [number, (v: number) => void] {
       return () => { window.clearTimeout(id); };
     }
     const start = from.current;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || frac < start || frac - start < 0.02) {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || Math.abs(frac - start) < 0.02) {
       snap(frac);
       return;
     }
+    // The short way round: from the end of a track to the start of the next, it goes on past the top.
+    const end = frac - start < -0.5 ? frac + 1 : frac;
     const t0 = performance.now();
     let id = 0;
     const step = (now: number) => {
       const k = Math.min(1, (now - t0) / GLIDE_MS);
-      snap(start + (frac - start) * (1 - (1 - k) ** 3)); // ease-out cubic
+      snap((start + (end - start) * (1 - (1 - k) ** 3)) % 1); // ease-out cubic
       if (k < 1) id = requestAnimationFrame(step);
+      else snap(frac);
     };
     id = requestAnimationFrame(step);
     return () => { cancelAnimationFrame(id); };

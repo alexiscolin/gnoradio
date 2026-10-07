@@ -37,22 +37,31 @@ export function WalletCard(props: { readonly wallet: Wallet; readonly onRegister
   return <><Card {...props} /><SignOptions wallet={props.wallet} /></>;
 }
 
-function Card({ wallet, onRegister }: { readonly wallet: Wallet; readonly onRegister: (name: string) => void }) {
-  const s = wallet.state;
+/** NameLink offers a gno.land name to a wallet that has none, where the chain has a registrar. */
+function NameLink({ address, onRegister }: { readonly address: string; readonly onRegister: (name: string) => void }) {
   const [naming, setNaming] = useState(false);
   const [reg, setReg] = useState(false);
+  useEffect(() => { void nameReg().then((r) => { setReg(r !== ""); }); }, []);
+  if (!reg || nameOf(address) !== "") return null;
+  return (
+    <>
+      <button className="link small wc-name" onClick={() => { setNaming(true); }}>Choose a name</button>
+      {naming && <NameSheet onRegister={onRegister} onClose={() => { setNaming(false); }} />}
+    </>
+  );
+}
+
+function Card({ wallet, onRegister }: { readonly wallet: Wallet; readonly onRegister: (name: string) => void }) {
+  const s = wallet.state;
   const address = s.status === "connected" ? s.address : "";
   const show = useNames(address ? [address] : []);
-  useEffect(() => { void nameReg().then((r) => { setReg(r !== ""); }); }, []);
   if (s.status === "connected") {
-    const named = nameOf(s.address) !== "";
     return (
       <div className="wcard on wc">
         <i className="wc-shape" aria-hidden="true" />
         <span className="wc-label"><i className="status" aria-hidden="true" />Connected</span>
         <span className="wc-addr mono" title={s.address}>{show(s.address)}</span>
-        {!named && reg && <button className="link small wc-name" onClick={() => { setNaming(true); }}>Choose a name</button>}
-        {naming && <NameSheet onRegister={onRegister} onClose={() => { setNaming(false); }} />}
+        <NameLink address={s.address} onRegister={onRegister} />
         <button className="wc-out" onClick={wallet.disconnect} title={REVOKE}>Disconnect</button>
       </div>
     );
@@ -87,8 +96,8 @@ function Card({ wallet, onRegister }: { readonly wallet: Wallet; readonly onRegi
   return <button className="wcard" onClick={() => void wallet.connectWallet()} disabled={s.status === "connecting"}>{body}</button>;
 }
 
-/** WalletPill is the mobile top-bar version; tapping the address offers Disconnect. */
-export function WalletPill({ wallet }: { readonly wallet: Wallet }) {
+/** WalletPill is the mobile top-bar version; tapping the address offers what the card does: a name, Disconnect, signing options. */
+export function WalletPill({ wallet, onRegister }: { readonly wallet: Wallet; readonly onRegister: (name: string) => void }) {
   const [menu, setMenu] = useState(false);
   const s = wallet.state;
   const show = useNames(s.status === "connected" ? [s.address] : []);
@@ -99,6 +108,7 @@ export function WalletPill({ wallet }: { readonly wallet: Wallet }) {
         {menu && (
           <span className="pill-menu">
             <span className="mono"><i className="status" aria-hidden="true" />{show(s.address)}</span>
+            <NameLink address={s.address} onRegister={onRegister} />
             <button className="btn-out" onClick={() => { wallet.disconnect(); setMenu(false); }}>Disconnect</button>
             <small>{REVOKE}</small>
             <SignOptions wallet={wallet} />

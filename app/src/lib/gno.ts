@@ -32,6 +32,7 @@ const toBase64 = (s: string) => btoa(String.fromCharCode(...new TextEncoder().en
 const fromBase64 = (s: string) => new TextDecoder().decode(Uint8Array.from(atob(s), (c) => c.charCodeAt(0)));
 
 interface AbciResponse {
+  id?: unknown;
   result?: { response?: { ResponseBase?: { Error: unknown; Data: string | null; Log: string } } };
 }
 
@@ -47,8 +48,11 @@ export class DataError extends Error {
 
 const TIMEOUT_MS = 8000;
 
-// At most MAX_INFLIGHT queries at once, so a big catalog never floods the public RPC.
+// At most MAX_INFLIGHT requests at once, so a big catalog never floods the public RPC.
 const MAX_INFLIGHT = 6;
+// Queries issued together go out as JSON-RPC batches of BATCH. The node answers a batch's
+// queries one after the other: small batches keep its parallelism and the requests few.
+const BATCH = 4;
 let inflight = 0;
 const waiting: (() => void)[] = [];
 
@@ -69,33 +73,79 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 export const GNOWEB = import.meta.env.VITE_GNOWEB ?? (import.meta.env.DEV ? `${window.location.protocol}//${window.location.hostname}:8911` : "https://gno.land");
 
 /** qeval runs `pkg.expr` read-only and returns the raw typed result, e.g. `("…" string)`. */
-export function qeval(pkg: RealmPath, expr: string): Promise<string> {
-  return slot(async () => {
-    for (let attempt = 0; ; attempt++) {
-      try {
-        return await qevalOnce(pkg, expr);
-      } catch (e) {
-        // Retry rate limits, timeouts and network errors with backoff; realm errors are final.
-        if (e instanceof RealmError || attempt >= 3) throw e;
-        await sleep(400 * 2 ** attempt);
-      }
+export async function qeval(pkg: RealmPath, expr: string): Promise<string> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await qevalOnce(pkg, expr);
+    } catch (e) {
+      // Retry rate limits, timeouts and network errors with backoff; realm errors are final.
+      if (e instanceof RealmError || attempt >= 3) throw e;
+      await sleep(400 * 2 ** attempt);
     }
+  }
+}
+
+interface Query {
+  readonly data: string;
+  readonly done: (r: AbciResponse | undefined) => void;
+  readonly fail: (e: unknown) => void;
+}
+let queued: Query[] = [];
+// Off for the rest of the visit once the RPC answers a batch with anything but an array.
+let batching = true;
+
+function qevalOnce(pkg: RealmPath, expr: string): Promise<string> {
+  return new Promise<AbciResponse | undefined>((done, fail) => {
+    // Queries issued in the same tick (a catalog load) share a few requests.
+    if (queued.length === 0) queueMicrotask(flush);
+    queued.push({ data: toBase64(`${pkg}.${expr}`), done, fail });
+  }).then((r) => {
+    const base = r?.result?.response?.ResponseBase;
+    if (!base) throw new Error("RPC unreachable");
+    if (base.Error) throw new RealmError(base.Log || "query failed");
+    return fromBase64(base.Data ?? "");
   });
 }
 
-async function qevalOnce(pkg: RealmPath, expr: string): Promise<string> {
-  const res = await fetch(RPC, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "abci_query", params: { path: "vm/qeval", data: toBase64(`${pkg}.${expr}`) } }),
-    // A hung node must not hold one of the few query slots forever.
-    signal: AbortSignal.timeout(TIMEOUT_MS),
-  });
-  if (!res.ok) throw new Error(`RPC returned ${res.status}`);
-  const base = ((await res.json()) as AbciResponse).result?.response?.ResponseBase;
-  if (!base) throw new Error("RPC unreachable");
-  if (base.Error) throw new RealmError(base.Log || "query failed");
-  return fromBase64(base.Data ?? "");
+function flush() {
+  const qs = queued;
+  queued = [];
+  const size = batching ? BATCH : 1;
+  for (let i = 0; i < qs.length; i += size) void slot(() => send(qs.slice(i, i + size)));
+}
+
+async function send(qs: readonly Query[]): Promise<void> {
+  const req = (q: Query, id: number) => ({ jsonrpc: "2.0", id, method: "abci_query", params: { path: "vm/qeval", data: q.data } });
+  let reply: unknown;
+  try {
+    const res = await fetch(RPC, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(qs.length === 1 && qs[0] ? req(qs[0], 0) : qs.map(req)),
+      // A hung node must not hold one of the few request slots forever; a batch gets the time of its queries.
+      signal: AbortSignal.timeout(TIMEOUT_MS * qs.length),
+    });
+    if (!res.ok) throw new Error(`RPC returned ${res.status}`);
+    reply = await res.json();
+    if (qs.length > 1 && !Array.isArray(reply)) throw new Error("RPC does not batch");
+  } catch (e) {
+    if (qs.length === 1) {
+      qs[0]?.fail(e);
+      return;
+    }
+    // A batch that fails as a whole (refused, too large, cut off): one query per request from now on.
+    batching = false;
+    queued.push(...qs);
+    flush();
+    return;
+  }
+  if (qs.length === 1) {
+    qs[0]?.done(reply as AbciResponse);
+    return;
+  }
+  // Each query settles on its own reply: a refused or missing one never fails the others.
+  const byId = new Map((reply as AbciResponse[]).map((r) => [r.id, r]));
+  qs.forEach((q, i) => { q.done(byId.get(i)); });
 }
 
 /** qjson evaluates a realm function returning a JSON string, parses it and validates it with guard. */

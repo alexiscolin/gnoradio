@@ -17,12 +17,14 @@ import (
 func TestBreadcrumbAliases(t *testing.T) {
 	cases := map[string]string{
 		"track": "# Catalog", "artist": "# Artists", "album": "# Albums", "playlist": "# Playlists",
-		"station": "# Stations", "event": "# Concerts", "ticket": "# Concerts", "listener": "# Charts",
+		"station": "# Stations", "event": "# Concerts", "ticket": "# Concerts", "listener": "# Listeners",
 	}
 	for p, want := range cases {
 		uassert.True(t, strings.HasPrefix(Render(p), want), p)
 	}
-	uassert.Equal(t, 6, strings.Count(nav(), "]("))
+	uassert.Equal(t, 6, strings.Count(nav(""), "]("))
+	uassert.True(t, strings.Contains(nav("join"), "**For artists**"))
+	uassert.False(t, strings.Contains(Render("charts"), "Charts]("))
 }
 
 func TestGnowebPages(cur realm, t *testing.T) {
@@ -38,7 +40,7 @@ func TestGnowebPages(cur realm, t *testing.T) {
 
 	// Genre browsing, with artist names as links.
 	g7 := Render("catalog?g=7")
-	urequire.True(t, strings.Contains(g7, "# Catalog · "+catalog.GenreName(7)), g7)
+	urequire.True(t, strings.Contains(g7, "# Catalog · "+md(catalog.GenreName(7))), g7)
 	urequire.True(t, strings.Contains(g7, "Gw Song"))
 	urequire.True(t, strings.Contains(g7, "[Gw Singer]("+page("artist/"+itoa(aid))+")"))
 	urequire.False(t, strings.Contains(Render("catalog?g=8"), "Gw Song"))
@@ -69,12 +71,12 @@ func TestGnowebPages(cur realm, t *testing.T) {
 	urequire.True(t, strings.Contains(home, "liked [Gw Song]"))
 	about := Render("about")
 	urequire.True(t, strings.Contains(about, "$source&file=social.gno"), about)
-	urequire.False(t, strings.Contains(about, "$help"))
 
 	// Verification happens in the app (catalog/verify.gno), never through a report.
 	uassert.False(t, strings.Contains(verifyLink(3), "func=Report"))
 	uassert.True(t, strings.Contains(strings.ToLower(verifyLink(3)), "verify it"))
-	urequire.True(t, strings.Contains(about, abuseEmail))
+	urequire.True(t, strings.Contains(about, "func=Report"), about)
+	urequire.False(t, strings.Contains(about, "Contact:"))
 
 	// A hidden track's page says who hid it.
 	testing.SetRealm(testing.NewUserRealm(singer))
@@ -114,7 +116,7 @@ func TestAppURL(cur realm, t *testing.T) {
 	defer func() { appURL = "" }()
 	uassert.Equal(t, "[Open](https://gnoradio.netlify.app/track/1)", inApp("track/1", "Open"))
 	urequire.True(t, strings.Contains(Render("track/1"), "https://gnoradio.netlify.app/track/1"))
-	urequire.True(t, strings.Contains(Render(""), "Open the GnoRadio app"))
+	urequire.True(t, strings.Contains(Render(""), "**[▶ Listen now](https://gnoradio.netlify.app/)**"))
 }
 
 func TestEmptyStates(t *testing.T) {

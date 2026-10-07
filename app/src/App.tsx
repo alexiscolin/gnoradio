@@ -165,7 +165,7 @@ export default function App() {
         </div>
       </main>
       <NowPlaying cat={cat} player={player} actions={actions} saved={saved} open={sheet} onClose={closeSheet} go={go} openSupport={setSupportTarget} openPick={openPick} />
-      <MiniPlayer cat={cat} player={player} onOpen={() => { setSheet(true); }} />
+      <MiniPlayer cat={cat} player={player} onOpen={() => { setSheet(true); }} openPick={openPick} me={wallet} />
       <TabBar view={view} go={go} />
       {pick !== null && (
         <PickNext cat={cat} station={pick.station} suggest={pick.track} me={wallet} pending={actions.pending} notice={actions.toast} onPick={actions.queue} onClose={() => { setPick(null); }} />

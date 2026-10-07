@@ -68,8 +68,8 @@ const FULL_TTL = 24 * HOUR; // everything is re-read at least this often
 const RECENT = 2;
 
 /** cacheKey ties the stored catalog to this chain, these realms and this record format. */
-// A new release, chain or realm version starts from a fresh cache.
-const cacheKey = (): string => [CHAIN_ID, REALMS.catalog, REALMS.radio, REALMS.tickets, String(CACHE_VERSION), import.meta.env.VITE_BUILD_ID ?? "dev"].join("|");
+// A new chain, realm version or record format starts from a fresh cache; a new release keeps it.
+const cacheKey = (): string => [CHAIN_ID, REALMS.catalog, REALMS.radio, REALMS.tickets, String(CACHE_VERSION)].join("|");
 let browserStore: Store | undefined;
 
 /** Touched is what a transaction can have changed: these tracks and artists, or anything ("all"). */

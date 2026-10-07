@@ -23,9 +23,18 @@
     <meta name="twitter:description" content="Tune in together. Pay artists directly, on-chain on gno.land." />
     <meta name="twitter:image" content="%VITE_SITE_URL%/og.png" />
     <meta name="robots" content="index, follow" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="preload" as="font" type="font/woff2" href="/node_modules/@fontsource/geist/files/geist-latin-400-normal.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/node_modules/@fontsource/geist/files/geist-latin-600-normal.woff2" crossorigin />
+    <link rel="preconnect" href="https://api.audius.co" crossorigin />
+    <link rel="dns-prefetch" href="https://ipfs.io" />
+    <link rel="dns-prefetch" href="https://dweb.link" />
+    <link rel="dns-prefetch" href="https://cloudflare-ipfs.com" />
+    <link rel="dns-prefetch" href="https://arweave.net" />
   </head>
   <body>
-    <div id="root"></div>
+    <!-- The splash, as App first renders it (Splash.test.tsx keeps them equal): it shows before any script runs. -->
+    <div id="root"><div class="splash" aria-busy="true"><div class="splash-poster" aria-hidden="true"><svg class="composition" viewBox="0 0 120 80" preserveAspectRatio="xMidYMid slice"><rect width="120" height="80" fill="var(--paper)"></rect><circle class="sp sp-circle" cx="30" cy="40" r="26" fill="var(--red)"></circle><path class="sp sp-quarter" d="M60 80V40a40 40 0 0 1 40 40z" fill="var(--ink)"></path><rect class="sp sp-bar" x="74" y="6" width="38" height="20" fill="var(--blue)"></rect><path class="sp sp-tri" d="M104 40l12 22H92z" fill="var(--yellow)"></path></svg></div><div class="splash-text"><p class="splash-kicker">Community radio · open music · on-chain</p><p class="splash-word" aria-label="GnoRadio"><span class="ln"><span>Gno</span></span><span class="ln"><span>Radio<i class="dot"></i></span></span></p><p class="splash-state" role="status">Tuning in…</p></div><div class="splash-curtain" aria-hidden="true"></div></div></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

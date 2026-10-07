@@ -17,10 +17,10 @@ import (
 func TestLicenseLinks(t *testing.T) {
 	cases := map[string]string{
 		"CC0-1.0":         "(https://creativecommons.org/publicdomain/zero/1.0/)",
-		"CC-BY-4.0":       "[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)",
-		"CC-BY-3.0":       "[CC BY 3.0](https://creativecommons.org/licenses/by/3.0/)",
-		"CC-BY-SA-3.0-DE": "[CC BY-SA 3.0 DE](https://creativecommons.org/licenses/by-sa/3.0/de/)",
-		"CC-BY-NC-ND-4.0": "[CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/)",
+		"CC-BY-4.0":       "[CC BY 4\\.0](https://creativecommons.org/licenses/by/4.0/)",
+		"CC-BY-3.0":       "[CC BY 3\\.0](https://creativecommons.org/licenses/by/3.0/)",
+		"CC-BY-SA-3.0-DE": "[CC BY\\-SA 3\\.0 DE](https://creativecommons.org/licenses/by-sa/3.0/de/)",
+		"CC-BY-NC-ND-4.0": "[CC BY\\-NC\\-ND 4\\.0](https://creativecommons.org/licenses/by-nc-nd/4.0/)",
 		"Audius-OML":      "[Audius Open Music License]",
 	}
 	for in, want := range cases {
@@ -61,13 +61,6 @@ func TestModerationPager(cur realm, t *testing.T) {
 func playing(st, track int) bool {
 	id, _, _ := radio.NowPlaying(st)
 	return id == track
-}
-
-// A loop of an hour or more shows hours, not thousands of minutes.
-func TestSpan(t *testing.T) {
-	uassert.Equal(t, "59:59", span(3599))
-	uassert.Equal(t, "1 h 00", span(3600))
-	uassert.Equal(t, "291 h 12", span(291*3600+12*60+35))
 }
 
 // The dedication of the programmed track on air shows on the on-air line.

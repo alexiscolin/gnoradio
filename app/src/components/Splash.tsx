@@ -18,7 +18,8 @@ interface SplashProps {
  */
 export function Splash({ ready, error, onLeave, onDone, onRetry }: SplashProps) {
   const [leaving, setLeaving] = useState(false);
-  const start = useRef(performance.now());
+  // The poster comes with index.html and starts at the first paint, often before React mounts.
+  const start = useRef(performance.getEntriesByName("first-contentful-paint")[0]?.startTime ?? performance.now());
 
   useEffect(() => {
     if (!ready || leaving) return;

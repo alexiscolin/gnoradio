@@ -149,6 +149,16 @@ func ArtistTrackPage(artistID, offset, limit int) []int {
 	return store.Page(t, offset, clampLimit(limit), false)
 }
 
+// ArtistBrief returns what a link to an artist needs, without the bio or the
+// id lists; ok is false for an unknown artist.
+func ArtistBrief(artistID int) (name string, verified, hidden, ok bool) {
+	rec, ok := artistRec(artistID)
+	if !ok {
+		return "", false, false, false
+	}
+	return store.Field(rec, aName), store.Field(rec, aVerified) != "", store.Field(rec, aHidden) != "", true
+}
+
 // PlaylistBrief returns a playlist's header without its track ids.
 func PlaylistBrief(id int) (owner address, title string, tracks int, hidden, ok bool) {
 	p := getPlaylist(id)

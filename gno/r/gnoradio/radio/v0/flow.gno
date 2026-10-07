@@ -140,6 +140,9 @@ func (st *station) programmed(trackID int) bool {
 	return false
 }
 
+// DaypartGenre is the genre Main's flow steers toward at unix time at, for pages that explain it.
+func DaypartGenre(at int64) int { return energy[dayparts[at%86400/10800]] }
+
 // nextGenre steps from genre g toward the daypart target on the energy line
 // (around the target it wanders one step either way), skipping empty genres.
 // It returns 0 when no genre station has a live track.
