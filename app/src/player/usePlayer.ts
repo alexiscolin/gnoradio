@@ -2,12 +2,19 @@ import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore
 import { audioURLs, loadSchedule } from "../lib/catalog";
 import { errorMessage } from "../lib/format";
 import type { Catalog, ScheduleEntry } from "../lib/types";
+import { jingleURL, playingNow, tail, topOfHour } from "./jingle";
 
 export type Mode = "library" | "live";
+
+/** The note shown when no source of a track answers. */
+export const NOT_RESPONDING = "This track isn't responding.";
 
 const RESYNC_MS = 5 * 60_000; // the schedule covers an hour; resync also on track end
 const DRIFT_S = 4;
 const FADE_S = 1.2;
+const IDENT_AGAIN_MS = 10 * 60_000; // resuming the same station sooner skips its jingle
+const HOURLY_GAP_MS = 20 * 60_000; // no hourly jingle this soon after another one
+const HOURLY_DUCK = 0.25; // the music under the hourly jingle, as a share of the volume
 
 /** fade ramps the element's volume to v over FADE_S (timers, so it also ends in a background tab). */
 function fade(a: HTMLAudioElement, v: number): Promise<void> {
@@ -54,6 +61,13 @@ export function usePlayer(cat: Catalog | null) {
   });
   const [muted, setMuted] = useState(false);
   const userVolume = useRef(volume);
+  // The jingle playing while a tuned-in station loads (goLive), null otherwise.
+  const ident = useRef<HTMLAudioElement | null>(null);
+  const lastIdent = useRef({ station: -1, at: 0 });
+  const lastHourly = useRef(-1);
+  // Read in goLive without making it change (and re-tune) whenever the catalog grows.
+  const catalog = useRef(cat);
+  catalog.current = cat;
   userVolume.current = volume;
   const [entries, setEntries] = useState<readonly ScheduleEntry[]>([]);
   const [error, setError] = useState("");
@@ -61,6 +75,7 @@ export function usePlayer(cat: Catalog | null) {
   const syncSeq = useRef(0); // drops stale schedule responses
   const pendingSeek = useRef<(() => void) | null>(null);
   const sources = useRef<{ urls: readonly string[]; i: number }>({ urls: [], i: 0 }); // gateway fallbacks
+  const skips = useRef(0); // dead tracks skipped in a row
 
   // Latest values for event listeners, so they never read stale state.
   // True between a play and a pause: decides whether a gateway fallback resumes playback.
@@ -157,9 +172,19 @@ export function usePlayer(cat: Catalog | null) {
           await fade(audio, 0);
           if (seq !== syncSeq.current) return;
           load(e.track, at + FADE_S, autoplay);
-          void fade(audio, userVolume.current);
+          if (!ident.current) void fade(audio, userVolume.current);
         } else if (latest.current.current !== e.track || Math.abs(audio.currentTime - at) > DRIFT_S) load(e.track, at, autoplay);
         else if (autoplay && audio.paused) audio.play().then(() => { setPlaying(true); }, () => { setPlaying(false); });
+        // Tuning in: the track, already playing silently in sync, comes in under the jingle's end.
+        const j = ident.current;
+        if (j) {
+          await tail(j, FADE_S);
+          await playingNow(audio);
+          if (ident.current !== j) return;
+          ident.current = null;
+          void fade(j, 0).then(() => { j.pause(); });
+          void fade(audio, userVolume.current);
+        }
       } catch (err) {
         if (seq === syncSeq.current) setError(errorMessage(err));
       }
@@ -173,11 +198,54 @@ export function usePlayer(cat: Catalog | null) {
       setStation(st);
       setError("");
       latest.current = { ...latest.current, mode: "live", station: st };
-      if (audio.src) void audio.play().catch(() => undefined); // unlock within the click, see toggle
+      // The station's jingle, only from a listener's click (never on load), while the track loads.
+      ident.current?.pause();
+      ident.current = null;
+      const c = catalog.current;
+      const on = c?.stations.find((x) => x.id === st);
+      const name = on?.name;
+      const genre = c?.genres.find((g) => g.id === c.byId.get(on?.now.track ?? 0)?.genre)?.name;
+      if (name && !audio.muted && userVolume.current > 0 && (!("userActivation" in navigator) || navigator.userActivation.isActive)) {
+        const j = new Audio(jingleURL(name, genre));
+        j.volume = userVolume.current;
+        ident.current = j;
+        lastIdent.current = { station: st, at: Date.now() };
+        audio.volume = 0;
+        void j.play().catch(() => { if (ident.current === j) { ident.current = null; audio.volume = userVolume.current; } });
+      }
+      // Sound within the click (see toggle): what plays, else the station's track on air from the
+      // catalog, so the first Listen works before the schedule is read; syncLive then aligns it.
+      if (audio.src) void audio.play().catch(() => undefined);
+      else if (on?.now.track) load(on.now.track, on.now.offset);
       void syncLive(st, true);
     },
-    [audio, syncLive],
+    [audio, load, syncLive],
   );
+
+  // Top of the hour: at the first track change after :00, the station's jingle plays over the
+  // change. The music keeps its place, only lowered under it, and the chain clock picks the
+  // moment, so every listener hears it together. Once an hour, never just after a tune-in.
+  useEffect(() => {
+    if (mode !== "live" || !playing) return;
+    const id = window.setInterval(() => {
+      const change = topOfHour(entries, chainNow());
+      if (!change) return;
+      const hour = Math.floor(change.start / 3600);
+      if (lastHourly.current === hour || ident.current || audio.muted || Date.now() - lastIdent.current.at < HOURLY_GAP_MS) return;
+      lastHourly.current = hour;
+      const c = catalog.current;
+      const name = c?.stations.find((x) => x.id === station)?.name;
+      if (!name) return;
+      const j = new Audio(jingleURL(name, c.genres.find((g) => g.id === c.byId.get(change.track)?.genre)?.name));
+      j.volume = userVolume.current;
+      lastIdent.current = { station, at: Date.now() };
+      void j.play().then(() => {
+        void fade(audio, userVolume.current * HOURLY_DUCK);
+        void tail(j, FADE_S).then(() => fade(audio, userVolume.current));
+      }, () => undefined);
+    }, 1000);
+    return () => { window.clearInterval(id); };
+  }, [audio, chainNow, entries, mode, playing, station]);
 
   // Show what is on air as soon as the catalog is there, without autoplay (browsers block it anyway).
   const primed = useRef(false);
@@ -218,16 +286,31 @@ export function usePlayer(cat: Catalog | null) {
         if (wantsPlay.current) void audio.play().catch(() => undefined);
         return;
       }
-      setError("This file could not be played (source offline?).");
+      // Every source failed: stop, and in an album or playlist go on with the next track
+      // (at most once round the queue, so a dead list does not spin). The note stays until sound.
+      audio.pause();
+      setPlaying(false);
+      setBuffering(false);
+      const { mode: m, queue: q } = latest.current;
+      if (m === "library" && q.length > 1 && skips.current < q.length) {
+        skips.current++;
+        step(1);
+      }
+      setError(NOT_RESPONDING);
     };
     const onPause = () => { wantsPlay.current = false; setPlaying(false); setBuffering(false); };
     const onPlay = () => { wantsPlay.current = true; setPlaying(true); };
+    const onSound = () => {
+      skips.current = 0;
+      setError((e) => (e === NOT_RESPONDING ? "" : e));
+    };
     // waiting/stalled: the network is behind; playing/canplay: sound again.
     const onWait = () => { if (!audio.paused) setBuffering(true); };
     const onFlow = () => { setBuffering(false); };
     audio.addEventListener("waiting", onWait);
     audio.addEventListener("stalled", onWait);
     audio.addEventListener("playing", onFlow);
+    audio.addEventListener("playing", onSound);
     audio.addEventListener("canplay", onFlow);
     audio.addEventListener("ended", onEnd);
     audio.addEventListener("error", onErr);
@@ -241,6 +324,7 @@ export function usePlayer(cat: Catalog | null) {
       audio.removeEventListener("waiting", onWait);
       audio.removeEventListener("stalled", onWait);
       audio.removeEventListener("playing", onFlow);
+      audio.removeEventListener("playing", onSound);
       audio.removeEventListener("canplay", onFlow);
     };
   }, [audio, step, syncLive]);
@@ -265,7 +349,13 @@ export function usePlayer(cat: Catalog | null) {
       audio.pause();
       return;
     }
-    // play() inside the click itself: after the network wait below, browsers
+    // On the radio, listening is tuning in (jingle, then what is on air now), unless this
+    // station's jingle played moments ago: then the radio just comes back at once.
+    if (m === "live" && !(lastIdent.current.station === st && Date.now() - lastIdent.current.at < IDENT_AGAIN_MS)) {
+      goLive(st);
+      return;
+    }
+    // play() inside the click itself: after the network wait, browsers
     // (Safari first) no longer count it as a user gesture and refuse it.
     void audio.play().catch(() => undefined);
     if (m === "live") void syncLive(st, true);
@@ -286,6 +376,9 @@ export function usePlayer(cat: Catalog | null) {
   /** toLibrary stops the radio: what was on air becomes a local queue of one, paused. */
   const toLibrary = useCallback(() => {
     syncSeq.current++;
+    ident.current?.pause();
+    ident.current = null;
+    audio.volume = userVolume.current;
     audio.pause();
     setMode("library");
     setError("");

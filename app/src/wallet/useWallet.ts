@@ -20,7 +20,7 @@ const fromAccount = (acc: { address: string; chainId: string } | undefined): Wal
 // Adena has no disconnect API: "Disconnect" makes the app forget the wallet,
 // remembered across reloads so it never reconnects silently. Connect clears it.
 const FORGOT = "gnoradio.walletForgotten";
-export const isForgotten = (): boolean => { try { return localStorage.getItem(FORGOT) === "1"; } catch { return false; } };
+const isForgotten = (): boolean => { try { return localStorage.getItem(FORGOT) === "1"; } catch { return false; } };
 const setForgotten = (on: boolean) => {
   try { if (on) localStorage.setItem(FORGOT, "1"); else localStorage.removeItem(FORGOT); } catch { /* private mode: forget for this session only */ }
 };
@@ -55,7 +55,16 @@ export function useWallet(onError: (msg: string) => void) {
     };
   }, [refresh]);
 
+  // No Adena in this browser: actions and Connect open the "you need a wallet" sheet instead.
+  const [asking, setAsking] = useState(false);
+  const ask = useCallback(() => { setAsking(true); }, []);
+  const closeAsk = useCallback(() => { setAsking(false); }, []);
+
   const connectWallet = useCallback(async () => {
+    if (!hasAdena()) {
+      setAsking(true);
+      return;
+    }
     setState({ status: "connecting" });
     try {
       const acc = await connect();
@@ -115,8 +124,8 @@ export function useWallet(onError: (msg: string) => void) {
   }, [ensure, onError]);
 
   return useMemo(
-    () => ({ state, connectWallet, fixNetwork, ensure, disconnect, signer, setSigner, quick, setQuick }),
-    [state, connectWallet, fixNetwork, ensure, disconnect, signer, setSigner, quick, setQuick],
+    () => ({ state, connectWallet, fixNetwork, ensure, disconnect, signer, setSigner, quick, setQuick, asking, ask, closeAsk }),
+    [state, connectWallet, fixNetwork, ensure, disconnect, signer, setSigner, quick, setQuick, asking, ask, closeAsk],
   );
 }
 

@@ -18,7 +18,7 @@ python3 -m http.server 8077                  # puis ouvrir http://localhost:8077
 python3 curate.py batch                      # approved.json → import_batch.json
 ```
 
-1. **`seeds.json`** : la liste blanche. Chaque seed indique une source (`archive`, `ccmixter`, `audius`), un artiste, une collection ou une requête, un genre par défaut (1 à 12) et un statut :
+1. **`seeds.json`** : la liste blanche. Chaque seed indique une source (`archive`, `ccmixter`, `audius`), un artiste, une collection ou une requête, un genre par défaut (1 à 20) et un statut :
    - `approved` : écouté, on récupère ;
    - `to_review` : à vérifier avant de l'utiliser (originalité, qualité) ;
    - `paused` : ignoré.
@@ -31,7 +31,7 @@ python3 curate.py batch                      # approved.json → import_batch.js
    Le résultat va dans `candidates.json`, au format de `ImportTrack`.
 3. **`hash`** télécharge les fichiers non Audius pour calculer leur sha256. Le résultat est mis en cache dans `hashes.json`.
 4. **`review.html`** : écoute d'un extrait par morceau (à partir de 30 % de sa durée).
-   - Touches : `K` garder, `D` jeter, `N`/`P` suivant/précédent ; `1`–`9`, `0`, `-`, `=` pour corriger le genre.
+   - Touches : `K` garder, `D` jeter, `N`/`P` suivant/précédent ; `1`–`9`, `0` pour corriger le genre (1 à 10, avec `Maj` 11 à 20).
    - Les décisions restent dans le navigateur. **Export approved.json** produit le fichier final.
 5. **`batch`** produit `import_batch.json` : les artistes à créer d'abord, puis les morceaux, avec le décompte par genre (objectif : 80 par station). Il bloque les morceaux sans sha256 et les morceaux ccMixter sans copie.
 

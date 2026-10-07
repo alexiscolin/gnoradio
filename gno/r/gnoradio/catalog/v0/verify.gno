@@ -11,32 +11,33 @@ import (
 )
 
 // Automatic verification, paid by the artist. The artist puts a proof line in
-// a page only they control (their Audius bio, Bandcamp page, website); the
+// a place only they control (their Audius bio, or /.well-known/gnoradio.txt on their own website); the
 // GnoRadio robot reads it and, off-chain and for free, signs a certificate
 // (Ed25519, ClaimMessage) valid for a short while. The artist submits it with
 // Claim from their own wallet; after claimDelay anyone can finalize: the
 // profile goes to that wallet and turns Verified, which opens tips and paid
 // tickets. The robot key signs nothing else; the admin can revoke it, cancel
-// a pending claim and undo a wrong one.
+// a pending claim and undo a wrong one. Changing or revoking the key voids
+// every claim it started that is still pending, so a stolen key is undone in
+// one call; there is no daily cap that one person could use up for everyone.
 
 const (
-	claimDelay   = 72 * 3600 // seconds a claim stays public before it counts
-	maxBotPerDay = 50        // claims a stolen robot key could start per day
-	certLife     = 2 * 3600  // longest validity of a robot certificate, seconds
+	claimDelay = 72 * 3600 // seconds a claim stays public before it counts
+	certLife   = 2 * 3600  // longest validity of a robot certificate, seconds
 )
 
 type claim struct {
 	To    address
 	Proof string
 	At    int64
+	Gen   int // botGen when the claim was made
 }
 
 var (
-	botKey   []byte   // Ed25519 public key of the verification robot
-	claims   avl.Tree // padded artist id -> *claim (pending)
-	proofs   avl.Tree // padded artist id -> proof URL of the last finalized claim
-	botDay   int64
-	botCount int
+	botKey []byte   // Ed25519 public key of the verification robot
+	botGen int      // bumped by SetBot: pending claims of an older key do not finalize
+	claims avl.Tree // padded artist id -> *claim (pending)
+	proofs avl.Tree // padded artist id -> proof URL of the last finalized claim
 
 	// verifySig checks certificates; tests stand in for the robot with it.
 	verifySig = ed25519.Verify
@@ -53,7 +54,9 @@ func ClaimMessage(artistID int, to address, proof string, expires int64) string 
 	return "gnoradio-claim|" + runtime.ChainID() + "|" + itoa(artistID) + "|" + to.String() + "|" + proof + "|" + itoa64(expires)
 }
 
-// SetBot sets the robot's Ed25519 public key, hex ("" disables it). Admin only.
+// SetBot sets the robot's Ed25519 public key, hex ("" disables it). Every
+// pending claim started with the previous key is voided: its artist claims
+// again with a fresh certificate. Admin only.
 func SetBot(cur realm, pubKeyHex string) {
 	onlyAdmin(cur)
 	key, err := hex.DecodeString(pubKeyHex)
@@ -61,6 +64,7 @@ func SetBot(cur realm, pubKeyHex string) {
 		panic("catalog: the robot key is a 32-byte Ed25519 public key in hex")
 	}
 	botKey = key
+	botGen++
 	emitEvent("BotSet", "key", pubKeyHex)
 }
 
@@ -87,17 +91,7 @@ func Claim(cur realm, artistID int, proof string, expires int64, sigHex string) 
 	}
 	a := mustArtist(artistID)
 	mustClaimable(a, caller)
-	// Resubmitting one's own pending claim is free; only new claims count.
-	if prev, _ := claims.Get(text.Key(artistID)).(*claim); prev == nil || prev.To != caller {
-		if d := ts / 86400; d != botDay {
-			botDay, botCount = d, 0
-		}
-		if botCount >= maxBotPerDay {
-			panic("catalog: verification limit reached for today, try tomorrow")
-		}
-		botCount++
-	}
-	claims.Set(text.Key(artistID), &claim{To: caller, Proof: proof, At: ts})
+	claims.Set(text.Key(artistID), &claim{To: caller, Proof: proof, At: ts, Gen: botGen})
 	emitEvent("ClaimProposed", "artist", itoa(artistID), "to", caller.String(), "proof", proof)
 }
 
@@ -111,6 +105,9 @@ func FinalizeClaim(cur realm, artistID int) {
 		panic("catalog: no pending verification for this artist")
 	}
 	c := v.(*claim)
+	if c.Gen != botGen {
+		panic("catalog: this check was signed by a robot key since replaced, check your page again")
+	}
 	if now() < c.At+claimDelay {
 		panic("catalog: verification completes 72 hours after the check")
 	}
@@ -176,15 +173,14 @@ func mustClaimable(a *Artist, to address) {
 
 // ArtistVerified reports whether an artist proved who they are (tips and
 // paid tickets need it).
-func ArtistVerified(artistID int) bool { return artistField(artistID, 9) == "1" }
+func ArtistVerified(artistID int) bool { return artistField(artistID, aVerified) == "1" }
 
 // ClaimJSON is the verification state of an artist for the app:
 // {"verified":b,"proof":"…","pending":b,"to":"…","pendingProof":"…","readyAt":n,"bot":"…"}.
 func ClaimJSON(artistID int) string {
 	p, _ := proofs.Get(text.Key(artistID)).(string)
 	out := `{"verified":` + strconv.FormatBool(ArtistVerified(artistID)) + `,"proof":"` + p + `"`
-	if v := claims.Get(text.Key(artistID)); v != nil {
-		c := v.(*claim)
+	if c, _ := claims.Get(text.Key(artistID)).(*claim); c != nil && c.Gen == botGen {
 		out += `,"pending":true,"to":"` + c.To.String() + `","pendingProof":"` + c.Proof + `","readyAt":` + itoa64(c.At+claimDelay)
 	} else {
 		out += `,"pending":false`

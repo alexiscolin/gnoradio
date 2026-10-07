@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
+	"crypto/ed25519"
+
 	"gno.land/p/gnoradio/store/v0"
 
-	"gno.land/p/gnoradio/blocks/v0"
-	"gno.land/p/nt/avl/v0"
 	"gno.land/p/nt/testutils/v0"
 	"gno.land/p/nt/uassert/v0"
 	"gno.land/p/nt/urequire/v0"
@@ -26,21 +26,23 @@ var (
 const cid = "bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi"
 
 // reset gives the radio fresh stations; tracks already in the catalog (from
-// earlier tests: other realms' state is not reset) are skipped.
+// earlier tests: other realms' state is not reset) count as synced, with a
+// silent main slot and an empty homes record each, as on a chain where Sync
+// ingested them.
 func reset() {
-	stations = nil
-	for i := 0; i <= catalog.NumGenres; i++ {
-		stations = append(stations, &station{id: i, genre: i, rot: blocks.New()})
-	}
+	stations = newStations()
 	synced = catalog.TrackCount()
-	mainBase = synced
 	homes = store.NewSeq(128)
-	frozen = false
+	for id := 1; id <= synced; id++ {
+		stations[MainStation].rot.Append(id, 0)
+		homes.Append("")
+	}
+	frozen, successor = false, ""
 	admin = erin
-	lastQ = store.NewMap(128)
-	noteReports, muted = store.NewMap(1024), store.NewMap(1024)
-	modBot, hideDay, hides = "", 0, 0
-	dropped = avl.Tree{}
+	lastPick, dropped, sponsor = store.NewMap(64), store.NewMap(16), store.NewMap(64)
+	curators, tops = store.NewMap(64), [ChoiceStation + 2]weekTop{}
+	noteReports, muted, strikes = store.NewMap(1024), store.NewMap(1024), store.NewMap(1024)
+	noteKey, verifySig = nil, ed25519.Verify
 	setGenre, setLeft, cursor = 0, 0, [catalog.NumGenres + 1]int{}
 }
 
@@ -238,19 +240,21 @@ func TestGuards(cur realm, t *testing.T) {
 	uassert.AbortsContains(t, cur, "paused for maintenance", func() { Sync(cross(cur), 10) })
 }
 
-// Scale: a station with n rotation slots (built directly, without the
-// catalog), then NowPlaying, ScheduleJSON and Queue. Compare the GAS lines of
-// the Build and Ops tests: ops must barely grow with n (SPEC §6).
+// Scale: Main, New and Choice with n rotation slots each (built directly,
+// without the catalog), then NowPlaying, ScheduleJSON, Sync and Queue (which
+// feed and trim New and Choice). Compare the GAS lines of the Build and Ops
+// tests: ops must barely grow with n (SPEC §6).
 func bigStation(n int) *station {
 	reset()
-	st := stations[MainStation]
 	ts := time.Now().Unix()
-	for i := 0; i < n; i++ {
-		st.rot.Append(1000000+i, 180)
-		st.live++
+	for _, st := range []*station{stations[NewStation], stations[ChoiceStation], stations[MainStation]} {
+		for i := 0; i < n; i++ {
+			st.rot.Append(1000000+i, 180)
+			st.live++
+		}
+		st.anchor(ts, 0)
 	}
-	st.anchor(ts, 0)
-	return st
+	return stations[MainStation]
 }
 
 func scaleOps(cur realm, t *testing.T) {

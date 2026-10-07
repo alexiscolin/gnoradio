@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { clock, errorMessage, firstNonEmpty, fnv, gnot, hostOf, licenseLabel, shortAddr } from "./format";
+import { clock, errorMessage, firstNonEmpty, fnv, gnot, hostOf, licenseLabel, licenseURL, shortAddr } from "./format";
 
 describe("format", () => {
   it("formats clocks", () => {
@@ -14,6 +14,13 @@ describe("format", () => {
   it("shortens addresses", () => {
     expect(shortAddr("g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5")).toBe("g1jg8mt…sqf5");
     expect(shortAddr("short")).toBe("short");
+  });
+  it("links licenses to their text", () => {
+    expect(licenseURL("CC-BY-SA-4.0")).toBe("https://creativecommons.org/licenses/by-sa/4.0/");
+    expect(licenseURL("CC-BY-3.0-DE")).toBe("https://creativecommons.org/licenses/by/3.0/de/");
+    expect(licenseURL("CC0-1.0")).toBe("https://creativecommons.org/publicdomain/zero/1.0/");
+    expect(licenseURL("Audius-OML")).toBe("https://openaudiofoundation.org/open-music-license.pdf");
+    expect(licenseURL("ALL-RIGHTS-RESERVED")).toBe("");
   });
   it("labels licenses", () => {
     expect(licenseLabel("CC-BY-SA-4.0")).toBe("CC BY SA 4.0");

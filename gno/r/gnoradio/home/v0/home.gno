@@ -20,6 +20,9 @@ import (
 	"gno.land/r/gnoradio/tickets/v0"
 )
 
+// onAirNote is a test seam: a dedication needs the moderation robot's signature.
+var onAirNote = radio.OnAirNote
+
 const (
 	catalogPath = "gno.land/r/gnoradio/catalog/v0"
 	radioPath   = "gno.land/r/gnoradio/radio/v0"
@@ -27,6 +30,12 @@ const (
 	maxCovers   = 8
 	pageSize    = 20
 	ugnot       = 1_000_000
+)
+
+// Owner details: fill in before deploy.
+const (
+	abuseEmail  = "[ABUSE EMAIL]" // copyright and illegal-content notices
+	noticeDelay = "[72 h]"        // usual time to hide reported content
 )
 
 var (
@@ -165,8 +174,7 @@ func renderHome() string {
 	b.WriteString(onAir(0))
 
 	b.WriteString("<gno-columns>\n## Stations\n\n")
-	n := radio.StationCount()
-	for s := 0; s < n && s < 7; s++ {
+	for _, s := range stationOrder()[:7] {
 		tracks, _, _ := radio.StationInfo(s)
 		b.WriteString("- [" + radio.StationName(s) + "](" + page("station/"+itoa(s)) + ") · " + itoa(tracks) + "\n")
 	}
@@ -266,9 +274,11 @@ func onAir(st int) string {
 		return onAirSVG(radio.StationName(st), "", "", 0, 0) + "\n\n"
 	}
 	src := "rotation"
-	if queued {
+	if queued && radio.OnAirPay(st) > 0 {
+		src = "sponsored pick · paid by " + md(catalog.ArtistName(t.Artist))
+	} else if queued {
 		src = "queued by a listener"
-		if n := radio.OnAirNote(st); n != "" {
+		if n := onAirNote(st); n != "" {
 			src += " · ♥ *" + md(n) + "*"
 		}
 	}
@@ -289,7 +299,7 @@ func renderStations() string {
 	}
 	b.WriteString("\n\n")
 	b.WriteString("| Station | Tracks | Loop | Queued | On air |\n|---|---|---|---|---|\n")
-	for s := 0; s < radio.StationCount(); s++ {
+	for _, s := range stationOrder() {
 		tracks, loop, queued := radio.StationInfo(s)
 		now := "—"
 		if id, _, _ := radio.NowPlaying(s); id != 0 {
@@ -323,19 +333,33 @@ func renderStation(st int) string {
 		}
 		if t, ok := catalog.GetTrack(s.Track); ok {
 			line := "- " + hour(s.Start) + " UTC · " + trackLink(t) + " · queued by " + who(s.By)
+			if s.At > 0 {
+				line = "- " + day(s.Start) + hour(s.Start) + " UTC · " + trackLink(t) + " · booked by " + who(s.By)
+			}
+			if s.Pay > 0 {
+				line += " · sponsored pick, paid by " + md(catalog.ArtistName(t.Artist))
+			}
 			if s.Note != "" {
 				line += " · ♥ *" + md(s.Note) + "*"
 			}
 			b.WriteString(line + "\n")
 		}
 	}
-	b.WriteString("\n" + itoa(tracks) + " tracks in rotation · one loop lasts " + span(loop) + ".\n")
+	b.WriteString("\n" + topCurators(st))
+	b.WriteString(itoa(tracks) + " tracks in rotation · one loop lasts " + span(loop) + ".\n")
 	return b.String()
 }
 
 func renderTrack(t catalog.Track) string {
 	if !playable(t) {
-		return header("Track removed") + "> [!WARNING] Removed by moderation\n> This track is no longer available.\n"
+		note := catalog.HiddenNote("track", t.ID)
+		if note == "" {
+			note = catalog.HiddenNote("artist", t.Artist)
+		}
+		if note == "" {
+			note = "This track is no longer available."
+		}
+		return header("Track removed") + "> [!WARNING] Track removed\n> " + md(note) + "\n"
 	}
 	a, _ := catalog.GetArtist(t.Artist)
 	var b strings.Builder
@@ -710,7 +734,11 @@ func renderTicket(tk tickets.Ticket) string {
 	if !ok {
 		b.WriteString(header("Ticket #" + itoa(tk.Serial)))
 		b.WriteString(tickets.TicketSVG(tk.ID) + "\n\n")
-		b.WriteString("> [!NOTE] Removed by moderation\n> This concert is no longer listed. The ticket stays in its holder's collection.\n\n")
+		note := tickets.HiddenNote(tk.Event)
+		if note == "" {
+			note = "This concert is no longer listed."
+		}
+		b.WriteString("> [!NOTE] Concert removed\n> " + md(note) + " The ticket stays in its holder's collection.\n\n")
 		b.WriteString("Holder: " + who(tickets.TicketOwner(tk.ID)) + "\n")
 		return b.String()
 	}
@@ -844,14 +872,13 @@ func renderJoin() string {
 		"## Artists\n\n" +
 		"1. [Create your artist profile](" + catalogTx.NewLink("RegisterArtist").AddArgs("name", "", "bio", "").URL() + ") (Latin letters, 2-40 characters).\n" +
 		"2. Export **MP3 320 kbps** or **Opus 160 kbps** around **-14 LUFS**, upload it to IPFS (or an allowed host) and note its sha256.\n" +
-		"3. [Publish a track](" + catalogTx.NewLink("PublishTrack").URL() + "): genre 1-12, duration as 3:45, license (CC0, CC BY, CC BY-SA, CC BY-NC… or ALL-RIGHTS-RESERVED), " +
+		"3. [Publish a track](" + catalogTx.NewLink("PublishTrack").URL() + "): genre 1-" + itoa(catalog.NumGenres) + ", duration as 3:45, license (CC0, CC BY, CC BY-SA, CC BY-NC… or ALL-RIGHTS-RESERVED), " +
 		"collaborators as `g1…:30` in percent, and answer `yes` to: *\"" + catalog.RightsTerms() + "\"*\n" +
 		"4. [Group tracks into an album](" + catalogTx.NewLink("CreateAlbum").URL() + ") and [announce a concert](" + ticketsTx.NewLink("CreateEvent").URL() + ").\n\n" +
 		"> [!CAUTION] SACEM members\n> Only works declared under a non-commercial CC license: use `sacem-nc` and a CC BY-NC license.\n\n" +
 		"## Your music is already here?\n\n" +
-		"Curated CC tracks and Audius tracks start on **unclaimed** profiles. To claim yours, publish your g1 address on a page you control " +
-		"(Bandcamp, website, Audius bio), open your profile from [the artists list](" + page("artists") + ") and follow its **Claim it** link: " +
-		"it files a public claim with the reason `claim: <your link>`. Once the moderator verifies it, tips and concerts open.\n\n" +
+		"Imported from Audius or an archive? Open your profile in the app and press **Verify**: put the code it gives you in your Audius bio " +
+		"or at `https://yourdomain/.well-known/gnoradio.txt`. A robot checks it; tips open 72 hours later.\n\n" +
 		"## Listeners\n\n[Publish a public playlist](" + catalogTx.NewLink("PublishPlaylist").URL() + ") with track ids like `12,40,7`. Private playlists and saves live in the app, for free.\n\n" +
 		"Genres: " + genreList() + "\n"
 }
@@ -861,7 +888,7 @@ func renderAbout() string {
 		"<gno-columns>\n" +
 		"### Library and Live\n\nPlay any album or playlist in any order, or tune into a station where everyone hears the same second. The schedule lives on-chain; there is no streaming server to switch off.\n" +
 		"<gno-columns-sep />\n" +
-		"### 0% fee, provably\n\nTips and tickets never stay in the contracts: they reach the artist and their collaborators in the same transaction. Don't trust us, read the code.\n" +
+		"### 0% taken from artists, provably\n\nTips and ticket prices reach the artist in the same transaction; an optional extra and a ticket service fee fund GnoRadio. Don't trust us, read the code.\n" +
 		"<gno-columns-sep />\n" +
 		"### Tickets that remember\n\nEach ticket is an NFT drawn by the contract, in your name. Gift it, get it checked in at the door, keep it after the show.\n" +
 		"</gno-columns>\n\n" +
@@ -869,8 +896,9 @@ func renderAbout() string {
 		"- **Here (gnoweb):** catalog, profiles, support, tickets and the on-chain proof. Every page is rendered by a contract.\n" +
 		"- **The GnoRadio app:** the synced player, uploads, your library. Listening never needs a transaction." + appLine() + "\n" +
 		"- **Audio:** IPFS, Arweave, allowed hosts (archive.org) and Audius. Metadata, links and fingerprints live on gno.land.\n\n" +
-		"## Rules\n\n- Publish only music you own the rights to. Curated tracks are CC0, CC BY or CC BY-SA with attribution; Audius tracks follow the Audius Open Music License.\n" +
+		"## Rules\n\n- Publish only music you own or control the rights to. Curated tracks are CC0, CC BY or CC BY-SA with attribution; Audius tracks follow the Audius Open Music License.\n" +
 		"- Published files stay public: moderation can hide, not erase. Reports are public on [the moderation page](" + page("moderation") + ").\n\n" +
+		noticeBlock() +
 		"## Verify it yourself\n\n" +
 		"- Tips and splits: [social.gno](" + sourceURL(catalogPath, "social.gno") + ") · GnoRadio funding: [support.gno](" + sourceURL(catalogPath, "support.gno") + ")\n" +
 		"- Stations and queue: [radio.gno](" + sourceURL(radioPath, "radio.gno") + ") · Tickets and fees: [tickets.gno](" + sourceURL(ticketsPath, "tickets.gno") + ")\n" +
@@ -880,7 +908,7 @@ func renderAbout() string {
 func renderModeration(pg int) string {
 	var b strings.Builder
 	b.WriteString(header("Moderation"))
-	b.WriteString("Moderator: " + who(catalog.Admin()) + ". Reports are public; decisions are visible transactions.\n\n")
+	b.WriteString("Moderator: " + who(catalog.Admin()) + ". Reports are public; decisions are visible transactions.\n\n" + noticeBlock())
 	if catalog.ReportCount() == 0 {
 		b.WriteString("> [!SUCCESS] No open report\n> Use the Report link on any track, artist, album or playlist.\n")
 		return b.String()
@@ -907,8 +935,23 @@ func renderModeration(pg int) string {
 func header(title string) string { return "# " + title + "\n\n" + nav() }
 
 func nav() string {
-	return "[Radio](" + page("") + ") · [Stations](" + page("stations") + ") · [Catalog](" + page("catalog") +
-		") · [Concerts](" + page("concerts") + ") · [Charts](" + page("charts") + ") · [About](" + page("about") + ")\n\n"
+	s := "[Radio](" + page("") + ") · [Stations](" + page("stations") + ") · [Catalog](" + page("catalog") +
+		") · [Concerts](" + page("concerts") + ") · [Charts](" + page("charts") + ") · [About](" + page("about") + ")"
+	if l := inApp("legal", "Legal"); l != "" {
+		s += " · " + l
+	}
+	return s + "\n\n"
+}
+
+// noticeBlock is the off-chain path for copyright and illegal-content notices.
+func noticeBlock() string {
+	s := "## Copyright or illegal content\n\nEmail " + abuseEmail + " with: the link, why it is illegal or which right it infringes, " +
+		"your name and email, and a statement that you believe this in good faith. We hide reported content while we check, usually within " +
+		noticeDelay + ", and tell the uploader why. On-chain reports are public, with the reporter's address.\n"
+	if l := inApp("legal", "Legal notice, privacy and terms"); l != "" {
+		s += "\n" + l + "\n"
+	}
+	return s + "\n"
 }
 
 func stats() string {
@@ -978,10 +1021,24 @@ func verifyLink(artistID int) string {
 
 // genreBrowse points an empty or idle station to tracks it could play.
 func genreBrowse(st int) string {
-	if st == 0 {
+	switch st {
+	case radio.MainStation:
 		return "[Browse the catalog](" + page("catalog") + "), open a track and choose **Queue on Main**."
+	case radio.NewStation:
+		return "The newest tracks join it as they sync. [Browse the catalog](" + page("catalog") + ")."
+	case radio.ChoiceStation:
+		return "Every track a listener queues joins it. [Browse the catalog](" + page("catalog") + ") and pick one."
 	}
 	return "[Browse " + catalog.GenreName(st) + " tracks](" + page("catalog?g="+itoa(st)) + "), open one and choose **Queue**."
+}
+
+// stationOrder lists Main, then the community stations, then the genres.
+func stationOrder() []int {
+	out := []int{radio.MainStation, radio.NewStation, radio.ChoiceStation}
+	for g := 1; g <= catalog.NumGenres; g++ {
+		out = append(out, g)
+	}
+	return out
 }
 
 // sourceURL links a contract file on gnoweb.
@@ -1037,7 +1094,7 @@ func licenseLink(l string) string {
 	case l == "CC0-1.0":
 		return "[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)"
 	case l == catalog.AudiusLicense:
-		return "[Audius Open Music License](https://audius.org/open-music-license.pdf)"
+		return "[Audius Open Music License](https://openaudiofoundation.org/open-music-license.pdf)"
 	case strings.HasPrefix(l, "CC-"):
 		var terms []string
 		ver, port := "", ""
@@ -1135,3 +1192,11 @@ func span(sec int64) string {
 
 func date(unix int64) string { return time.Unix(unix, 0).UTC().Format("Jan 2, 2006 15:04") + " UTC" }
 func hour(unix int64) string { return time.Unix(unix, 0).UTC().Format("15:04") }
+
+// day is "tomorrow " when unix falls on the next UTC day (a booked pick), else "".
+func day(unix int64) string {
+	if unix/86400 > time.Now().Unix()/86400 {
+		return "tomorrow "
+	}
+	return ""
+}

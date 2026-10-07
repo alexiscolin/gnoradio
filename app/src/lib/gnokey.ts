@@ -12,7 +12,19 @@ const HEAVY: Readonly<Record<string, number>> = {
   PublishTrack: 100_000_000,
   PublishPlaylist: 100_000_000,
   RegisterArtist: 100_000_000,
+  // Picks measured on a devnet (2026-10-07): up to 60M, 70M with a dedication; ~25% margin.
+  Queue: 75_000_000,
+  QueueAt: 75_000_000,
+  QueueSponsored: 75_000_000,
+  QueueSponsoredAt: 75_000_000,
+  QueueWithNote: 88_000_000,
+  QueueWithNoteAt: 88_000_000,
 };
+
+const ADDRESS_KEY = "gnoradio.gnokeyAddress";
+/** gnokeyAddress is the address of the gnokey key the listener signs with, if they gave it (dedications are certified for it). */
+export const gnokeyAddress = (): string => { try { return localStorage.getItem(ADDRESS_KEY) ?? ""; } catch { return ""; } };
+export const setGnokeyAddress = (a: string): void => { try { localStorage.setItem(ADDRESS_KEY, a.trim()); } catch { /* this visit only */ } };
 
 /** gasFor is the gas a call may burn: 40M for a listener action, more for the heavy ones. */
 export const gasFor = (func: string): number => HEAVY[func] ?? 40_000_000;
@@ -24,7 +36,7 @@ export const feeFor = (gas: number): number => Math.ceil(gas / 1000);
 export const shellQuote = (s: string): string => `'${s.replaceAll("'", `'\\''`)}'`;
 
 /** KEY_HOLDER stands in for the key name until the user types theirs. */
-export const KEY_HOLDER = "YOUR_KEY_NAME";
+const KEY_HOLDER = "YOUR_KEY_NAME";
 
 /** gnokeyCommand is the one-line `gnokey maketx call` for c, signed by the key named key. */
 export function gnokeyCommand(c: Call, chainId: string, remote: string, key: string): string {

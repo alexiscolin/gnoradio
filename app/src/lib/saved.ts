@@ -27,3 +27,6 @@ export function useSaved() {
   }, []);
   return { ids, has: (id: number) => ids.includes(id), toggle } as const;
 }
+
+/** Saved is what a screen needs of the saves: is a track saved, save or unsave it. */
+export type Saved = Pick<ReturnType<typeof useSaved>, "has" | "toggle">;

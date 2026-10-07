@@ -154,3 +154,43 @@ func panicOf(f func()) (msg string) {
 	f()
 	return ""
 }
+
+// Set reuses a slot (id and duration); positions and prefixes follow,
+// across a group boundary too.
+func TestSetAcrossGroups(t *testing.T) {
+	n := groupSlots + 300
+	l := build(n)
+	durs := make([]int64, n)
+	for i := range durs {
+		durs[i] = 200
+	}
+	for _, i := range []int{0, Size - 1, groupSlots - 1, groupSlots, n - 1} {
+		l.Set(i, 7, 50)
+		durs[i] = 50
+		id, d := l.Slot(i)
+		uassert.Equal(t, 7, id)
+		uassert.Equal(t, int64(50), d)
+	}
+	l.Set(groupSlots+1, 9, 0)
+	durs[groupSlots+1] = 0
+	var total, p int64
+	for i, d := range durs {
+		if i%997 == 0 || i == groupSlots+2 {
+			uassert.Equal(t, p, l.PrefixBefore(i))
+		}
+		p += d
+		total += d
+	}
+	uassert.Equal(t, total, l.Total())
+	uassert.Equal(t, total, l.PrefixBefore(n))
+	for _, pos := range []int64{0, 49, 50, total / 2, total - 1, l.PrefixBefore(groupSlots) + 50} {
+		slot, _, off, ok := l.Find(pos)
+		wi, woff, _ := naiveFind(durs, pos)
+		uassert.True(t, ok)
+		uassert.Equal(t, wi, slot)
+		uassert.Equal(t, woff, off)
+	}
+	slot, _, _, _ := l.Find(l.PrefixBefore(groupSlots + 1))
+	uassert.Equal(t, groupSlots+2, slot) // the emptied slot is skipped
+	uassert.Equal(t, 2, len(l.groups))
+}

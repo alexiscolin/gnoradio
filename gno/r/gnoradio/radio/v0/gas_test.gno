@@ -25,12 +25,12 @@ func TestMainStationNeedsNoIndex(cur realm, t *testing.T) {
 	_, ok = stations[MainStation].slot(b + 1)
 	uassert.False(t, ok)
 
-	ha, _ := homes.Get(a - 1 - mainBase)
-	hb, _ := homes.Get(b - 1 - mainBase)
-	uassert.Equal(t, "4:0", ha) // genre station 4, slot 0
-	uassert.Equal(t, "6:0", hb)
+	ha, _ := homes.Get(a - 1)
+	hb, _ := homes.Get(b - 1)
+	uassert.Equal(t, "4:0,"+itoa(NewStation)+":0", ha) // genre station 4 slot 0, New slot 0
+	uassert.Equal(t, "6:0,"+itoa(NewStation)+":1", hb)
 
-	ids, durs := RotationPage(MainStation, 0, 10)
+	ids, durs := RotationPage(MainStation, a-1, 10) // main slot = id-1
 	uassert.Equal(t, 2, len(ids))
 	uassert.Equal(t, a, ids[0])
 	uassert.Equal(t, int64(60), durs[0])

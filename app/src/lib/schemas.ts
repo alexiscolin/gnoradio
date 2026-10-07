@@ -10,6 +10,8 @@ export const isTrack = obj({
 });
 export const isArtist = obj({
   id: num, name: str, kind: origin, owner: str, bio: str, source: str, joined: num, tips: num, followers: num, verified: bool,
+  // Fields added after v0 are optional on the wire, so an app newer than the realm still reads it.
+  promo: opt(num), sponsor: opt(num),
   tracks: arr(num), albums: arr(num),
 });
 export const isAlbum = obj({ id: num, artist: num, title: str, cover: str, year: num, tracks: arr(num) });
@@ -22,16 +24,17 @@ export const isPlaylistPage = obj({ playlists: arr(isPlaylist) });
 export const isTrackPage = obj({ tracks: arr(isTrack) });
 export const isStations = obj({
   pending: num,
+  newFloor: opt(num), // radio: only tracks above this id may be picked on New this week
   stations: arr(obj({ id: num, name: str, genre: num, tracks: num, loop: num, queued: num, now: obj({ track: num, offset: num, queued: bool }) })),
 });
-const isEntry = obj({ track: num, title: str, start: num, end: num, offset: num, queued: bool, by: str, note: opt(str) });
-export const isSchedule = obj({ station: num, now: num, entries: arr(isEntry) });
-export const isEvents = obj({
-  events: arr(obj({ id: num, artist: num, title: str, venue: str, link: str, start: num, price: num, capacity: num, sold: num, cancelled: bool, fee: opt(num) })),
-});
+const isEntry = obj({ track: num, title: str, start: num, end: num, offset: num, queued: bool, by: str, note: opt(str), sponsored: opt(num), at: opt(num) });
+const isBooked = obj({ track: num, start: num, end: num, at: num, by: str });
+export const isSchedule = obj({ station: num, now: num, entries: arr(isEntry), booked: opt(arr(isBooked)) });
+export const isEvent = obj({ id: num, artist: num, title: str, venue: str, link: str, start: num, price: num, capacity: num, sold: num, cancelled: bool, fee: opt(num) });
+export const isEvents = obj({ events: arr(isEvent) });
 export const isActivities = arr(
   obj({
-    kind: oneOf("publish", "like", "follow", "tip", "support", "playlist", "album", "claim", "queue", "curator"),
+    kind: oneOf("publish", "like", "follow", "tip", "support", "playlist", "album", "claim", "queue", "curator", "sponsored"),
     by: str, track: num, artist: opt(num), station: opt(num), amount: opt(num), at: num,
   }),
 );
@@ -44,20 +47,19 @@ export const isTickets = arr(
   obj({ id: num, event: num, serial: num, attended: bool }),
 );
 
-export type Origin = Infer<typeof origin>;
 export type Track = Infer<typeof isTrack>;
-export type Split = Track["splits"][number];
-export type Artist = Infer<typeof isArtist>;
+export type Artist = Omit<Infer<typeof isArtist>, "promo"> & { readonly promo: number };
 export type Album = Infer<typeof isAlbum>;
 export type Playlist = Infer<typeof isPlaylist>;
 export type Genre = Infer<typeof isGenres>[number];
-export type CatalogInfo = Infer<typeof isInfo>;
 export type Station = Infer<typeof isStations>["stations"][number];
-export type ScheduleEntry = Infer<typeof isEntry>;
-export type Schedule = Infer<typeof isSchedule>;
-export type ConcertEvent = Infer<typeof isEvents>["events"][number];
+export type ScheduleEntry = Omit<Infer<typeof isEntry>, "sponsored" | "at"> & { readonly sponsored?: number | undefined; readonly at?: number | undefined };
+/** A pick booked for a time (radio.QueueAt): "at" is the time asked, "start" the track boundary it airs at. */
+export type Booked = Infer<typeof isBooked>;
+// "sponsored" (v0.7), "at" and "booked" (v0.8) are optional: fixtures and older realms omit them.
+export type Schedule = Omit<Infer<typeof isSchedule>, "entries" | "booked"> & { readonly entries: ScheduleEntry[]; readonly booked?: readonly Booked[] | undefined };
+export type ConcertEvent = Infer<typeof isEvent>;
 export type Activity = Infer<typeof isActivities>[number];
 export type SupportInfo = Infer<typeof isSupport>;
-export type Fees = Infer<typeof isFees>;
 export type UserInfo = Infer<typeof isUser>;
 export type OwnedTicket = Infer<typeof isTickets>[number];

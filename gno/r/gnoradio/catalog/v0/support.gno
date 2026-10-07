@@ -3,9 +3,11 @@ package catalog
 import (
 	"chain"
 	"chain/banker"
+	"strconv"
 	"strings"
 	"time"
 
+	"gno.land/p/gnoradio/store/v0"
 	"gno.land/p/gnoradio/text/v0"
 
 	"gno.land/p/nt/avl/v0"
@@ -17,7 +19,8 @@ import (
 
 const activitySize = 64
 
-// siblingRealms hold no treasury: coins sent there would be stuck.
+// siblingRealms are GnoRadio's other realms (SetSibling adds their next
+// versions): they hold no treasury, so coins sent there would be stuck.
 var siblingRealms = []string{
 	"gno.land/r/gnoradio/radio/v0",
 	"gno.land/r/gnoradio/tickets/v0",
@@ -38,7 +41,7 @@ var (
 	treasury       address
 	totalSupport   int64
 	nSupporters    int
-	supporterTotal avl.Tree // address -> int64
+	supporterTotal = store.NewMap(65536) // address -> lifetime total (an avl node would cost each supporter about 2KB of deposit)
 	monthly        avl.Tree // "YYYY-MM" -> int64
 	monthlyGoal    int64
 	topSupport     []Rank
@@ -68,13 +71,8 @@ func SetTreasury(cur realm, to address) {
 	if !to.IsValid() {
 		panic("catalog: invalid address")
 	}
-	if to == cur.Address() {
+	if to == cur.Address() || isSibling(to) {
 		panic("catalog: the treasury cannot be a GnoRadio realm")
-	}
-	for _, p := range siblingRealms {
-		if to == chain.PackageAddress(p) {
-			panic("catalog: the treasury cannot be a GnoRadio realm")
-		}
 	}
 	emitEvent("TreasuryChanged", "from", treasury.String(), "to", to.String())
 	treasury = to
@@ -92,6 +90,47 @@ func SetMonthlyGoal(cur realm, ugnot int64) {
 
 func Treasury() address { return treasury }
 
+// SetSibling adds (or removes) a GnoRadio realm, e.g. a v1 being deployed:
+// it can then never be named a treasury, a referrer or a collaborator. Admin only.
+func SetSibling(cur realm, pkgPath string, on bool) {
+	onlyAdmin(cur)
+	mustRealmPath(pkgPath)
+	if on {
+		addSibling(pkgPath)
+	} else {
+		var kept []string
+		for _, p := range siblingRealms {
+			if p != pkgPath {
+				kept = append(kept, p)
+			}
+		}
+		siblingRealms = kept
+	}
+	emitEvent("Sibling", "path", pkgPath, "on", strconv.FormatBool(on))
+}
+
+// SiblingRealms lists the GnoRadio realms that receive no coins.
+func SiblingRealms() []string { return append([]string(nil), siblingRealms...) }
+
+func addSibling(pkgPath string) {
+	for _, p := range siblingRealms {
+		if p == pkgPath {
+			return
+		}
+	}
+	siblingRealms = append(siblingRealms, pkgPath)
+}
+
+// isSibling reports whether addr is another GnoRadio realm.
+func isSibling(addr address) bool {
+	for _, p := range siblingRealms {
+		if addr == chain.PackageAddress(p) {
+			return true
+		}
+	}
+	return false
+}
+
 // SupportInfo returns GnoRadio's public funding state for this month.
 func SupportInfo() (to address, total int64, supporters int, monthTotal, goal int64) {
 	mt, _ := monthly.Get(month(now())).(int64)
@@ -100,11 +139,12 @@ func SupportInfo() (to address, total int64, supporters int, monthTotal, goal in
 
 func recordSupport(by address, amt int64) {
 	totalSupport += amt
-	prev, _ := supporterTotal.Get(by.String()).(int64)
-	if prev == 0 {
+	s, had := supporterTotal.Get(by.String())
+	if !had {
 		nSupporters++
 	}
-	supporterTotal.Set(by.String(), prev+amt)
+	prev := atoi64(s)
+	supporterTotal.Set(by.String(), itoa64(prev+amt))
 	topSupport = updateTop(topSupport, by.String(), prev+amt)
 	m := month(now())
 	cur, _ := monthly.Get(m).(int64)

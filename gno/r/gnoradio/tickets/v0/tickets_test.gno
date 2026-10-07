@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"gno.land/p/gnoradio/store/v0"
 	"gno.land/p/nt/avl/v0"
 	"gno.land/p/nt/testutils/v0"
 	"gno.land/p/nt/uassert/v0"
@@ -25,14 +26,16 @@ var (
 var realmAddr = chain.PackageAddress("gno.land/r/gnoradio/tickets/v0")
 
 func reset() {
-	events, byArtist, artistEvents, tickets = avl.Tree{}, avl.Tree{}, avl.Tree{}, avl.Tree{}
+	events, byArtist, artistEvents = avl.Tree{}, avl.Tree{}, avl.Tree{}
+	tickets, owned, buyers = store.NewSeq(16), store.NewMap(64), store.NewMap(64)
 	upcoming, artistAhead = avl.Tree{}, avl.Tree{}
-	owned, attended = avl.Tree{}, avl.Tree{}
+	attended = avl.Tree{}
 	nEvents, nTickets = 0, 0
 	ticketTok, ticketLed = nil, nil
 	frozen = false
 	admin = bob
 	artistVerified = func(int) bool { return true }
+	artistVisible = catalog.ArtistVisible
 }
 
 func ugnots(n int64) chain.Coins { return chain.Coins{{Denom: denom, Amount: n}} }
@@ -175,11 +178,13 @@ func TestCancelAndModeration(cur realm, t *testing.T) {
 	uassert.AbortsContains(t, cur, "cancelled", func() { BuyTicket(cross(cur), 1) })
 
 	uassert.Equal(t, 1, len(Upcoming(10)))
-	uassert.AbortsWithMessage(t, cur, "tickets: moderators only", func() { HideEvent(cross(cur), 2, true) })
+	uassert.AbortsWithMessage(t, cur, "tickets: moderators only", func() { HideEvent(cross(cur), 2, true, "spam") })
 	testing.SetRealm(testing.NewUserRealm(bob))
-	HideEvent(cross(cur), 2, true)
+	uassert.AbortsContains(t, cur, "reason must be", func() { HideEvent(cross(cur), 2, true, "") })
+	HideEvent(cross(cur), 2, true, "fake concert")
 	_, ok := EventInfo(2)
 	uassert.False(t, ok)
+	uassert.Equal(t, "Removed by moderation: fake concert", HiddenNote(2))
 	uassert.Equal(t, "", EventSVG(2))
 	uassert.Equal(t, 0, len(Upcoming(10)))
 

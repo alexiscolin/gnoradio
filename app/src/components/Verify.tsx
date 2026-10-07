@@ -13,13 +13,13 @@ import { Shape } from "./Shapes";
 export const isClaim = obj({ verified: bool, proof: str, pending: bool, to: opt(str), pendingProof: opt(str), readyAt: opt(num), bot: bool });
 type Claim = Infer<typeof isClaim>;
 
-export const VERIFY_HELP =
+const VERIFY_HELP =
   "Tips and paid tickets only reach artists who proved who they are, so nobody can collect money in someone else's name. " +
   "The proof is a short code the artist adds where only they can write: their Audius bio, or a file on their own website. " +
-  "A robot reads it, then the claim stays public for 72 hours before it counts: if the page was hacked, there is time to stop it. " +
-  "GnoRadio never holds the money: a tip goes 100% to the artist, in the same transaction.";
+  "A robot reads it, then the request stays public for 72 hours before it counts: if the page was hacked, there is time to stop it. " +
+  "GnoRadio never holds the money and takes nothing: a tip reaches the artist in the same transaction.";
 
-/** tippable: tips and paid tickets need a claimed and verified artist (catalog/verify.gno). */
+/** tippable: tips and paid tickets need a verified artist (catalog/verify.gno). */
 export const tippable = (a: Artist | undefined): boolean => a !== undefined && a.owner !== "" && a.verified;
 
 const day = (unix: number) => new Date(unix * 1000).toLocaleString("en", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
@@ -47,11 +47,14 @@ export function VerifyStatus({ a, claim, onVerify }: { readonly a: Artist; reado
     );
   }
   if (claim?.pending) {
-    return <span className="vstatus wait"><Shape g="quarter" size={10} /> Verification in progress · ready {day(claim.readyAt ?? 0)} <Help text={VERIFY_HELP} /></span>;
+    // Anyone may turn tips on once the 72 h wait is over (catalog.FinalizeClaim): the panel has the button.
+    return Date.now() / 1000 >= (claim.readyAt ?? 0)
+      ? <span className="vstatus wait"><Shape g="quarter" size={10} /> Verification done · <button className="link" onClick={onVerify}>Turn on tips</button> <Help text={VERIFY_HELP} /></span>
+      : <span className="vstatus wait"><Shape g="quarter" size={10} /> Verification in progress · tips open {day(claim.readyAt ?? 0)} <Help text={VERIFY_HELP} /></span>;
   }
   return (
     <span className="vstatus">
-      Not verified yet · <button className="link" onClick={onVerify}>Is this you? Verify in 2 minutes</button>
+      Not verified yet · <button className="link" onClick={onVerify}>Is this you? Verify it (tips open 72 h later)</button>
       <Help text={VERIFY_HELP} />
     </span>
   );
@@ -106,9 +109,9 @@ export function VerifyPanel({ a, claim, actions, onClose, onChange }: { readonly
       </div>
       <p className="muted small">Prove this is you so fans can tip you and buy your paid tickets. No paperwork, no email: a short code on your own page is enough. <Help text={VERIFY_HELP} /></p>
 
-      {claim?.pending && claim.to === wallet ? (
+      {claim?.pending && (claim.to === wallet || now >= (claim.readyAt ?? 0)) ? (
         <div className="verify-done">
-          <b>Your proof was found. </b>
+          <b>{claim.to === wallet ? "Your proof was found." : "The proof was found."} </b>
           {now >= (claim.readyAt ?? 0) ? (
             <>
               <span>The 72-hour safety wait is over.</span>

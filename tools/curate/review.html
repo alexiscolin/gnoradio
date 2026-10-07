@@ -59,7 +59,7 @@ kbd{background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6
     <div class="counts"><div><b id="cTodo">0</b><span class="mute">to review</span></div><div><b id="cKeep">0</b><span class="mute">kept</span></div><div><b id="cDrop">0</b><span class="mute">dropped</span></div></div>
     <button class="btn dark" id="export" type="button">Export approved.json</button>
     <button class="btn grey" id="reset" type="button">Forget decisions</button>
-    <div class="keys"><kbd>K</kbd> keep · <kbd>D</kbd> drop · <kbd>Space</kbd> play/pause · <kbd>→</kbd> skip 10 s · <kbd>N</kbd>/<kbd>P</kbd> next/prev · <kbd>1</kbd>–<kbd>9</kbd>,<kbd>0</kbd>,<kbd>-</kbd>,<kbd>=</kbd> set genre 1–12</div>
+    <div class="keys"><kbd>K</kbd> keep · <kbd>D</kbd> drop · <kbd>Space</kbd> play/pause · <kbd>→</kbd> skip 10 s · <kbd>N</kbd>/<kbd>P</kbd> next/prev · <kbd>1</kbd>–<kbd>9</kbd>,<kbd>0</kbd> set genre 1–10, with <kbd>Shift</kbd> 11–20</div>
   </aside>
   <main class="panel" id="main">
     <div class="empty" id="empty">Open <b>candidates.json</b> (or serve this folder with <code>python3 -m http.server</code> and it loads by itself).</div>
@@ -82,7 +82,7 @@ kbd{background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6
   </main>
 </div>
 <script>
-const GENRES=["","Electronic","Synthwave","Ambient","Techno & House","Lo-fi & Chill","Hip-hop & Beats","Rock & Indie","Pop","Jazz & Soul","Folk & Acoustic","Cinematic & Classical","World"];
+const GENRES=["","Electronica","Synthwave","Ambient","Techno","House","Drum & Bass","Dubstep & Trap","Lo-fi Beats","Hip-hop & Rap","R&B & Soul","Rock & Indie","Metal & Punk","Pop","Jazz & Blues","Folk & Acoustic","Cinematic & Classical","World","Latin","Reggae & Dub","Funk & Disco"];
 const STORE="gnoradio-curation";
 let all=[],shown=[],idx=0,dec={};
 try{dec=JSON.parse(localStorage.getItem(STORE)||"{}")}catch(e){dec={}}
@@ -137,7 +137,7 @@ document.addEventListener("keydown",e=>{if(e.target.tagName==="SELECT"||e.target
   if(k==="k")decide("keep");else if(k==="d")decide("drop");else if(k==="n")next();else if(k==="p")prev();
   else if(k===" "){e.preventDefault();const a=$("audio");if(!a.src)play();else a.paused?a.play():a.pause()}
   else if(k==="arrowright"){$("audio").currentTime+=10}
-  else{const map={"1":1,"2":2,"3":3,"4":4,"5":5,"6":6,"7":7,"8":8,"9":9,"0":10,"-":11,"=":12};if(map[k])setGenre(map[k])}});
+  else if(/^Digit\d$/.test(e.code))setGenre((Number(e.code[5])||10)+(e.shiftKey?10:0))});
 fetch("candidates.json").then(r=>r.ok?r.json():null).then(d=>{if(d)setData(d)}).catch(()=>{});
 </script>
 </body>

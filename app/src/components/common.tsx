@@ -1,14 +1,16 @@
+import { withRef } from "../lib/incentives";
 import { Icon } from "./Icons";
 import { type ReactNode, useState } from "react";
 import { clock, licenseLabel } from "../lib/format";
 import { viewToPath } from "../lib/router";
+import type { Saved } from "../lib/saved";
 import type { Navigate, Track, View } from "../lib/types";
 import type { Actions } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
 import { Cover } from "./Cover";
-import { Shape } from "./Shapes";
+import { type Glyph, Shape } from "./Shapes";
 
-export function Head({ a, b, note, right }: { readonly a: string; readonly b?: string; readonly note?: string; readonly right?: ReactNode }) {
+export function Head({ a, b, note, right }: { readonly a: string; readonly b?: string; readonly note?: ReactNode; readonly right?: ReactNode }) {
   return (
     <div className="head">
       <div>
@@ -65,31 +67,46 @@ export function sharedValue(tracks: readonly Track[], of: (t: Track) => string):
  * TrackRows lists tracks to play in order. What all rows share (one artist,
  * one license, as in an album) is said once by the page, not on every row.
  */
-export function TrackRows({ tracks, player }: { readonly tracks: readonly Track[]; readonly player: Player }) {
+export function TrackRows({ tracks, player, actions, saved, first = ROWS_PAGE }: { readonly tracks: readonly Track[]; readonly player: Player; readonly actions: Actions; readonly saved: Saved; readonly first?: number }) {
   const ids = tracks.map((t) => t.id);
   const oneArtist = sharedValue(tracks, (t) => t.artistName) !== "";
   const oneRights = sharedValue(tracks, rightsLabel) !== "";
-  // Long lists render 100 rows at a time (each row may fetch its cover); play still uses the whole list.
-  const [shown, setShown] = useState(ROWS_PAGE);
+  // Long lists render `first` rows, then 100 more at a time (each row may fetch its cover); play still uses the whole list.
+  const [shown, setShown] = useState(first);
   const left = tracks.length - shown;
   return (
     <div className="rows">
-      {tracks.slice(0, shown).map((t, i) => (
-        <button key={t.id} className={`track${player.current === t.id ? " on" : ""}`} onClick={() => { player.playList(ids, i); }}>
-          <span className="mono muted num">
-            {player.current === t.id && player.playing
-              ? <i className="eq" aria-label="Playing"><i /><i /><i /></i>
-              : String(i + 1).padStart(2, "0")}
-          </span>
-          <Cover t={t} size="40px" />
-          <span className="tt">
-            <b>{t.title}</b>
-            {!(oneArtist && oneRights) && <span className="muted">{[oneArtist ? "" : t.artistName, oneRights ? "" : rightsLabel(t)].filter(Boolean).join(" · ")}</span>}
-          </span>
-          <span className="muted">♥ {t.likes}</span>
-          <span className="mono">{clock(t.duration)}</span>
-        </button>
-      ))}
+      {tracks.slice(0, shown).map((t, i) => {
+        const like = likeState(t, actions);
+        const kept = saved.has(t.id);
+        return (
+          // The play button covers the whole row (::after); like and save sit above it.
+          <div key={t.id} className={`track${player.current === t.id ? " on" : ""}`}>
+            <button className="track-play" onClick={() => { player.playList(ids, i); }}>
+              <span className="mono muted num">
+                {player.current === t.id && player.playing
+                  ? <i className="eq" aria-label="Playing"><i /><i /><i /></i>
+                  : String(i + 1).padStart(2, "0")}
+              </span>
+              <Cover t={t} size="40px" />
+              <span className="tt">
+                <b>{t.title}</b>
+                {!(oneArtist && oneRights) && <span className="muted">{[oneArtist ? "" : t.artistName, oneRights ? "" : rightsLabel(t)].filter(Boolean).join(" · ")}</span>}
+              </span>
+            </button>
+            <span className="muted likes">{t.likes > 0 && `♥ ${String(t.likes)}`}</span>
+            <span className="row-acts">
+              <button className="row-act like" aria-pressed={like.on} aria-busy={like.busy} disabled={like.busy} aria-label={`Like ${t.title}`} title={`${like.on ? "Unlike" : "Like"} · public, on-chain`} onClick={like.toggle}>
+                <Icon name={like.on ? "heart-on" : "heart"} size={16} />
+              </button>
+              <button className="row-act" aria-pressed={kept} aria-label={`Save ${t.title}`} title={kept ? "Saved in this browser" : "Save in this browser"} onClick={() => { saved.toggle(t.id); }}>
+                <Icon name={kept ? "bookmark-on" : "bookmark"} size={16} />
+              </button>
+            </span>
+            <span className="mono">{clock(t.duration)}</span>
+          </div>
+        );
+      })}
       {left > 0 && (
         <button className="more" onClick={() => { setShown((n) => n + ROWS_PAGE); }}>
           Show {String(Math.min(ROWS_PAGE, left))} more <span className="muted">· {String(left)} left</span>
@@ -127,22 +144,26 @@ export function Proof({ page, code }: { readonly page: string; readonly code: st
 
 const ONCHAIN = "Public, on-chain · opens Adena";
 
-/** LikeButton signs Like or Unlike; it shows the wallet's state and a pending one. */
-export function LikeButton({ t, actions, compact = false }: { readonly t: Track; readonly actions: Actions; readonly compact?: boolean }) {
+/** likeState is whether this wallet likes a track, whether it is signing, and the toggle (no wallet: the wallet sheet). */
+function likeState(t: Track, actions: Actions) {
   const on = actions.liked.has(t.id);
-  const busy = actions.pending === `like:${String(t.id)}`;
+  return { on, busy: actions.pending === `like:${String(t.id)}`, toggle: () => { if (on) actions.unlike(t); else actions.like(t); } };
+}
+
+/** LikeButton signs Like or Unlike; it shows the wallet's state and a pending one. */
+export function LikeButton({ t, actions }: { readonly t: Track; readonly actions: Actions }) {
+  const { on, busy, toggle } = likeState(t, actions);
   return (
     <button
       className={`onchain${busy ? " busy" : ""}`}
       aria-pressed={on}
       aria-busy={busy}
       disabled={busy}
-      title={`${on ? "Unlike" : "Like"} · ${ONCHAIN}`}
-      onClick={() => { if (on) actions.unlike(t); else actions.like(t); }}
+      title={`${on ? "Unlike" : "Like"} · public, on-chain · the first like locks about 0.3 GNOT of storage deposit; Unlike frees it`}
+      onClick={toggle}
     >
-      <Shape g="circle" size={12} fill={on ? "var(--red)" : "var(--tick)"} />
-      {busy ? " Signing…" : ` ${on ? "Liked" : "Like"}`}
-      {!busy && <span className="mono muted">{compact ? ` ${String(t.likes)}` : ` · ${String(t.likes)}`}</span>}
+      <Icon name={on ? "heart-on" : "heart"} size={15} />
+      {busy ? " Signing…" : ` ${on ? "Liked" : "Like"}${t.likes > 0 ? ` ${String(t.likes)}` : ""}`}
     </button>
   );
 }
@@ -160,7 +181,7 @@ export function FollowButton({ artist, followers, actions }: { readonly artist: 
       title={`${on ? "Unfollow" : "Follow"} · ${ONCHAIN}`}
       onClick={() => { if (on) actions.unfollow(artist); else actions.follow(artist); }}
     >
-      {busy ? "Signing…" : `${on ? "Following" : "Follow"} · ${String(followers)}`}
+      {busy ? "Signing…" : `${on ? "Following" : "Follow"}${followers > 0 ? ` · ${String(followers)}` : ""}`}
     </button>
   );
 }
@@ -199,10 +220,11 @@ export function Crumbs({ trail, go }: { readonly trail: readonly Crumb[]; readon
  * ShareButton shares a link, this page's by default: the system sheet on
  * phones, the clipboard elsewhere. `to` shares another screen, `text` adds a line.
  */
-export function ShareButton({ title, to, text }: { readonly title: string; readonly to?: View; readonly text?: string }) {
+export function ShareButton({ title, to, text, refBy = "" }: { readonly title: string; readonly to?: View; readonly text?: string; readonly refBy?: string }) {
   const [copied, setCopied] = useState(false);
   const share = async () => {
-    const url = to ? new URL(viewToPath(to, to.k === "stations" ? "" : title), location.origin).href : location.href;
+    // refBy makes the link earn: tips made from it share the artist's promo share with them.
+    const url = withRef(to ? new URL(viewToPath(to, to.k === "stations" ? "" : title), location.origin).href : location.href, refBy);
     if (typeof navigator.share === "function") {
       await navigator.share({ title: `${title} · GnoRadio`, url, ...(text ? { text } : {}) }).catch(() => undefined);
       return;
@@ -216,4 +238,24 @@ export function ShareButton({ title, to, text }: { readonly title: string; reado
       <Icon name="share" size={15} /> {copied ? "Link copied" : "Share"}
     </button>
   );
+}
+
+/** Who names a listener (@name, else their nickname) and opens their page. */
+export function Who({ address, shown, go, tabIndex }: { readonly address: string; readonly shown: (a: string) => string; readonly go: Navigate; readonly tabIndex?: number }) {
+  return <button className="who" title={address} tabIndex={tabIndex} onClick={() => { go({ k: "listener", address }); }}>{shown(address)}</button>;
+}
+
+/** A stat of a Stats row; value 0 hides it. */
+export interface Stat {
+  readonly g: Glyph;
+  readonly value: number;
+  readonly shown: string;
+  readonly label: string;
+}
+
+/** Stats shows the non-zero stats, or the empty line when none is. */
+export function Stats({ items, empty }: { readonly items: readonly Stat[]; readonly empty: string }) {
+  const on = items.filter((s) => s.value > 0);
+  if (on.length === 0) return <p className="muted">{empty}</p>;
+  return <div className="stats">{on.map((s) => <div key={s.label}><Shape g={s.g} size={14} /><b className="mono">{s.shown}</b><span>{s.label}</span></div>)}</div>;
 }

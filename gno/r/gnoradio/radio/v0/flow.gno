@@ -11,8 +11,10 @@ import "gno.land/r/gnoradio/catalog/v0"
 // never plays the same artist twice in a row nor a track still in the log.
 // Listener and curator picks go before the flow, which waits for them. When
 // nothing tops it up for three hours, the main station falls back to its
-// rotation. Listener picks top it up for free to GnoRadio; the robot sends
-// Sync only when NeedsSync says so.
+// rotation. A listener pick tops it up for free to GnoRadio when less than an
+// hour is programmed, a few slots at most so a pick's deposit stays small
+// (folding the slots that aired gives most of it back); the robot sends Sync
+// only when NeedsSync says so.
 
 const (
 	fillAhead = 3 * 3600 // seconds of flow written ahead
@@ -23,21 +25,30 @@ const (
 // energy orders the genres from calm to intense; neighbours blend well.
 var energy = [catalog.NumGenres]int{
 	3,  // Ambient
-	11, // Cinematic & Classical
-	10, // Folk & Acoustic
-	9,  // Jazz & Soul
-	5,  // Lo-fi & Chill
-	6,  // Hip-hop & Beats
-	12, // World
-	8,  // Pop
-	7,  // Rock & Indie
+	16, // Cinematic & Classical
+	15, // Folk & Acoustic
+	14, // Jazz & Blues
+	8,  // Lo-fi Beats
+	10, // R&B & Soul
+	19, // Reggae & Dub
+	17, // World
+	18, // Latin
+	20, // Funk & Disco
+	13, // Pop
+	9,  // Hip-hop & Rap
+	11, // Rock & Indie
 	2,  // Synthwave
 	1,  // Electronic
-	4,  // Techno & House
+	5,  // House
+	4,  // Techno
+	7,  // Dubstep & Trap
+	6,  // Drum & Bass
+	12, // Metal & Punk
 }
 
-// dayparts is the target index in energy for each 3-hour block of the UTC day.
-var dayparts = [8]int{3, 0, 4, 6, 7, 8, 10, 11}
+// dayparts is the target index in energy for each 3-hour block of the UTC day:
+// Jazz, Ambient, Lo-fi, World, Pop, Rock, House, then Drum & Bass at the peak.
+var dayparts = [8]int{3, 0, 4, 7, 10, 12, 15, 18}
 
 var (
 	setGenre int                        // genre of the set being written
@@ -45,18 +56,14 @@ var (
 	cursor   [catalog.NumGenres + 1]int // next slot of each genre rotation
 )
 
-// program tops up the station's flow until fillAhead seconds after ts.
-func (st *station) program(ts int64) {
+// program tops up the station's flow until fillAhead seconds after ts,
+// writing at most max slots.
+func (st *station) program(ts int64, max int) {
 	st.fold(ts)
-	start, prev := ts, 0
-	if n := len(st.schedule); n > 0 && st.schedule[n-1].Start+st.schedule[n-1].Dur > ts {
-		start, prev = st.schedule[n-1].Start+st.schedule[n-1].Dur, st.schedule[n-1].Track
-	} else if _, track, off, d, ok := st.rotationAt(ts); ok {
-		start, prev = ts+d-off, track
-	}
+	start, prev := st.reach(ts)
 	prevArtist, _, _, _ := catalog.TrackBrief(prev)
 	failed := false
-	for n := 0; n < maxFill && start < ts+fillAhead; n++ {
+	for n := 0; n < max && start < ts+fillAhead && len(st.schedule) < maxSchedule; n++ {
 		if setLeft <= 0 {
 			if setGenre = nextGenre(setGenre, start); setGenre == 0 {
 				return
@@ -72,21 +79,38 @@ func (st *station) program(ts int64) {
 			continue
 		}
 		failed = false
-		st.schedule = append(st.schedule, Slot{Track: id, Start: start, Dur: d})
-		start += d
+		start = st.lay(Slot{Track: id, Dur: d}, start) // around booked picks
 		prevArtist = artist
 		setLeft--
 	}
 }
 
-// ahead is how many seconds of the station are programmed after ts.
+// ahead is how many seconds of the station are programmed after ts (a pick
+// booked later, after a gap, does not count).
 func (st *station) ahead(ts int64) int64 {
-	if n := len(st.schedule); n > 0 {
-		if end := st.schedule[n-1].Start + st.schedule[n-1].Dur; end > ts {
-			return end - ts
+	t, _ := st.reach(ts)
+	return t - ts
+}
+
+// reach is where the slots programmed from ts on end, without a gap (from
+// the end of the rotation track on air when none plays), and their last track.
+func (st *station) reach(ts int64) (int64, int) {
+	t, prev := st.follow(ts, 0)
+	if prev == 0 {
+		if _, track, off, d, ok := st.rotationAt(ts); ok {
+			t, prev = st.follow(ts+d-off, track)
 		}
 	}
-	return 0
+	return t, prev
+}
+
+func (st *station) follow(t int64, prev int) (int64, int) {
+	for _, s := range st.schedule {
+		if s.Start <= t && s.Start+s.Dur > t {
+			t, prev = s.Start+s.Dur, s.Track
+		}
+	}
+	return t, prev
 }
 
 // pick takes the next track of a genre rotation that is live, not dropped
@@ -97,7 +121,7 @@ func (st *station) pick(genre, prevArtist int) (id, artist int, dur int64, ok bo
 		i := cursor[genre] % rot.Len()
 		cursor[genre] = i + 1
 		id, dur = rot.Slot(i)
-		if dur == 0 || st.programmed(id) || dropped.Size() > 0 && dropped.Has(dropKey(st.id, id)) {
+		if dur == 0 || st.programmed(id) || dropped.Len() > 0 && dropped.Has(dropKey(st.id, id)) {
 			continue
 		}
 		if a, _, _, playable := catalog.TrackBrief(id); playable && a != prevArtist {

@@ -4,6 +4,14 @@
 // and expires after DAYS. Calls with it are signed here, no prompt; the realm
 // still sees the user's own address as the caller. The key never leaves this
 // browser; Turn off revokes it on-chain.
+//
+// The chain lets a session call any function of an allowed realm (allow_paths
+// stops at the realm), coin-sending tips included; inSession keeping payments
+// on Adena is only this app's choice. A stolen key (an extension or script
+// reading localStorage) is bounded by spend_limit, which the chain enforces on
+// every outflow: fees, deposits and sent coins. So the daily cap is sized for
+// fees and deposits (measured: a pick about 0.07 GNOT fee + up to 0.9 deposit,
+// a like 0.05 + 0.3): about a dozen listener actions a day.
 
 import { CHAIN_ID, REALMS, RPC, type Call, type RealmPath, type SessionKey, type TxResult, sign } from "./gno";
 import { feeFor, gasFor } from "./gnokey";

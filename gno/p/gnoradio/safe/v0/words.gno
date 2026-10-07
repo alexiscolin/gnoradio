@@ -266,6 +266,7 @@ buttcheeks
 butthole
 buy coke
 buy drugs
+buy followers
 buy weed
 cabrao
 cabron
@@ -726,6 +727,7 @@ gandu
 gang bang
 gangbang
 gas the jews
+gas them
 gavat
 gay sex
 gedoogzone
@@ -749,6 +751,8 @@ giveaway winner
 giveaways
 gnot giveaway
 go back to africa
+go back to your country
+go back where you came from
 go die
 goatcx
 goatse
@@ -1056,6 +1060,9 @@ leccaculo
 lecchino
 ledger support
 lemon party
+les arabes dehors
+les juifs dehors
+les noirs dehors
 lesbo
 lezzer
 lezzie
@@ -1505,12 +1512,14 @@ ref link
 referral code
 reggin
 remsporen
+rentre dans ton pays
 restore wallet
 restore your wallet
 retard
 retardado
 retarded
 retards
+retourne dans ton pays
 reudig
 reutelen
 reverse cowgirl

@@ -17,7 +17,7 @@ func TestBatchedReaders(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(carol))
 	RegisterArtist(cross(cur), "Batch Carol", "")
 	testing.SetRealm(testing.NewUserRealm(boss))
-	HideArtist(cross(cur), 2, true)
+	HideArtist(cross(cur), 2, true, "test hide")
 
 	all := ArtistsJSON(0, 100)
 	uassert.True(t, strings.HasPrefix(all, `{"total":3,"artists":[`))

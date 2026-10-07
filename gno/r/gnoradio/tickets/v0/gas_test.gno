@@ -18,7 +18,7 @@ func TestEventsJSONOffsetCursor(cur realm, t *testing.T) {
 		ids = append(ids, CreateEvent(cross(cur), "Gig "+itoa(i), "Club", "", inHours(24+i), "0", 10))
 	}
 	testing.SetRealm(testing.NewUserRealm(bob))
-	HideEvent(cross(cur), ids[3], true)
+	HideEvent(cross(cur), ids[3], true, "test hide")
 
 	page := EventsJSON(0, 2, false) // newest first: ids 5, 4 (hidden)
 	uassert.True(t, strings.Contains(page, `"title":"Gig 4"`), page)

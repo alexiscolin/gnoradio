@@ -2,6 +2,8 @@
 // tracks.gno, social.gno, moderation.gno), so forms explain a problem before
 // Adena opens instead of after a failed transaction. The realm stays the judge.
 
+import { isAddress } from "./proof";
+
 export const LICENSES = [
   ["CC0-1.0", "CC0 · public domain"],
   ["CC-BY-4.0", "CC BY 4.0"],
@@ -13,16 +15,16 @@ export const LICENSES = [
   ["ALL-RIGHTS-RESERVED", "All rights reserved"],
 ] as const;
 
-export const MAX_SPLITS = 4;
-export const MAX_SPLIT_PCT = 90;
-export const MAX_LIST_TRACKS = 200;
-export const MIN_DURATION = 10;
-export const MAX_DURATION = 1200;
+const MAX_SPLITS = 4;
+const MAX_SPLIT_PCT = 90;
+const MAX_LIST_TRACKS = 200;
+const MIN_DURATION = 10;
+const MAX_DURATION = 1200;
+const NUM_GENRES = 20; // catalog NumGenres
 
 const TEXT_EXTRA = new Set([" ", ".", ",", "'", "-", "!", "?", ":", "/", "&"]);
 const NAME_EXTRA = new Set([" ", ".", "'", "-", "&"]);
 const URL_CHARS = /^[A-Za-z0-9\-._~:/?#=&%+@]*$/;
-const ADDRESS = /^g1[02-9ac-hj-np-z]{38}$/;
 
 /** validText: letters, digits, spaces and . , ' - ! ? : / & only; length in characters. */
 export function validText(s: string, min: number, max: number): boolean {
@@ -35,7 +37,7 @@ export function validText(s: string, min: number, max: number): boolean {
   return n >= min && n <= max;
 }
 
-export const textRule = (field: string, min: number, max: number) =>
+const textRule = (field: string, min: number, max: number) =>
   `${field} must be ${String(min)}-${String(max)} characters: letters, digits, spaces and . , ' - ! ? : / & only`;
 
 /** validName: artist names in Latin letters, 2 to 40 characters, no double or edge spaces. */
@@ -63,9 +65,8 @@ export function parseClock(s: string): number | undefined {
   return sv > 59 ? undefined : Number(m) * 60 + sv;
 }
 
-export const isSHA256 = (s: string): boolean => /^[0-9a-f]{64}$/.test(s);
-export const isAddress = (s: string): boolean => ADDRESS.test(s);
-export const validHTTPS = (s: string): boolean => s.startsWith("https://") && s.length > 10 && s.length <= 300 && URL_CHARS.test(s);
+const isSHA256 = (s: string): boolean => /^[0-9a-f]{64}$/.test(s);
+const validHTTPS = (s: string): boolean => s.startsWith("https://") && s.length > 10 && s.length <= 300 && URL_CHARS.test(s);
 export const hostOf = (url: string): string => (url.replace(/^https:\/\//, "").split("/")[0] ?? "").toLowerCase();
 
 /**
@@ -133,7 +134,7 @@ export interface TrackDraft {
 export function trackProblems(d: TrackDraft, self: string, hosts: { readonly audio?: boolean | undefined; readonly cover?: boolean | undefined } = {}): string[] {
   const out: string[] = [];
   if (!validText(d.title.trim(), 1, 64)) out.push(textRule("Title", 1, 64));
-  if (!Number.isInteger(d.genre) || d.genre < 1 || d.genre > 12) out.push("Pick a genre");
+  if (!Number.isInteger(d.genre) || d.genre < 1 || d.genre > NUM_GENRES) out.push("Pick a genre");
   const secs = parseClock(d.duration);
   if (secs === undefined || secs < MIN_DURATION || secs > MAX_DURATION) out.push("Duration as m:ss, between 0:10 and 20:00");
   if (!LICENSES.some(([id]) => id === d.license)) out.push("Pick a license");
@@ -147,7 +148,7 @@ export function trackProblems(d: TrackDraft, self: string, hosts: { readonly aud
   }
   const splits = splitsProblem(d.splits, self);
   if (splits) out.push(`Collaborators: ${splits}`);
-  if (!d.rights) out.push("Declare that you own the rights");
+  if (!d.rights) out.push("Accept the rights declaration");
   return out;
 }
 

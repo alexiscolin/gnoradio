@@ -35,10 +35,10 @@ and the chain does the rest.
   profile during the wait cancels it.
 - **The robot holds no power.** Its key only signs certificates
   (`ClaimMessage`: chain, profile, wallet, proof page, expiry under 2 hours);
-  a certificate works for the wallet it names only, and at most 50 claims start
-  per day. It cannot move funds or change settings. The admin can revoke it
-  with `SetBot("")` and undo a wrong claim on an imported profile with
-  `ResetOwner`.
+  a certificate works for the wallet it names only. It cannot move funds or
+  change settings. The admin can revoke it with `SetBot("")` (or replace it):
+  every claim still pending under the old key is void at once. The admin can
+  also undo a wrong claim on an imported profile with `ResetOwner`.
 - **GnoRadio never holds money.** There is no escrow: a tip to an unverified
   artist is refused before any coin moves, and a tip to a verified one reaches
   the artist in the same transaction.
@@ -69,20 +69,22 @@ The robot is a set of Netlify functions sharing one module
 | Function | What it does | Who pays |
 |---|---|---|
 | `verify.mts` (`/api/verify`) | Reads the proof and signs a certificate (Ed25519) | Nobody: the artist submits it with `catalog.Claim` and pays the gas |
-| `moderate.mts` (`/api/moderate`) and `moderate-cron.mts` (every minute) | Checks pending dedications with OpenAI's moderation model, hides the abusive ones; the schedule catches dedications sent outside the app | GnoRadio, only per hidden dedication (~0.04 GNOT) |
+| `dedication.mts` (`/api/dedication`) | Before the transaction: checks a dedication with the on-chain word filter (`safe.Note`) and OpenAI's moderation model, then signs it (`radio.NoteMessage`, valid 10 min). `radio.QueueWithNote` refuses a dedication without that signature | Nobody: the listener sends it with their pick and pays the gas. OpenAI's moderation endpoint is free |
 | `sync.mts` (every 30 min, optional) | Keeps Main's flow going when nobody picks | GnoRadio, ~0.02 GNOT per needed Sync; off unless `SYNC_ROBOT=on` (listener picks already feed the radio) |
 
-Both endpoints only answer this site (Origin check), never take text from the
-client (they reread the chain), and keep their secrets server-side.
+Both endpoints only answer this site (Origin check) and keep their secrets
+server-side. `verify` rereads the chain rather than trust the client; the
+dedication text is the one thing sent to OpenAI, and the certificate binds
+that exact text. If OpenAI or the key is down, dedications pause; picks
+without one still work.
 
 Environment (Netlify, never committed; `app/.env.local` in dev):
 
 - `BOT_SIGNING_KEY`: 32-byte Ed25519 seed, hex. Its public key goes on-chain
-  with `catalog.SetBot(<public key hex>)`.
-- `OPENAI_API_KEY`: for `moderate.mts`. Then `radio.SetModBot(<robot address>)`.
-- `BOT_MNEMONIC`: the robot's gno account (pays `HideNote`, and `Sync` if on).
-  Fund it with a few GNOT.
+  with `catalog.SetBot(<public key hex>)` and `radio.SetModBot(<public key hex>)`.
+- `OPENAI_API_KEY`: for `dedication.mts`.
+- `BOT_MNEMONIC`: only if `SYNC_ROBOT=on`: the gno account that pays `Sync`.
 - `SYNC_ROBOT=on`: optional, see above. `BOT_RPC`: defaults to onyx.
 
-Locally, `npm run dev` serves `/api/verify` and `/api/moderate` against the
+Locally, `npm run dev` serves `/api/verify` and `/api/dedication` against the
 devnet; without the keys they only report what they would do.

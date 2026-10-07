@@ -10,7 +10,7 @@ import (
 // PublishTrack adds a track by the caller's own artist profile.
 // duration is "m:ss"; cmo is "none" or "sacem-nc"; splits is optional,
 // "g1...:30,g1...:15" in percent (the artist keeps at least 10%);
-// rights must be "yes" (the caller declares owning the rights).
+// rights must be "yes" (the caller accepts RightsTerms).
 // audio and cover are ipfs://, ar:// or https:// links (an allowed host,
 // with the file's sha256).
 func PublishTrack(cur realm, title string, genre int, duration, license, cmo, credits, audio, audioSHA, cover, coverSHA, splits, rights string) int {
@@ -19,7 +19,7 @@ func PublishTrack(cur realm, title string, genre int, duration, license, cmo, cr
 	notFrozen()
 	a := ownArtist(caller)
 	if strings.ToLower(strings.TrimSpace(rights)) != "yes" {
-		panic("catalog: declare that you own the rights (answer yes)")
+		panic("catalog: accept the rights declaration (answer yes)")
 	}
 	t := &Track{Origin: OriginArtist, CMO: "none"}
 	setInfo(t, title, genre, duration, credits)
@@ -160,7 +160,7 @@ func parseSplits(s string, artist, self address) []Split {
 		addrStr, pctStr, ok := strings.Cut(strings.TrimSpace(p), ":")
 		to := address(strings.TrimSpace(addrStr))
 		pct, err := strconv.ParseInt(strings.TrimSuffix(strings.TrimSpace(pctStr), "%"), 10, 64)
-		if !ok || err != nil || !to.IsValid() || to == artist || to == self || seen[to.String()] || pct < 1 || pct > maxSplitPct {
+		if !ok || err != nil || !to.IsValid() || to == artist || to == self || isSibling(to) || seen[to.String()] || pct < 1 || pct > maxSplitPct {
 			panic("catalog: collaborators as g1...:30,g1...:15 (percent)")
 		}
 		seen[to.String()] = true

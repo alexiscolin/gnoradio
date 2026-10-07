@@ -27,13 +27,13 @@ func Like(cur realm, trackID int) {
 	if ArtistOwner(artistID) == caller {
 		panic("catalog: you cannot like your own track")
 	}
-	u := user(caller)
-	likes, added := store.Add(u.Likes, trackID)
+	k := likeKey(caller, trackID)
+	list, _ := likeSets.Get(k)
+	list, added := store.Add(list, trackID)
 	if !added {
 		panic("catalog: already liked")
 	}
-	u.Likes = likes
-	putUser(caller, u)
+	likeSets.Set(k, list)
 	n := atoi(store.Field(rec, fLikes)) + 1
 	rec = store.With(rec, fLikes, itoa(n))
 	if early := store.Field(rec, fEarly); !hasEarly(early, caller) && (len(early)+1)/(len(caller)+1) < earlyBadges {
@@ -64,13 +64,17 @@ func Unlike(cur realm, trackID int) {
 	caller := userCaller(cur)
 	noPayment()
 	notFrozen()
-	u := user(caller)
-	likes, ok := store.Remove(u.Likes, trackID)
+	k := likeKey(caller, trackID)
+	list, _ := likeSets.Get(k)
+	list, ok := store.Remove(list, trackID)
 	if !ok {
 		panic("catalog: not liked")
 	}
-	u.Likes = likes
-	putUser(caller, u)
+	if list == "" {
+		likeSets.Remove(k)
+	} else {
+		likeSets.Set(k, list)
+	}
 	if rec, ok := trackRec(trackID); ok {
 		if n := atoi(store.Field(rec, fLikes)); n > 0 {
 			tracks.Set(trackID-1, store.With(rec, fLikes, itoa(n-1)))
@@ -83,15 +87,19 @@ func Unlike(cur realm, trackID int) {
 // Tip forwards the attached ugnot to the track's artist and collaborators,
 // split as declared at publish time, in this same transaction. Only verified
 // artists receive tips (verify.gno), so a tip never reaches an impersonator.
-func Tip(cur realm, trackID int) { tip(cur, trackID, 0) }
+func Tip(cur realm, trackID int) { tip(cur, userCaller(cur), paid(), trackID, 0, "", "") }
 
 // TipWithSupport is Tip plus an optional contribution to GnoRadio: of the
 // attached total T, the artist side receives T*100/(100+supportPct) (split as
 // in Tip) and the rest goes to the GnoRadio treasury. supportPct is 0..50.
-func TipWithSupport(cur realm, trackID int, supportPct int) { tip(cur, trackID, supportPct) }
+func TipWithSupport(cur realm, trackID int, supportPct int) {
+	tip(cur, userCaller(cur), paid(), trackID, supportPct, "", "")
+}
 
-func tip(cur realm, trackID int, supportPct int) {
-	caller := userCaller(cur)
+// tip pays total from this realm's balance for caller. The artist's promo
+// share (promo.gno) of the artist side goes to picker and ref, when given and
+// neither the tipper nor the artist; collaborators split what is left.
+func tip(cur realm, caller address, total int64, trackID, supportPct int, picker, ref address) (toPicker, toRef int64) {
 	notFrozen()
 	if supportPct < 0 || supportPct > maxSupportPct {
 		panic("catalog: supportPct must be between 0 and 50")
@@ -104,7 +112,6 @@ func tip(cur realm, trackID int, supportPct int) {
 	if a.Owner == caller {
 		panic("catalog: you cannot tip your own track")
 	}
-	total := paid()
 	if total > maxTip+maxTip/2 {
 		panic("catalog: a tip is between 0.1 and 1000000 GNOT")
 	}
@@ -113,13 +120,25 @@ func tip(cur realm, trackID int, supportPct int) {
 	if amt < minTip || amt > maxTip {
 		panic("catalog: a tip is between 0.1 and 1000000 GNOT")
 	}
+	if picker == caller || picker == a.Owner {
+		picker = ""
+	}
+	self := cur.Address()
+	// The tip must come on top of the promo budgets this realm holds (sponsor.gno).
+	if banker.NewBanker(banker.BankerTypeRealmSend, cur).GetCoins(self).AmountOf(denom) < promoHeld+total {
+		panic("catalog: the tip did not arrive")
+	}
+	if ref == caller || ref == a.Owner || ref == picker || ref == self || !ref.IsValid() || isSibling(ref) {
+		ref = ""
+	}
+	toPicker, toRef = promoShares(amt, PromoShare(a.ID), picker, ref)
+	artistSide := amt - toPicker - toRef
 
 	bk := banker.NewBanker(banker.BankerTypeRealmSend, cur)
-	self := cur.Address()
-	rest := amt
+	rest := artistSide
 	var paidTo strings.Builder
 	for _, s := range t.Splits {
-		share := amt * s.Pct / 100
+		share := artistSide * s.Pct / 100
 		if share > 0 {
 			bk.SendCoins(self, s.To, chain.Coins{{Denom: denom, Amount: share}})
 			rest -= share
@@ -128,6 +147,12 @@ func tip(cur realm, trackID int, supportPct int) {
 	}
 	bk.SendCoins(self, a.Owner, chain.Coins{{Denom: denom, Amount: rest}})
 	paidTo.WriteString(a.Owner.String() + ":" + itoa64(rest))
+	if toPicker > 0 {
+		bk.SendCoins(self, picker, chain.Coins{{Denom: denom, Amount: toPicker}})
+	}
+	if toRef > 0 {
+		bk.SendCoins(self, ref, chain.Coins{{Denom: denom, Amount: toRef}})
+	}
 	if platform > 0 {
 		bk.SendCoins(self, treasury, chain.Coins{{Denom: denom, Amount: platform}})
 		recordSupport(caller, platform)
@@ -138,8 +163,8 @@ func tip(cur realm, trackID int, supportPct int) {
 		u.tipped = tipped
 		t.Supporters++
 	}
-	t.Tips += amt
-	a.Tips += amt
+	t.Tips += artistSide
+	a.Tips += artistSide
 	u.Tipped += amt
 	putTrack(t)
 	putArtist(a)
@@ -147,7 +172,9 @@ func tip(cur realm, trackID int, supportPct int) {
 	topArtists = updateTop(topArtists, itoa(a.ID), a.Tips)
 	topFans = updateTop(topFans, caller.String(), u.Tipped)
 	recordActivity("tip", caller, t.ID, a.ID, amt)
-	emitEvent("Tipped", "track", itoa(trackID), "by", caller.String(), "amount", itoa64(amt), "paid", paidTo.String(), "support", itoa64(platform))
+	emitEvent("Tipped", "track", itoa(trackID), "by", caller.String(), "amount", itoa64(amt), "paid", paidTo.String(), "support", itoa64(platform),
+		"picker", picker.String(), "toPicker", itoa64(toPicker), "ref", ref.String(), "toRef", itoa64(toRef))
+	return toPicker, toRef
 }
 
 // ---- Albums ----

@@ -1,36 +1,26 @@
 import { Icon } from "../components/Icons";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BigList, Count, Head, TrackCards, TrackRows } from "../components/common";
+import { BigList, type Crumb, Count, Crumbs, Head, TrackCards, TrackRows } from "../components/common";
 import { DEFAULT_GOAL, clock, gnot, plural } from "../lib/format";
 import { ActivityFeed } from "../components/ActivityFeed";
 import { Shape } from "../components/Shapes";
 import { Cover } from "../components/Cover";
 import { fold } from "../components/SearchPick";
 import { GenreGlyph } from "../lib/genres";
+import { stationLine } from "../lib/onair";
 import { SEARCH_EVENT } from "../lib/search";
 import { Loader } from "../components/Loader";
+import { PlayButton } from "../components/PlayButton";
 import type { SupportTarget } from "../components/SupportSheet";
 import type { Activity, Catalog, Navigate, SupportInfo } from "../lib/types";
+import type { Saved } from "../lib/saved";
+import type { Actions } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
 
 interface ViewProps {
   readonly cat: Catalog;
   readonly player: Player;
   readonly go: Navigate;
-}
-
-const HINT = "gnoradio.hintSeen";
-/** FirstHint shows once, until dismissed. */
-function FirstHint() {
-  const [seen, setSeen] = useState(() => { try { return localStorage.getItem(HINT) === "1"; } catch { return false; } });
-  if (seen) return null;
-  const close = () => { setSeen(true); try { localStorage.setItem(HINT, "1"); } catch { /* private mode: hide for now only */ } };
-  return (
-    <p className="first-hint">
-      <Shape g="circle" size={8} /> Tap Live to hear what everyone hears, or pick any track to play it just for you.
-      <button className="x" aria-label="Dismiss" onClick={close}><Icon name="close" size={14} /></button>
-    </p>
-  );
 }
 
 export function Listen({ cat, player, go, activity, support, now, openSupport, openPick }: ViewProps & {
@@ -50,9 +40,11 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
       <div className="hero">
         <button className="onair" onClick={() => { player.goLive(0); }}>
           <span className="chip red"><Shape g="circle" size={9} fill="#fff" /> On air · Main</span>
+          <span className="onair-eq" aria-hidden="true"><i /><i /><i /><i /></span>
           <span className="onair-title">{onAir?.title ?? "Nothing on air yet"}</span>
-          <span className="muted">{onAir && main ? `${onAir.artistName} · join at ${clock(main.now.offset)} · same second for everyone` : "Publish or import the first track."}</span>
-          <span className="go">Go live <Icon name="arrow-right" size={16} className="nudge" /></span>
+          <span className="muted">{onAir && main ? `${onAir.artistName} · ${clock(main.now.offset)} in · everyone hears the same second` : "Publish or import the first track."}</span>
+          <span className="muted small">Or play any track just for you in the Library.</span>
+          <span className="go">Listen <Icon name="arrow-right" size={16} className="nudge" /></span>
         </button>
         <button className="block-yellow" onClick={() => { go({ k: "community" }); }}>
           <span className="lbl">Kept on air by listeners</span>
@@ -65,11 +57,16 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
         <Shape g="quarter" size={44} fill="#fff" />
         <span className="bethedj-txt">
           <b>Be the DJ</b>
-          <span>Pick a track: it plays right now on Main for everyone tuned in, with your name on air.</span>
+          <span>Pick a track: it plays on Main for everyone tuned in.</span>
+          <span className="bethedj-perks">
+            <span>Your name on air</span>
+            <span>Your dedication on air</span>
+            <span>Earn a share of tips</span>
+            <span>Free when sponsored</span>
+          </span>
         </span>
         <span className="bethedj-go">Pick a track <Icon name="arrow-right" size={16} className="nudge" /></span>
       </button>
-      <FirstHint />
       <div className="cols">
         <div>
           <h3 className="sub">Community pulse <span className="live-dot" aria-hidden="true" /></h3>
@@ -78,14 +75,14 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
         </div>
         <div>
           <h3 className="sub">Support an artist</h3>
-          {claimed.length === 0 && <p className="muted">Artists who claimed their profile appear here. Every tip reaches them in the same transaction.</p>}
+          {claimed.length === 0 && <p className="muted">Artists who verified their profile appear here. Every tip reaches them in the same transaction.</p>}
           <div className="artists">
             {claimed.map((a) => {
               const first = cat.byId.get(a.tracks[a.tracks.length - 1] ?? 0);
               return (
                 <div key={a.id} className="artist-card">
                   <button className="name" onClick={() => { go({ k: "artist", id: a.id }); }}>{a.name}</button>
-                  <span className="muted small">{gnot(a.tips)} raised · {plural(a.followers, "follower")}</span>
+                  <span className="muted small">{[a.tips > 0 ? `${gnot(a.tips)} raised` : "Be the first to support them", a.followers > 0 ? plural(a.followers, "follower") : ""].filter(Boolean).join(" · ")}</span>
                   {first && <button className="cta yellow" onClick={() => { openSupport({ kind: "tip", track: first, artist: a }); }}><Shape g="square" size={10} fill="var(--ink)" /> Tip</button>}
                 </div>
               );
@@ -95,7 +92,7 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
       </div>
 
       <h3 className="sub">New releases</h3>
-      <TrackCards tracks={fresh} player={player} meta={(t) => `${t.artistName} · ♥ ${String(t.likes)}`} />
+      <TrackCards tracks={fresh} player={player} meta={(t) => (t.likes > 0 ? `${t.artistName} · ♥ ${String(t.likes)}` : t.artistName)} />
       {cat.playlists.length > 0 && (
         <>
           <h3 className="sub">Community playlists</h3>
@@ -112,29 +109,35 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
   );
 }
 
-export function Stations({ cat, player, live }: Omit<ViewProps, "go"> & { readonly live?: number | undefined }) {
+/** Stations lists every station; opened from a page (the player's station chip), choosing one goes back there. */
+export function Stations({ cat, player, go, live, back }: ViewProps & { readonly live?: number | undefined; readonly back?: Required<Crumb> | undefined }) {
   // A shared #/station/N link tunes in once on arrival.
   const { goLive } = player;
   useEffect(() => { if (live !== undefined) goLive(live); }, [live, goLive]);
   return (
     <section>
+      {back && <Crumbs trail={[back, { label: "Stations" }]} go={go} />}
       <Head a="Choose" b="Station" note="Each station plays the same second for everyone." right={<Count label="All" value={cat.stations.length} />} />
-      <BigList
-        items={cat.stations.map((s) => ({
-          key: s.id,
-          label: s.name,
-          count: s.tracks,
-          empty: s.tracks === 0,
-          live: player.mode === "live" && player.station === s.id,
-          onClick: () => { player.goLive(s.id); },
-        }))}
-      />
+      {/* The big station list, each with its one-line identity. */}
+      <div className="biglist stations">
+        {cat.stations.map((s) => {
+          const on = player.mode === "live" && player.station === s.id;
+          return (
+            <button key={s.id} className={s.tracks === 0 ? "empty" : on ? "on" : ""} disabled={s.tracks === 0} onClick={() => { player.goLive(s.id); if (back) go(back.to); }}>
+              {s.name}
+              <sup>{s.tracks === 0 ? "(empty)" : `(${String(s.tracks)})`}</sup>
+              {on && (<><i className="dot" aria-hidden="true" /><span className="sr"> playing now</span></>)}
+              <small className="station-line">{stationLine(s.name, s.genre)}</small>
+            </button>
+          );
+        })}
+      </div>
     </section>
   );
 }
 
 /** isSearchShortcut: "/" or ⌘K / Ctrl+K focuses the Library search, unless typing elsewhere. */
-export const isSearchShortcut = (e: Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey">, typing: boolean): boolean =>
+const isSearchShortcut = (e: Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey">, typing: boolean): boolean =>
   (e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !typing);
 
 /** Mark highlights the first case-insensitive match of q in text. */
@@ -145,7 +148,7 @@ function Mark({ text, q }: { readonly text: string; readonly q: string }) {
 }
 
 /** Library leads with a search and genre filters, then the tracks. */
-export function Library({ cat, player, go, genre }: ViewProps & { readonly genre: number }) {
+export function Library({ cat, player, go, genre, actions, saved }: ViewProps & { readonly genre: number; readonly actions: Actions; readonly saved: Saved }) {
   const [raw, setRaw] = useState("");
   const [q, setQ] = useState("");
   useEffect(() => { const id = window.setTimeout(() => { setQ(raw.trim()); }, 120); return () => { window.clearTimeout(id); }; }, [raw]);
@@ -177,6 +180,7 @@ export function Library({ cat, player, go, genre }: ViewProps & { readonly genre
     lists: index.lists.filter((x) => hit(x.k)).slice(0, 6),
   };
   const counts = new Map<number, number>();
+  const usedArtists = new Set<number>(); // genre cards: one cover per artist
   for (const t of cat.tracks) counts.set(t.genre, (counts.get(t.genre) ?? 0) + 1);
   const inGenre = genre ? cat.tracks.filter((t) => t.genre === genre) : cat.tracks;
   const tab = (id: number, label: string, n: number) => (
@@ -228,7 +232,7 @@ export function Library({ cat, player, go, genre }: ViewProps & { readonly genre
           {found.tracks.length > 0 && (
             <>
               <h3 className="sub">Tracks <span className="muted small">· Enter plays the first</span></h3>
-              <TrackRows tracks={found.tracks} player={player} />
+              <TrackRows tracks={found.tracks} player={player} actions={actions} saved={saved} />
             </>
           )}
           {found.lists.length > 0 && (
@@ -244,7 +248,9 @@ export function Library({ cat, player, go, genre }: ViewProps & { readonly genre
             // Browse: one colour card per genre, Spotify-style, with a tilted cover from that genre.
             <div className="gcards" role="list" aria-label="Genres">
               {cat.genres.filter((g) => counts.has(g.id)).map((g, i) => {
-                const lead = cat.tracks.find((t) => t.genre === g.id);
+                // A track with real artwork, by an artist no earlier card used: no generated look-alikes.
+                const lead = cat.tracks.find((t) => t.genre === g.id && t.cover !== "" && !usedArtists.has(t.artist)) ?? cat.tracks.find((t) => t.genre === g.id);
+                if (lead) usedArtists.add(lead.artist);
                 return (
                   <button key={g.id} role="listitem" className={`gcard c${String(i % 4)}`} onClick={() => { go({ k: "library", genre: g.id }); }}>
                     <b>{g.name}</b>
@@ -261,8 +267,10 @@ export function Library({ cat, player, go, genre }: ViewProps & { readonly genre
               {cat.genres.filter((g) => counts.has(g.id)).map((g) => tab(g.id, g.name, counts.get(g.id) ?? 0))}
             </div>
           )}
-          {genre === 0 && <h3 className="sub">All tracks</h3>}
-          <TrackRows key={genre} tracks={inGenre} player={player} />
+          {genre === 0 ? <h3 className="sub">All tracks</h3> : inGenre.length > 0 && (
+            <div className="head-actions genre-play"><PlayButton label="Play all" onClick={() => { player.playList(inGenre.map((t) => t.id), 0); }} /></div>
+          )}
+          <TrackRows key={genre} tracks={inGenre} player={player} actions={actions} saved={saved} />
           {cat.albums.length > 0 && (
             <>
               <h3 className="sub">Albums</h3>

@@ -1,3 +1,4 @@
+import { isAddress } from "./proof";
 import type { View } from "./types";
 
 /** slug turns a name into a URL word: "Scott Buckley" -> "scott-buckley". */
@@ -25,6 +26,8 @@ export function viewToPath(v: View, name = ""): string {
     case "album":
     case "playlist":
       return `/${v.k}/${withName(v.id, name)}`;
+    case "listener": // /listener/alice-g1… or /listener/g1…: the address is the id
+      return `/listener/${slug(name) ? `${slug(name)}-` : ""}${v.address}`;
     case "stations":
       return v.live === undefined ? "/stations" : v.live === 0 ? "/live" : `/live/${withName(v.live, name)}`;
     default:
@@ -54,6 +57,7 @@ export function pathToView(path: string): View {
     case "me":
     case "studio":
     case "about":
+    case "legal":
       return { k };
     case "library":
       return { k, genre: n };
@@ -62,13 +66,17 @@ export function pathToView(path: string): View {
     case "album":
     case "playlist":
       return n > 0 ? { k, id: n } : { k: "listen" };
+    case "listener": {
+      const a = arg.slice(-40);
+      return isAddress(a) && (arg.length === 40 || arg.at(-41) === "-") ? { k, address: a } : { k: "listen" };
+    }
     default:
       return { k: "listen" };
   }
 }
 
 /** A top-level screen, one per navigation entry. Detail pages live under one. */
-export type Section = Exclude<View["k"], "artist" | "album" | "playlist" | "track">;
+export type Section = Exclude<View["k"], "artist" | "album" | "playlist" | "track" | "listener">;
 
 /** sectionOf is the navigation entry a screen belongs to, so the menu always shows where you are. */
 export function sectionOf(v: View): Section {
@@ -78,6 +86,8 @@ export function sectionOf(v: View): Section {
     case "album":
     case "playlist":
       return "library";
+    case "listener":
+      return "community";
     default:
       return v.k;
   }

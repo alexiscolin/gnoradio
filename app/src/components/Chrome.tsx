@@ -57,6 +57,7 @@ export function Sidebar({ view, go, actions, isAdmin }: { readonly view: View; r
         <Help text="Adena is the gno.land wallet. It signs likes, tips and picks; listening never needs it. Disconnect makes GnoRadio forget it: remove the site in Adena to revoke access." />
         <button className={view.k === "about" ? "on" : ""} onClick={() => { go({ k: "about" }); }}>About</button>
         <a href={realmPage("home")} target="_blank" rel="noreferrer">gno.land <Icon name="external" size={12} className="nudge-out" /></a>
+        <button className={view.k === "legal" ? "legal-link on" : "legal-link"} onClick={() => { go({ k: "legal" }); }}>Legal · Privacy · Terms</button>
       </footer>
     </aside>
   );

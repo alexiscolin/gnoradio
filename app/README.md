@@ -1,22 +1,24 @@
 # GnoRadio app
 
-Lecteur Library + Live, front statique (Vite + React + TypeScript strict), prêt pour Netlify.
+The Library + Live player: a static front end (Vite, React, strict TypeScript) deployed on Netlify, plus a few Netlify functions.
 
 ```sh
 npm install
-npm run dev        # http://127.0.0.1:5173, /rpc proxifié vers le devnet 127.0.0.1:27157
-npm run typecheck  # tsc strict (noUncheckedIndexedAccess, exactOptionalPropertyTypes…)
-npm run lint       # typescript-eslint strictTypeChecked + react-hooks
-npm run build      # dist/ pour Netlify
+npm run dev        # http://127.0.0.1:5173, /rpc is proxied to the devnet at 127.0.0.1:27157
+npm run check      # typecheck + lint + tests + build
+npm run build      # static build in dist/
 ```
 
-En production (Netlify), définir `VITE_RPC` (ex. `https://rpc.onyx.testnets.gno.land:443`) et `VITE_CHAIN_ID` (`onyx-1`).
+Reads go through `VITE_RPC`, which defaults to the same-origin `/rpc` path: Vite proxies it in development, Netlify in production (`netlify.toml`). Every variable, and the functions that use them, is listed in [docs/DEVELOPMENT.md](../docs/DEVELOPMENT.md) and `.env.example`.
 
 ```
-src/lib/       types, client gno (qeval + Adena), chargement du catalogue, formats, saves locaux
-src/player/    usePlayer (Library / Live synchronisé), useActions (like, tip, follow, queue)
-src/components lecteur, réglette, pochettes, barres de navigation
-src/views/     écrans (Listen, Stations, Library, Search, Saved, Artist, Album, Playlist, Concerts)
+src/lib/         types, gno client (qeval, Adena, sessions, gnokey), catalog loading, formats, legal constants
+src/player/      usePlayer (Library / Live in sync), useActions (every on-chain action)
+src/components/  player, dial, covers, navigation, sheets
+src/views/       screens: Browse (Listen, Stations, Library), Detail (track, artist, album, playlist, concerts),
+                 Community (Community, Me, Studio), Contribute, About, Legal
+src/wallet/      wallet connection and card
+netlify/         functions: artist verification, dedication moderation, optional sync robot; optional edge meta
 ```
 
-Écouter ne passe jamais par la chaîne ; seules les actions (like, tip, follow, programmer) demandent Adena.
+Listening never touches the chain; only actions (like, tip, follow, pick, publish, report) need a wallet.

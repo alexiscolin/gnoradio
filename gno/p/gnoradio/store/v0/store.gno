@@ -6,9 +6,11 @@
 //
 // Chunks and buckets hang off a sparse tree of fanout 32. Saving an object
 // rewrites its parents up to the root, so a write costs one leaf plus one
-// small node per level (log32 of the leaf count: 3 levels for 32k leaves),
-// never a list of every chunk. Each node counts the items below it, so pages
-// at any offset are reached in the same few steps.
+// small node per level (at most log32 of the key range: 3 levels for 32k
+// leaves), never a list of every chunk. Nodes store only what exists, so a
+// new bucket costs about 1.5KB of deposit, plus a small inner node when it
+// shares a slot. Each node counts the items below it, so pages at any offset
+// are reached in the same few steps.
 package store
 
 import "strconv"
@@ -20,11 +22,21 @@ const (
 	fan     = 1 << fanBits
 )
 
-// node is an inner node (kids) or a leaf (one of items, m, s), with n the
-// number of items below it.
+// node is an inner node (kids) or a leaf (key, and one of items, m, s), with
+// n the number of items below it. Every stored object costs deposit, so the
+// tree holds only what exists:
+//   - an inner node keeps its children in slot order: idx holds their slots
+//     (one byte each) and kids the children (a fixed array of fan pointers
+//     would store a typed nil per empty slot, about 5KB per node);
+//   - a leaf hangs from the first node where its slot is free, however high,
+//     and is pushed down a level only when another leaf needs that slot. In
+//     a hashed map a new bucket then costs the bucket alone, not a chain of
+//     inner nodes down to it.
 type node struct {
-	kids  [fan]*node
+	idx   string
+	kids  []*node // nil on leaves
 	n     int
+	key   int               // leaf key
 	items []string          // Seq chunk
 	m     map[string]string // Map bucket
 	s     string            // IDs range (packed sorted list)
@@ -37,40 +49,79 @@ type tree struct {
 	height int
 }
 
-// path returns the nodes from the root to the leaf of key k, creating them
-// when create is set; nil if the leaf does not exist.
+func slot(k, h int) int { return k >> (fanBits * (h - 1)) & (fan - 1) }
+
+// path returns the nodes from the root to the leaf of key k, creating the
+// leaf when create is set; nil if the leaf does not exist.
 func (t *tree) path(k int, create bool) []*node {
 	if k < 0 {
 		panic("store: negative key")
 	}
-	for k>>(fanBits*t.height) > 0 || t.root == nil {
+	if t.root == nil {
 		if !create {
 			return nil
 		}
-		if t.root == nil {
-			t.root = &node{}
-			continue
+		t.root = &node{key: k}
+		for k>>(fanBits*t.height) > 0 {
+			t.height++
 		}
-		up := &node{n: t.root.n}
-		up.kids[0] = t.root
-		t.root, t.height = up, t.height+1
+		return []*node{t.root}
+	}
+	for k>>(fanBits*t.height) > 0 {
+		if !create {
+			return nil
+		}
+		t.root, t.height = &node{n: t.root.n, idx: "\x00", kids: []*node{t.root}}, t.height+1
 	}
 	p := make([]*node, 0, t.height+1)
+	var parent *node
+	pj := 0
 	nd := t.root
 	for h := t.height; ; h-- {
-		p = append(p, nd)
-		if h == 0 {
-			return p
-		}
-		i := k >> (fanBits * (h - 1)) & (fan - 1)
-		if nd.kids[i] == nil {
+		if nd.kids == nil {
+			if nd.key == k {
+				return append(p, nd)
+			}
 			if !create {
 				return nil
 			}
-			nd.kids[i] = &node{}
+			// Another leaf holds this slot: an inner node takes its place
+			// (h >= 1 here: at height 0 every slot matched, so the key did).
+			in := &node{n: nd.n, idx: string([]byte{byte(slot(nd.key, h))}), kids: []*node{nd}}
+			if parent == nil {
+				t.root = in
+			} else {
+				parent.kids[pj] = in
+			}
+			nd = in
 		}
-		nd = nd.kids[i]
+		p = append(p, nd)
+		i := slot(k, h)
+		j, found := nd.find(i)
+		if !found {
+			if !create {
+				return nil
+			}
+			l := &node{key: k}
+			nd.idx = nd.idx[:j] + string([]byte{byte(i)}) + nd.idx[j:]
+			nd.kids = append(nd.kids, nil)
+			copy(nd.kids[j+1:], nd.kids[j:])
+			nd.kids[j] = l
+			return append(p, l)
+		}
+		parent, pj, nd = nd, j, nd.kids[j]
 	}
+}
+
+// find returns the position of slot i in nd's children, or where it goes.
+func (nd *node) find(i int) (int, bool) {
+	c := rune(i)
+	for j, r := range nd.idx {
+		if r >= c {
+			return j, r == c
+		}
+	}
+	return len(nd.idx), false
 }
 
 // leaf returns the leaf of key k (nil if absent and !create).
@@ -82,12 +133,14 @@ func (t *tree) leaf(k int, create bool) *node {
 	return p[len(p)-1]
 }
 
-// count adds d to the item counts on the path to key k.
-func (t *tree) count(k, d int) {
-	for _, nd := range t.path(k, false) {
+// add adds d to the item counts along a path.
+func add(p []*node, d int) {
+	for _, nd := range p {
 		nd.n += d
 	}
 }
+
+func last(p []*node) *node { return p[len(p)-1] }
 
 func (t *tree) len() int {
 	if t.root == nil {
@@ -101,28 +154,28 @@ func (t *tree) len() int {
 // items to skip, and returns false to stop.
 func (t *tree) walk(offset int, desc bool, fn func(l *node, skip int) bool) {
 	if t.root != nil && offset < t.root.n {
-		walk(t.root, t.height, offset, desc, fn)
+		walk(t.root, offset, desc, fn)
 	}
 }
 
-func walk(nd *node, h, offset int, desc bool, fn func(l *node, skip int) bool) bool {
-	if h == 0 {
+func walk(nd *node, offset int, desc bool, fn func(l *node, skip int) bool) bool {
+	if nd.kids == nil {
 		return fn(nd, offset)
 	}
-	for j := 0; j < fan; j++ {
+	for j := range nd.kids {
 		i := j
 		if desc {
-			i = fan - 1 - j
+			i = len(nd.kids) - 1 - j
 		}
 		c := nd.kids[i]
-		if c == nil || c.n == 0 {
+		if c.n == 0 {
 			continue
 		}
 		if offset >= c.n {
 			offset -= c.n
 			continue
 		}
-		if !walk(c, h-1, offset, desc, fn) {
+		if !walk(c, offset, desc, fn) {
 			return false
 		}
 		offset = 0
@@ -152,9 +205,10 @@ func (s *Seq) Len() int { return s.t.len() }
 // Append adds a record and returns its index.
 func (s *Seq) Append(v string) int {
 	i := s.t.len()
-	l := s.t.leaf(i/s.size, true)
+	p := s.t.path(i/s.size, true)
+	l := last(p)
 	l.items = append(l.items, v)
-	s.t.count(i/s.size, 1)
+	add(p, 1)
 	return i
 }
 
@@ -184,7 +238,7 @@ type Map struct {
 }
 
 // NewMap returns a Map with nb buckets. Buckets are sparse: pick nb for the
-// largest expected size (about 16 entries per bucket), it costs nothing until used.
+// largest expected size (about 16 entries per bucket), unused ones cost nothing.
 func NewMap(nb int) *Map {
 	if nb < 1 {
 		panic("store: bucket count must be positive")
@@ -211,30 +265,30 @@ func (m *Map) Has(k string) bool {
 }
 
 func (m *Map) Set(k, v string) {
-	i := m.at(k)
-	b := m.t.leaf(i, true)
+	p := m.t.path(m.at(k), true)
+	b := last(p)
 	if b.m == nil {
 		b.m = map[string]string{}
 	}
 	_, had := b.m[k]
 	b.m[k] = v
 	if !had {
-		m.t.count(i, 1)
+		add(p, 1)
 	}
 }
 
 // Remove deletes k and reports whether it was there.
 func (m *Map) Remove(k string) bool {
-	i := m.at(k)
-	b := m.t.leaf(i, false)
-	if b == nil {
+	p := m.t.path(m.at(k), false)
+	if p == nil {
 		return false
 	}
+	b := last(p)
 	if _, ok := b.m[k]; !ok {
 		return false
 	}
 	delete(b.m, k)
-	m.t.count(i, -1)
+	add(p, -1)
 	return true
 }
 
@@ -380,26 +434,12 @@ func At(list string, i int) int {
 // Count is the number of ids in a list.
 func Count(list string) int { return len(list) / W }
 
-// JSON returns a list (or a slice of it) as a JSON array.
+// JSON returns a list as a JSON array.
 func JSON(list string) string {
 	if list == "" {
 		return "[]"
 	}
 	return "[" + list[:len(list)-1] + "]"
-}
-
-// Slice returns ids from..to-1 of a list as a list.
-func Slice(list string, from, to int) string {
-	if from < 0 {
-		from = 0
-	}
-	if to > Count(list) {
-		to = Count(list)
-	}
-	if from >= to {
-		return ""
-	}
-	return list[from*W : to*W]
 }
 
 // Ints decodes a list.
@@ -485,30 +525,30 @@ func (x *IDs) Len() int { return x.t.len() }
 
 // Add inserts id; false if already there.
 func (x *IDs) Add(id int) bool {
-	k := id >> idsRange
-	l := x.t.leaf(k, true)
+	p := x.t.path(id>>idsRange, true)
+	l := last(p)
 	s, ok := Add(l.s, id)
 	if !ok {
 		return false
 	}
 	l.s = s
-	x.t.count(k, 1)
+	add(p, 1)
 	return true
 }
 
 // Remove deletes id; false if absent.
 func (x *IDs) Remove(id int) bool {
-	k := id >> idsRange
-	l := x.t.leaf(k, false)
-	if l == nil {
+	p := x.t.path(id>>idsRange, false)
+	if p == nil {
 		return false
 	}
+	l := last(p)
 	s, ok := Remove(l.s, id)
 	if !ok {
 		return false
 	}
 	l.s = s
-	x.t.count(k, -1)
+	add(p, -1)
 	return true
 }
 

@@ -92,7 +92,7 @@ func artistJSON(a *Artist) string {
 	trackIDs, albumIDs := lists(a.ID)
 	return `{"id":` + itoa(a.ID) + `,"name":` + text.Str(a.Name) + `,"kind":` + text.Str(a.Kind) + `,"owner":` + text.Str(a.Owner.String()) +
 		`,"bio":` + text.Str(a.Bio) + `,"source":` + text.Str(a.Source) + `,"joined":` + itoa64(a.Joined) + `,"tips":` + itoa64(a.Tips) +
-		`,"followers":` + itoa(a.Followers) + `,"verified":` + strconv.FormatBool(a.Verified) +
+		`,"followers":` + itoa(a.Followers) + `,"verified":` + strconv.FormatBool(a.Verified) + `,"promo":` + itoa(PromoShare(a.ID)) + `,"sponsor":` + itoa64(offer(a)) +
 		`,"tracks":` + store.JSON(trackIDs) + `,"albums":` + store.JSON(albumIDs) + `}`
 }
 

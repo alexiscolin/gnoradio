@@ -34,14 +34,18 @@ const (
 func reset() {
 	artists, artistLists, tracks, albums, playlists = store.NewSeq(16), store.NewSeq(8), store.NewSeq(16), store.NewSeq(16), store.NewSeq(16)
 	byOwner, names, users, userRecs = store.NewMap(128), store.NewMap(128), store.NewMap(256), store.NewSeq(16)
-	reports, hosts = avl.Tree{}, avl.Tree{}
+	likeSets = store.NewMap(256)
+	reports, hosts, removed = avl.Tree{}, avl.Tree{}, store.NewMap(16)
 	byGenre = [NumGenres + 1]store.IDs{}
 	hosts.Set("archive.org", true)
 	nArtists, nTracks, nAlbums, nPlaylists, nReports, openReports = 0, 0, 0, 0, 0, 0
 	topLiked, topArtists, topFans = nil, nil, nil
 	frozen, successor = false, ""
 	admin = boss
-	botKey, claims, proofs, botDay, botCount = nil, avl.Tree{}, avl.Tree{}, 0, 0
+	botKey, claims, proofs = nil, avl.Tree{}, avl.Tree{}
+	radioRealm = "gno.land/r/gnoradio/radio/v0"
+	budgets, walletDay, promoHeld = store.NewMap(16), store.NewMap(16), 0
+	siblingRealms = []string{radioRealm, "gno.land/r/gnoradio/tickets/v0", "gno.land/r/gnoradio/home/v0"}
 	verifySig = ed25519.Verify
 }
 
@@ -78,6 +82,7 @@ func TestArtistAndPublish(cur realm, t *testing.T) {
 	uassert.Equal(t, alice, ArtistOwner(1))
 	uassert.Equal(t, 1, ArtistOf(alice))
 	uassert.Equal(t, "Synthwave", GenreName(2))
+	uassert.Equal(t, "Funk & Disco", GenreName(NumGenres))
 
 	// Media rules.
 	uassert.AbortsContains(t, cur, "host is not allowed", func() {
@@ -89,11 +94,11 @@ func TestArtistAndPublish(cur realm, t *testing.T) {
 	uassert.AbortsContains(t, cur, "only valid for audio", func() {
 		PublishTrack(cross(cur), "X", 2, "1:00", "CC0", "none", "", ipfs, "", "audius:abc", "", "", "yes")
 	})
-	uassert.AbortsContains(t, cur, "own the rights", func() {
+	uassert.AbortsContains(t, cur, "rights declaration", func() {
 		PublishTrack(cross(cur), "X", 2, "1:00", "CC0", "none", "", ipfs, "", "", "", "", "")
 	})
 	uassert.AbortsContains(t, cur, "genre must be", func() {
-		PublishTrack(cross(cur), "X", 13, "1:00", "CC0", "none", "", ipfs, "", "", "", "", "yes")
+		PublishTrack(cross(cur), "X", NumGenres+1, "1:00", "CC0", "none", "", ipfs, "", "", "", "", "yes")
 	})
 	uassert.AbortsContains(t, cur, "SACEM", func() {
 		PublishTrack(cross(cur), "X", 2, "1:00", "CC-BY", "sacem-nc", "", ipfs, "", "", "", "", "yes")
@@ -261,18 +266,21 @@ func TestModeration(cur realm, t *testing.T) {
 	uassert.True(t, ok)
 	uassert.Equal(t, "broken link", r.Reason)
 	uassert.AbortsContains(t, cur, "kind must be", func() { Report(cross(cur), "x", id, "spam spam") })
-	uassert.AbortsWithMessage(t, cur, "catalog: admin only", func() { HideTrack(cross(cur), id, true) })
+	uassert.AbortsWithMessage(t, cur, "catalog: admin only", func() { HideTrack(cross(cur), id, true, "copyright") })
 
 	testing.SetRealm(testing.NewUserRealm(boss))
-	HideTrack(cross(cur), id, true)
+	uassert.AbortsContains(t, cur, "reason must be", func() { HideTrack(cross(cur), id, true, "") })
+	HideTrack(cross(cur), id, true, "copyright notice")
 	_, _, _, ok = TrackBrief(id)
 	uassert.False(t, ok)
-	HideTrack(cross(cur), id, false)
-	HideArtist(cross(cur), 1, true)
+	uassert.Equal(t, "Removed by moderation: copyright notice", HiddenNote("track", id))
+	HideTrack(cross(cur), id, false, "")
+	uassert.Equal(t, "", HiddenNote("track", id))
+	HideArtist(cross(cur), 1, true, "impersonation")
 	_, _, _, ok = TrackBrief(id)
 	uassert.False(t, ok)
 	uassert.False(t, ArtistVisible(1))
-	HideArtist(cross(cur), 1, false)
+	HideArtist(cross(cur), 1, false, "")
 
 	AllowHost(cross(cur), "cdn.gnoradio.example", true)
 	uassert.True(t, HostAllowed("cdn.gnoradio.example"))
@@ -330,4 +338,43 @@ func TestCuratedLicense(t *testing.T) {
 	} {
 		uassert.Equal(t, want, curatedLicense(in), in)
 	}
+}
+
+// The artist hides and shows their own work; what the moderator hid stays hidden.
+func TestHideOwn(cur realm, t *testing.T) {
+	reset()
+	testing.SetRealm(testing.NewUserRealm(alice))
+	RegisterArtist(cross(cur), "Alice", "")
+	id := publish(cur, "Song")
+	HideOwn(cross(cur), "track", id, true)
+	_, _, _, ok := TrackBrief(id)
+	uassert.False(t, ok)
+	uassert.Equal(t, "Hidden by the artist.", HiddenNote("track", id))
+	uassert.AbortsContains(t, cur, "already hidden", func() { HideOwn(cross(cur), "track", id, true) })
+	HideOwn(cross(cur), "track", id, false)
+	_, _, _, ok = TrackBrief(id)
+	uassert.True(t, ok)
+
+	HideOwn(cross(cur), "artist", 1, true)
+	uassert.False(t, ArtistVisible(1))
+	HideOwn(cross(cur), "artist", 1, false)
+	uassert.True(t, ArtistVisible(1))
+
+	testing.SetRealm(testing.NewUserRealm(bob))
+	RegisterArtist(cross(cur), "Bob", "")
+	uassert.AbortsContains(t, cur, "not your track", func() { HideOwn(cross(cur), "track", id, true) })
+	uassert.AbortsContains(t, cur, "not your profile", func() { HideOwn(cross(cur), "artist", 1, true) })
+	uassert.AbortsContains(t, cur, "kind must be", func() { HideOwn(cross(cur), "playlist", 1, true) })
+
+	// The moderator overrides an artist's hide; the artist cannot undo it.
+	testing.SetRealm(testing.NewUserRealm(alice))
+	HideOwn(cross(cur), "track", id, true)
+	testing.SetRealm(testing.NewUserRealm(boss))
+	HideTrack(cross(cur), id, true, "copyright notice")
+	testing.SetRealm(testing.NewUserRealm(alice))
+	uassert.AbortsContains(t, cur, "hidden by the moderator", func() { HideOwn(cross(cur), "track", id, false) })
+	testing.SetRealm(testing.NewUserRealm(boss))
+	HideTrack(cross(cur), id, false, "")
+	_, _, _, ok = TrackBrief(id)
+	uassert.True(t, ok)
 }

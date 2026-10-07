@@ -1,6 +1,7 @@
 package safe
 
 import (
+	"strings"
 	"testing"
 
 	"gno.land/p/nt/uassert/v0"
@@ -13,14 +14,19 @@ func TestNoteRules(t *testing.T) {
 		uassert.Equal(t, "", Note(ok, 40), ok)
 	}
 	bad := map[string]string{
-		"visit x.com":     "no links",
-		"bit.ly":          "no links",
-		"06 12 34 56 78":  "no phone numbers",
-		"call 0612345678": "no phone numbers",
-		"hi <b>":          "letters, digits and . , ! ? ' - only",
-		"hey @you":        "letters, digits and . , ! ? ' - only",
-		" padded":         "no leading, trailing or double spaces",
-		"a  b":            "no leading, trailing or double spaces",
+		"visit x.com":               "no links",
+		"bit.ly":                    "no links",
+		"06 12 34 56 78":            "no phone numbers",
+		"call 0612345678":           "no phone numbers",
+		"hi <b>":                    "letters, digits and . , ! ? ¡ ¿ ' - only",
+		"hey @you":                  "letters, digits and . , ! ? ¡ ¿ ' - only",
+		"¡feliz cumpleaños, Lucía!": "",
+		"¿qué tal?":                 "",
+		"go back to your country":   "please rephrase",
+		"rentre dans ton pays":      "please rephrase",
+		"les arabes dehors":         "please rephrase",
+		" padded":                   "no leading, trailing or double spaces",
+		"a  b":                      "no leading, trailing or double spaces",
 		"this is a much too long dedication for air": "too long",
 	}
 	for s, why := range bad {
@@ -57,4 +63,17 @@ func TestScamLures(t *testing.T) {
 	for _, s := range []string{"Fly me to the moon", "Telegram Sam on repeat", "bonus track for you", "for my king, mon roi", "happy birthday Claire"} {
 		uassert.False(t, Blocked(s), s)
 	}
+}
+
+// The gas-saving helpers agree with the strings functions they replace.
+func TestHelpersMatchStrings(t *testing.T) {
+	for _, s := range []string{"", "a", " ab  cd e ", "license", "nigga fagg ggaf", "aabbcc"} {
+		uassert.Equal(t, strings.Join(strings.Fields(s), "|"), strings.Join(fields(s), "|"), s)
+		for _, st := range []string{"nigg", "ggaf", "cc", "a", "ense"} {
+			uassert.Equal(t, strings.Contains(s, st), has(s, st), s+"/"+st)
+		}
+	}
+	uassert.Equal(t, "abc", squeeze("aabbbc"))
+	f, _ := fold("Ĳssel ŒUVRE Ça-va 3", false)
+	uassert.Equal(t, "ijssel oeuvre ca va e", f)
 }

@@ -2,10 +2,10 @@
 // through the chain's registrar. Same reads as gno-golf's web/lib/chain.ts.
 import { useEffect, useSyncExternalStore } from "react";
 import { RealmError, SAFE, type SysPath, qeval, unquote } from "./gno";
-import { shortAddr } from "./format";
+import { nickname } from "./nickname";
+import { isAddress } from "./proof";
 
 const USERS: SysPath = "gno.land/r/sys/users";
-const ADDRESS = /^g1[02-9ac-hj-np-z]{38}$/;
 const isName = (n: string) => /^[a-z0-9._-]{1,64}$/i.test(n);
 /** nameShape is what a new name may look like before the registrar's own checks. */
 export const nameShape = (n: string): boolean => /^[a-z0-9_-]{1,64}$/.test(n);
@@ -22,7 +22,7 @@ const bump = () => { version++; for (const l of listeners) l(); };
 /** loadNames fetches the names of addresses not cached yet, 100 per read. */
 export async function loadNames(addrs: readonly string[]): Promise<void> {
   if (noUsers) return;
-  const todo = [...new Set(addrs)].filter((a) => ADDRESS.test(a) && !names.has(a));
+  const todo = [...new Set(addrs)].filter((a) => isAddress(a) && !names.has(a));
   for (let i = 0; i < todo.length; i += 100) {
     const chunk = todo.slice(i, i + 100);
     const list = chunk.map((a) => `address("${a}")`).join(", ");
@@ -61,12 +61,15 @@ export function forgetName(addr: string): void { names.delete(addr); bump(); }
 /** nameOf is the cached name, "" if none or unknown yet. */
 export const nameOf = (addr: string): string => names.get(addr) ?? "";
 
-/** useNames loads the names of addrs and returns a display function: @name, else the short address. */
+/** displayName is @name once loaded, else the address's readable nickname ("Coral Vinyl 4F"). */
+const displayName = (addr: string): string => { const n = names.get(addr); return n ? `@${n}` : nickname(addr); };
+
+/** useNames loads the names of addrs and returns a display function (displayName). */
 export function useNames(addrs: readonly string[]): (addr: string) => string {
   useSyncExternalStore((l) => { listeners.add(l); return () => { listeners.delete(l); }; }, () => version);
   const key = addrs.join(",");
   useEffect(() => { void loadNames(key ? key.split(",") : []); }, [key]);
-  return (a) => { const n = names.get(a); return n ? `@${n}` : shortAddr(a); };
+  return displayName;
 }
 
 let registrar: Promise<SysPath | ""> | undefined;

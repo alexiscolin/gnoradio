@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"gno.land/p/gnoradio/safe/v0"
+	"gno.land/p/gnoradio/store/v0"
 	"gno.land/p/gnoradio/text/v0"
 
 	"gno.land/p/nt/avl/v0"
@@ -46,11 +47,11 @@ type Event struct {
 	Sold      int
 	Cancelled bool
 	Hidden    bool
+	Removed   string // the moderator's reason while hidden
 }
 
 type event struct {
 	Event
-	buyers avl.Tree // address -> int (tickets bought)
 }
 
 // Ticket is one NFT ticket.
@@ -70,11 +71,15 @@ var (
 	artistEvents avl.Tree // padded artistID -> int (count)
 	upcoming     avl.Tree // padded start + "/" + padded id -> *event (not cancelled, not hidden)
 	artistAhead  avl.Tree // padded artistID + "/" + padded start + "/" + padded id -> true (not cancelled)
-	tickets      avl.Tree // padded id -> *Ticket
-	owned        avl.Tree // owner + "/" + padded ticket id -> true (the grc721 ledger cannot list by owner)
-	attended     avl.Tree // holder -> int
-	nEvents      int
-	nTickets     int
+	// A ticket is a few short records: with the grc721 ledger's own
+	// entries, about 6KB of deposit per ticket instead of about 11KB with
+	// avl nodes and a struct (more than many ticket prices).
+	tickets  = store.NewSeq(16)    // id-1 -> event, serial, attended
+	owned    = store.NewMap(65536) // owner -> sorted packed ticket ids (the grc721 ledger cannot list by owner)
+	buyers   = store.NewMap(65536) // event id + "/" + address -> tickets bought
+	attended avl.Tree              // holder -> int
+	nEvents  int
+	nTickets int
 
 	ticketTok *grc721.Token
 	ticketLed *grc721.PrivateLedger
@@ -170,7 +175,9 @@ func BuyTicket(cur realm, eventID int) int {
 	if e.Price > 0 && (owner == "" || !artistVerified(e.ArtistID)) {
 		panic("tickets: this artist has not verified their profile yet")
 	}
-	bought, _ := e.buyers.Get(caller.String()).(int)
+	buyKey := itoa(e.ID) + "/" + caller.String()
+	b, _ := buyers.Get(buyKey)
+	bought := atoi(b)
 	if bought >= maxPerBuyer || (e.Price == 0 && bought >= 1) {
 		panic("tickets: ticket limit reached for this concert (1 free or 4 paid per wallet)")
 	}
@@ -191,10 +198,10 @@ func BuyTicket(cur realm, eventID int) int {
 		ticketTok, ticketLed = grc721.NewToken("GnoRadio Ticket", "GRTIX", tokSeq.Next(), cur)
 	}
 	e.Sold++
-	e.buyers.Set(caller.String(), bought+1)
+	buyers.Set(buyKey, itoa(bought+1))
 	nTickets++
 	tk := &Ticket{ID: nTickets, Event: e.ID, Serial: e.Sold}
-	tickets.Set(text.Key(tk.ID), tk)
+	tickets.Append(ticketRecord(tk))
 	if err := ticketLed.Mint(caller, tokenID(tk.ID)); err != nil {
 		panic("tickets: " + err.Error())
 	}
@@ -250,6 +257,7 @@ func CheckIn(cur realm, ticketID int) {
 		panic("tickets: ticket already checked in")
 	}
 	tk.Attended = true
+	tickets.Set(tk.ID-1, ticketRecord(tk))
 	holder := TicketOwner(ticketID)
 	n, _ := attended.Get(holder.String()).(int)
 	attended.Set(holder.String(), n+1)
@@ -258,19 +266,50 @@ func CheckIn(cur realm, ticketID int) {
 
 // ---- moderation ----
 
-func HideEvent(cur realm, eventID int, hidden bool) {
+// HideEvent hides or restores a concert. Admin only; hiding takes a public
+// reason (4-200 characters). Tickets stay with their holders.
+func HideEvent(cur realm, eventID int, hidden bool, reason string) {
 	onlyAdmin(cur)
 	e := getEvent(eventID)
 	if e == nil {
 		panic("tickets: unknown concert")
 	}
-	e.Hidden = hidden
+	reason = strings.TrimSpace(reason)
+	if hidden {
+		mustText("reason", reason, 4, 200)
+	} else {
+		reason = ""
+	}
+	e.Hidden, e.Removed = hidden, reason
 	if hidden || e.Cancelled {
 		upcoming.Remove(upKey(e))
 	} else {
 		upcoming.Set(upKey(e), e)
 	}
-	chain.Emit("Moderated", "kind", "event", "target", itoa(eventID), "hidden", strconv.FormatBool(hidden))
+	chain.Emit("Moderated", "kind", "event", "target", itoa(eventID), "hidden", strconv.FormatBool(hidden), "reason", reason, "by", "moderator")
+}
+
+// RefreshArtist re-reads an artist's visibility in the catalog and updates
+// the Upcoming index for its future concerts (at most maxOpenAhead): once
+// moderators hide a profile, its concerts stop taking places in the
+// Upcoming scan; a restored artist's come back. Anyone may call it.
+func RefreshArtist(cur realm, artistID int) {
+	noPayment()
+	prefix := text.Key(artistID) + "/"
+	var evs []*event
+	artistAhead.Iterate(prefix+key64(now()+1), prefix+"~", func(k string, _ any) bool {
+		id, _ := strconv.Atoi(k[strings.LastIndex(k, "/")+1:])
+		evs = append(evs, getEvent(id))
+		return false
+	})
+	for _, e := range evs {
+		if visible(e) && !e.Cancelled {
+			upcoming.Set(upKey(e), e)
+		} else {
+			upcoming.Remove(upKey(e))
+		}
+	}
+	chain.Emit("ArtistRefreshed", "artist", itoa(artistID), "concerts", itoa(len(evs)))
 }
 
 func TransferAdmin(cur realm, to address) {
@@ -310,6 +349,14 @@ func EventInfo(id int) (Event, bool) {
 	return e.Event, true
 }
 
+// HiddenNote says why a concert is hidden: "Removed by moderation: <reason>", or "".
+func HiddenNote(eventID int) string {
+	if e := getEvent(eventID); e != nil && e.Hidden {
+		return "Removed by moderation: " + e.Removed
+	}
+	return ""
+}
+
 // TicketInfo returns a copy of a ticket.
 func TicketInfo(id int) (Ticket, bool) {
 	tk := getTicket(id)
@@ -336,17 +383,8 @@ func TicketsOf(owner address, offset, limit int) []int {
 	if offset < 0 {
 		offset = 0
 	}
-	var ids []int
-	prefix := owner.String() + "/"
-	i := 0
-	owned.ReverseIterate(prefix, prefix+"~", func(k string, _ any) bool {
-		if i >= offset {
-			ids = append(ids, atoi(k[len(prefix):]))
-		}
-		i++
-		return len(ids) >= limit
-	})
-	return ids
+	list, _ := owned.Get(owner.String())
+	return store.Page(list, offset, limit, true)
 }
 
 // ArtistEvents returns up to limit concert ids of an artist, newest first.
@@ -465,8 +503,12 @@ func getEvent(id int) *event {
 	return nil
 }
 
+// artistVisible is a test seam: the catalog admin, who hides artists, is
+// unreachable from this package under gno test.
+var artistVisible = catalog.ArtistVisible
+
 func visible(e *event) bool {
-	return e != nil && !e.Hidden && catalog.ArtistVisible(e.ArtistID)
+	return e != nil && !e.Hidden && artistVisible(e.ArtistID)
 }
 
 func mustEvent(id int) *event {
@@ -477,11 +519,22 @@ func mustEvent(id int) *event {
 	return e
 }
 
+// getTicket decodes a ticket (a copy: save changes with ticketRecord).
 func getTicket(id int) *Ticket {
-	if tk, ok := tickets.Get(text.Key(id)).(*Ticket); ok {
-		return tk
+	rec, ok := tickets.Get(id - 1)
+	if !ok {
+		return nil
 	}
-	return nil
+	f := store.Fields(rec)
+	return &Ticket{ID: id, Event: atoi(f[0]), Serial: atoi(f[1]), Attended: f[2] != ""}
+}
+
+func ticketRecord(tk *Ticket) string {
+	att := ""
+	if tk.Attended {
+		att = "1"
+	}
+	return store.Rec(itoa(tk.Event), itoa(tk.Serial), att)
 }
 
 func mustTicket(id int) *Ticket {
@@ -492,9 +545,20 @@ func mustTicket(id int) *Ticket {
 	return tk
 }
 
-func addOwned(addr address, id int) { owned.Set(addr.String()+"/"+text.Key(id), true) }
+func addOwned(addr address, id int) {
+	list, _ := owned.Get(addr.String())
+	list, _ = store.Add(list, id)
+	owned.Set(addr.String(), list)
+}
 
-func removeOwned(addr address, id int) { owned.Remove(addr.String() + "/" + text.Key(id)) }
+func removeOwned(addr address, id int) {
+	list, _ := owned.Get(addr.String())
+	if list, _ = store.Remove(list, id); list == "" {
+		owned.Remove(addr.String())
+	} else {
+		owned.Set(addr.String(), list)
+	}
+}
 
 func tokenID(id int) grc721.TokenID { return grc721.TokenID(strconv.Itoa(id)) }
 

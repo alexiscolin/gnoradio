@@ -11,7 +11,8 @@
 // Curated and Audius artists start unclaimed; once the admin assigns them to
 // a wallet (AssignArtist), their tracks receive tips.
 //
-// Money never stays in this realm: tips are forwarded in the same transaction.
+// Tips and support are forwarded in the same transaction; the only coins this
+// realm keeps are the artists' promo budgets, accounted in sponsor.gno.
 package catalog
 
 import (
@@ -49,14 +50,16 @@ const (
 	maxUserReports = 5    // open reports per reporter
 	topSize        = 10
 	maxSupportPct  = 50
+	likeRange      = 9 // likes are kept per range of 1<<likeRange track ids
 )
 
 // NumGenres is the size of the fixed genre list; genre ids are 1..NumGenres.
-const NumGenres = 12
+const NumGenres = 20
 
 var genres = [NumGenres + 1]string{"",
-	"Electronic", "Synthwave", "Ambient", "Techno & House", "Lo-fi & Chill", "Hip-hop & Beats",
-	"Rock & Indie", "Pop", "Jazz & Soul", "Folk & Acoustic", "Cinematic & Classical", "World"}
+	"Electronica", "Synthwave", "Ambient", "Techno", "House", "Drum & Bass", "Dubstep & Trap",
+	"Lo-fi Beats", "Hip-hop & Rap", "R&B & Soul", "Rock & Indie", "Metal & Punk", "Pop",
+	"Jazz & Blues", "Folk & Acoustic", "Cinematic & Classical", "World", "Latin", "Reggae & Dub", "Funk & Disco"}
 
 // licenses an artist may pick; curated imports are limited to the first three.
 var licenses = []string{
@@ -67,7 +70,7 @@ var licenses = []string{
 // AudiusLicense is the license id of tracks streamed from Audius.
 const AudiusLicense = "Audius-OML"
 
-const rightsTerms = "I own the rights to this recording and composition and grant GnoRadio a non-exclusive right to stream, broadcast and display it."
+const rightsTerms = "I own or control the rights to this recording and its composition, or hold a licence that allows this, and I grant the operator of GnoRadio and its users a worldwide, non-exclusive, royalty-free licence to store, stream, broadcast and display it through GnoRadio and gno.land for as long as it is published."
 
 type Split struct {
 	To  address
@@ -139,11 +142,12 @@ type Playlist struct {
 	list    string // Tracks as stored (JSON-ready)
 }
 
-// User groups everything a listener writes, so a like or a follow only
-// touches that listener's own record. Id sets are sorted packed lists (see
-// store): 8 bytes per like or follow.
+// User groups what a listener writes, so a follow only touches that
+// listener's own record. Id sets are sorted packed lists (see store): 9 bytes
+// per follow. Likes live apart (likeSets), in ranges of 512 track ids, so a
+// like rewrites at most one 4.6KB list whatever the listener's total, and a
+// heavy liker never weighs on the listeners stored next to them.
 type User struct {
-	Likes     string // sorted packed track ids
 	Follows   string // sorted packed artist ids
 	Tipped    int64
 	tipped    string // sorted packed track ids (distinct supporters)
@@ -188,7 +192,9 @@ var (
 	playlists   = store.NewSeq(16)    // playlist records
 	users       = store.NewMap(65536) // address -> index in userRecs
 	userRecs    = store.NewSeq(16)    // listener records
+	likeSets    = store.NewMap(65536) // address + "/" + track id>>likeRange -> the listener's likes in that range (sorted packed)
 	reports     avl.Tree              // padded id -> *ReportInfo (bounded, removed when resolved)
+	removed     = store.NewMap(256)   // "kind:id" of hidden content -> the moderator's reason, "" if its artist hid it
 	hosts       avl.Tree              // allowed https hosts -> true
 
 	nArtists, nTracks, nAlbums, nPlaylists, nReports int
@@ -326,7 +332,7 @@ func updateTop(list []Rank, k string, v int64) []Rank {
 		i--
 	}
 	if i >= topSize {
-		return out
+		return fit(out)
 	}
 	out = append(out, Rank{})
 	copy(out[i+1:], out[i:])
@@ -334,6 +340,15 @@ func updateTop(list []Rank, k string, v int64) []Rank {
 	if len(out) > topSize {
 		out = out[:topSize]
 	}
+	return fit(out)
+}
+
+// fit copies a ranking into a slice of its own length: a stored slice keeps
+// its whole backing array, each spare element an empty struct (about 400
+// bytes of deposit).
+func fit(rs []Rank) []Rank {
+	out := make([]Rank, len(rs))
+	copy(out, rs)
 	return out
 }
 

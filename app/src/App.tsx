@@ -1,17 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { MiniPlayer, MobileTop, Sidebar, TabBar } from "./components/Chrome";
 import { GnokeySheet } from "./components/GnokeySheet";
+import { WalletSheet } from "./wallet/WalletSheet";
 import { NowPlaying } from "./components/NowPlaying";
 import { PickNext } from "./components/PickNext";
 import { Splash } from "./components/Splash";
 import { SupportSheet, type SupportTarget } from "./components/SupportSheet";
-import { loadCatalog, viewName } from "./lib/catalog";
+import { loadCatalog, type Touched, touchedBy, viewName } from "./lib/catalog";
 import { EMPTY_SUPPORT, loadActivity, loadSupport } from "./lib/community";
 import { errorMessage } from "./lib/format";
+import type { Call } from "./lib/gno";
+import { sessionRef } from "./lib/incentives";
 import { codeURL } from "./lib/links";
 import { openSearch } from "./lib/search";
 import { pathToView, viewToPath } from "./lib/router";
-import { pageTitle } from "./lib/seo";
 import { useSaved } from "./lib/saved";
 import type { Activity, Catalog, SupportInfo, View } from "./lib/types";
 import { type Actions, useActions } from "./player/useActions";
@@ -20,6 +22,8 @@ import { type Player, usePlayer } from "./player/usePlayer";
 import { Library, Listen, Stations } from "./views/Browse";
 import { Community, Me, Studio } from "./views/Community";
 import { About } from "./views/About";
+import { Legal } from "./views/Legal";
+import { ListenerView } from "./views/Listener";
 import { Contribute } from "./views/Contribute";
 import { AlbumView, ArtistView, Concerts, PlaylistView, TrackView } from "./views/Detail";
 
@@ -27,11 +31,15 @@ const PULSE_MS = 60_000;
 // "Read the code" opens the file holding the function the sheet calls.
 const codeURLFor = (t: SupportTarget) => codeURL(t.kind === "tip" ? "tip" : "support");
 
+const EARLY: ReadonlySet<View["k"]> = new Set(["listen", "stations", "library"]);
+
 export default function App() {
   const [cat, setCat] = useState<Catalog | null>(null);
   const [loadError, setLoadError] = useState("");
   // Old #/ links still open the right screen; the URL is rewritten to a path below.
   const [view, setView] = useState<View>(() => pathToView(window.location.hash.startsWith("#/") ? window.location.hash : window.location.pathname));
+  const viewRef = useRef(view);
+  viewRef.current = view;
   const [sheet, setSheet] = useState(false);
   const [supportTarget, setSupportTarget] = useState<SupportTarget | null>(null);
   const [pick, setPick] = useState<{ readonly station: number; readonly track?: number | undefined } | null>(null);
@@ -56,9 +64,13 @@ export default function App() {
   }, []);
 
   const loadSeq = useRef(0);
-  const refresh = useCallback(() => {
+  // touched: after a transaction, what it can have changed (re-read whatever the browser cache says).
+  const refresh = useCallback((touched?: Touched) => {
     const seq = ++loadSeq.current;
-    loadCatalog().then(
+    // A return visit opens on the stored catalog; a first visit on the newest tracks while
+    // the rest loads, but a page that needs a given artist, album or track waits for the whole catalog.
+    const show = (c: Catalog) => { if (seq === loadSeq.current) setCat((prev) => prev ?? c); };
+    loadCatalog({ cached: show, early: EARLY.has(viewRef.current.k) ? show : undefined, touched }).then(
       (c) => {
         if (seq !== loadSeq.current) return;
         setCat(c);
@@ -69,7 +81,7 @@ export default function App() {
     refreshPulse();
   }, [refreshPulse]);
 
-  useEffect(refresh, [refresh]);
+  useEffect(() => { refresh(); }, [refresh]);
   useEffect(() => {
     const id = window.setInterval(() => { if (!document.hidden) refreshPulse(); }, PULSE_MS);
     return () => { window.clearInterval(id); };
@@ -86,7 +98,7 @@ export default function App() {
 
   // Path routing: every screen has a readable, shareable URL and the back button works.
   useEffect(() => {
-    const onPop = () => { setView(pathToView(window.location.pathname)); };
+    const onPop = () => { setView(pathToView(window.location.pathname)); setFrom(null); };
     window.addEventListener("popstate", onPop);
     return () => { window.removeEventListener("popstate", onPop); };
   }, []);
@@ -108,7 +120,7 @@ export default function App() {
     return () => { window.removeEventListener("keydown", onKey); };
   }, [toggle, toggleMute, nudge]);
   const { resync } = player;
-  const afterTx = useCallback(() => { refresh(); resync(); }, [refresh, resync]);
+  const afterTx = useCallback((c?: Call) => { refresh(touchedBy(c)); resync(); }, [refresh, resync]);
   const actions = useActions(afterTx);
   useMediaMeta(cat, view, player);
   const saved = useSaved();
@@ -120,9 +132,11 @@ export default function App() {
     const name = viewName(cat, view);
     const path = viewToPath(view, name);
     if (window.location.pathname !== path || window.location.hash) window.history.replaceState(null, "", path);
-    document.title = pageTitle(view, name);
   }, [cat, view]);
+  // The page Stations was opened from (an artist, an album…): a way back after changing station.
+  const [from, setFrom] = useState<View | null>(null);
   const go = useCallback((v: View) => {
+    setFrom(v.k === "stations" && viewName(catRef.current, viewRef.current) ? viewRef.current : null);
     const path = viewToPath(v, viewName(catRef.current, v));
     if (window.location.pathname !== path) window.history.pushState(null, "", path);
     setView(v);
@@ -145,18 +159,19 @@ export default function App() {
       <Sidebar view={view} go={go} actions={actions} isAdmin={isAdmin} />
       <main className="main">
         <div className="view" key={viewToPath(view)}>
-        {renderView({ view, cat, player, actions, go, savedIds: saved.ids, activity, support, now, openSupport: setSupportTarget, openPick, isAdmin })}
+        {renderView({ view, from, cat, player, actions, go, saved, activity, support, now, openSupport: setSupportTarget, openPick, isAdmin, me: wallet })}
         </div>
       </main>
       <NowPlaying cat={cat} player={player} actions={actions} saved={saved} open={sheet} onClose={closeSheet} go={go} openSupport={setSupportTarget} openPick={openPick} />
       <MiniPlayer cat={cat} player={player} onOpen={() => { setSheet(true); }} />
       <TabBar view={view} go={go} />
       {pick !== null && (
-        <PickNext cat={cat} station={pick.station} suggest={pick.track} me={wallet} pending={actions.pending} onPick={actions.queue} onClose={() => { setPick(null); }} />
+        <PickNext cat={cat} station={pick.station} suggest={pick.track} me={wallet} pending={actions.pending} notice={actions.toast} onPick={actions.queue} onClose={() => { setPick(null); }} />
       )}
       {supportTarget && (
-        <SupportSheet target={supportTarget} codeURL={codeURLFor(supportTarget)} onClose={() => { setSupportTarget(null); }} onTip={actions.tip} onSupport={actions.support} />
+        <SupportSheet target={supportTarget} codeURL={codeURLFor(supportTarget)} me={wallet} referrer={sessionRef()} onClose={() => { setSupportTarget(null); }} onTip={actions.tip} onSupport={actions.support} />
       )}
+      {actions.wallet.asking && <WalletSheet wallet={actions.wallet} />}
       {actions.gnokey && <GnokeySheet label={actions.gnokey.label} call={actions.gnokey.call} onClose={actions.closeGnokey} />}
       <div className={`toast${actions.toast ? "" : " empty"}`} role="status" aria-live="polite">
         {actions.toast?.text}
@@ -168,18 +183,20 @@ export default function App() {
 }
 
 interface RenderArgs {
+  readonly from: View | null;
   readonly view: View;
   readonly cat: Catalog;
   readonly player: Player;
   readonly actions: Actions;
   readonly go: (v: View) => void;
-  readonly savedIds: readonly number[];
+  readonly saved: ReturnType<typeof useSaved>;
   readonly activity: readonly Activity[];
   readonly support: SupportInfo;
   readonly now: number;
   readonly openSupport: (t: SupportTarget) => void;
   readonly openPick: (station: number, track?: number) => void;
   readonly isAdmin: boolean;
+  readonly me: string;
 }
 
 function renderView(a: RenderArgs) {
@@ -188,15 +205,15 @@ function renderView(a: RenderArgs) {
     case "listen":
       return <Listen cat={cat} player={player} go={go} activity={a.activity} support={a.support} now={a.now} openSupport={a.openSupport} openPick={a.openPick} />;
     case "stations":
-      return <Stations cat={cat} player={player} live={view.live} />;
+      return <Stations cat={cat} player={player} go={go} live={view.live} back={a.from ? { label: viewName(cat, a.from), to: a.from } : undefined} />;
     case "library":
-      return <Library cat={cat} player={player} go={go} genre={view.genre} />;
+      return <Library cat={cat} player={player} go={go} genre={view.genre} actions={actions} saved={a.saved} />;
     case "concerts":
-      return <Concerts cat={cat} go={go} actions={actions} />;
+      return <Concerts cat={cat} go={go} player={player} actions={actions} />;
     case "community":
       return <Community cat={cat} go={go} support={a.support} activity={a.activity} now={a.now} onSupport={() => { a.openSupport({ kind: "platform" }); }} openPick={a.openPick} />;
     case "me":
-      return <Me cat={cat} go={go} player={player} actions={actions} savedIds={a.savedIds} />;
+      return <Me cat={cat} go={go} player={player} actions={actions} saved={a.saved} openPick={a.openPick} />;
     case "studio":
       return a.isAdmin ? <Studio cat={cat} go={go} actions={actions} /> : <p className="muted">The studio is for the GnoRadio admin.</p>;
     case "track":
@@ -204,12 +221,16 @@ function renderView(a: RenderArgs) {
     case "artist":
       return <ArtistView cat={cat} player={player} go={go} id={view.id} actions={actions} openSupport={a.openSupport} />;
     case "album":
-      return <AlbumView cat={cat} player={player} go={go} id={view.id} />;
+      return <AlbumView cat={cat} player={player} go={go} id={view.id} actions={actions} saved={a.saved} openSupport={a.openSupport} />;
     case "playlist":
-      return <PlaylistView cat={cat} player={player} go={go} id={view.id} />;
+      return <PlaylistView cat={cat} player={player} go={go} id={view.id} actions={actions} saved={a.saved} />;
+    case "listener":
+      return <ListenerView cat={cat} go={go} address={view.address} me={a.me} />;
     case "contribute":
       return <Contribute cat={cat} go={go} path={view.path} actions={actions} isAdmin={a.isAdmin} openPick={a.openPick} />;
     case "about":
       return <About cat={cat} support={a.support} go={go} />;
+    case "legal":
+      return <Legal />;
   }
 }

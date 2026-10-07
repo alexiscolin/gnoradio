@@ -38,9 +38,9 @@ func TrackTitle(id int) string {
 	return ""
 }
 
-func ArtistName(artistID int) string { return artistField(artistID, 3) }
+func ArtistName(artistID int) string { return artistField(artistID, aName) }
 
-func ArtistOwner(artistID int) address { return address(artistField(artistID, 1)) }
+func ArtistOwner(artistID int) address { return address(artistField(artistID, aOwner)) }
 
 func ArtistOf(owner address) int { return artistOf(owner) }
 
@@ -97,22 +97,36 @@ func GetReport(id int) (ReportInfo, bool) {
 }
 
 // UserStats returns a listener's public counters and playlists.
+// The like count reads one entry per 512 tracks of the catalog.
 func UserStats(addr address) (likes, follows int, tipped int64, lists []int) {
-	if u := getUser(addr); u != nil {
-		return store.Count(u.Likes), store.Count(u.Follows), u.Tipped, u.Playlists
+	for r := nTracks >> likeRange; r >= 0; r-- {
+		l, _ := likeSets.Get(addr.String() + "/" + itoa(r))
+		likes += store.Count(l)
 	}
-	return 0, 0, 0, nil
+	if u := getUser(addr); u != nil {
+		return likes, store.Count(u.Follows), u.Tipped, u.Playlists
+	}
+	return likes, 0, 0, nil
 }
 
 // LikedPage lists a listener's liked track ids, newest tracks first,
 // paginated. Likes are keyed by track id, so this is the newest music the
 // listener liked, not the order of their likes (that needs an index per like,
-// which would add to every like's storage deposit).
+// which would add to every like's storage deposit). It reads one entry per
+// 512 tracks of the catalog, newest first, until the page is full.
 func LikedPage(addr address, offset, limit int) []int {
-	if u := getUser(addr); u != nil {
-		return store.Page(u.Likes, max0(offset), clampLimit(limit), true)
+	offset, limit = max0(offset), clampLimit(limit)
+	var out []int
+	for r := nTracks >> likeRange; r >= 0 && len(out) < limit; r-- {
+		l, _ := likeSets.Get(addr.String() + "/" + itoa(r))
+		if n := store.Count(l); offset >= n {
+			offset -= n
+			continue
+		}
+		out = append(out, store.Page(l, offset, limit-len(out), true)...)
+		offset = 0
 	}
-	return nil
+	return out
 }
 
 // ---- Narrow getters: one field without copying a whole struct ----
@@ -149,16 +163,30 @@ func PlaylistBrief(id int) (owner address, title string, tracks int, hidden, ok 
 // UsersPage lists listener addresses in a stable (hash bucket) order, paginated.
 func UsersPage(offset, limit int) []string { return users.Keys(max0(offset), clampLimit(limit)) }
 
-// SupportersPage lists who supported GnoRadio and their lifetime total.
+// LikesPage lists the likes entries ("address/range", stable order); a
+// listener who only liked has no UsersPage entry. LikedPage reads them.
+func LikesPage(offset, limit int) []string { return likeSets.Keys(max0(offset), clampLimit(limit)) }
+
+// TippedPage lists the track ids a listener tipped (each counted once in the
+// track's supporters), paginated.
+func TippedPage(addr address, offset, limit int) []int {
+	if u := getUser(addr); u != nil {
+		return store.Page(u.tipped, max0(offset), clampLimit(limit), false)
+	}
+	return nil
+}
+
+// SupportersPage lists who supported GnoRadio and their lifetime total, in
+// a stable order (not sorted).
 func SupportersPage(offset, limit int) (addrs []string, totals []int64) {
 	if offset < 0 {
 		offset = 0
 	}
-	supporterTotal.IterateByOffset(offset, clampLimit(limit), func(k string, v any) bool {
+	for _, k := range supporterTotal.Keys(offset, clampLimit(limit)) {
+		v, _ := supporterTotal.Get(k)
 		addrs = append(addrs, k)
-		totals = append(totals, v.(int64))
-		return false
-	})
+		totals = append(totals, atoi64(v))
+	}
 	return addrs, totals
 }
 

@@ -21,10 +21,11 @@ describe("proof", () => {
   it("ignores pages anyone can write on", () => {
     expect(isSharedHost("archive.org")).toBe(true);
     expect(isSharedHost("ia800.us.archive.org")).toBe(true);
-    expect(isSharedHost("lea.bandcamp.com")).toBe(false);
+    expect(isSharedHost("lea.bandcamp.com")).toBe(true);
+    expect(isSharedHost("lea.com")).toBe(false);
   });
   it("never fetches internal addresses", () => {
-    for (const ip of ["127.0.0.1", "10.1.2.3", "172.20.0.1", "192.168.1.1", "169.254.169.254", "100.100.1.1", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:10.0.0.1"]) expect(privateIP(ip)).toBe(true);
+    for (const ip of ["127.0.0.1", "10.1.2.3", "172.20.0.1", "192.168.1.1", "169.254.169.254", "100.100.1.1", "0.0.0.0", "::1", "fd00::1", "fe80::1", "::ffff:10.0.0.1", "198.18.0.1", "192.0.0.8", "64:ff9b::a00:1", "2002:a00:1::1"]) expect(privateIP(ip)).toBe(true);
     for (const ip of ["93.184.216.34", "172.32.0.1", "2606:4700::1111"]) expect(privateIP(ip)).toBe(false);
   });
 });

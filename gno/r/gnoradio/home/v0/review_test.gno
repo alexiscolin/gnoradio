@@ -58,6 +58,11 @@ func TestModerationPager(cur realm, t *testing.T) {
 	urequire.True(t, one != two)
 }
 
+func playing(st, track int) bool {
+	id, _, _ := radio.NowPlaying(st)
+	return id == track
+}
+
 // A loop of an hour or more shows hours, not thousands of minutes.
 func TestSpan(t *testing.T) {
 	uassert.Equal(t, "59:59", span(3599))
@@ -72,13 +77,30 @@ func TestOnAirDedication(cur realm, t *testing.T) {
 	tr := catalog.PublishTrack(cross(cur), "Note Song", 9, "3:30", "cc by", "none", "", ipfs, "", "", "", "", "yes")
 	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("note_fan")))
 	radio.Sync(cross(cur), 200)
-	radio.QueueWithNote(cross(cur), 9, tr, "for Marie, happy birthday!")
-	for radio.OnAirNote(9) == "" {
+	radio.Queue(cross(cur), 9, tr)
+	onAirNote = func(int) string { return "for Marie, happy birthday!" }
+	for !playing(9, tr) {
 		testing.SkipHeights(12) // a minute
 	}
 	out := Render("station/9")
 	on := strings.SplitN(out, "## Up next", 2)[0]
+	onAirNote = radio.OnAirNote
 	urequire.True(t, strings.Contains(on, "queued by a listener · ♥ *"+md("for Marie, happy birthday!")+"*"), out)
+}
+
+// A pick booked for a time shows in Up next with that time.
+func TestBookedUpNext(cur realm, t *testing.T) {
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("book_singer")))
+	catalog.RegisterArtist(cross(cur), "Book Singer", "")
+	tr := catalog.PublishTrack(cross(cur), "Book Song", 11, "3:30", "cc by", "none", "", ipfs, "", "", "", "", "yes")
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("book_fan")))
+	radio.Sync(cross(cur), 200)
+	at := time.Now().Unix() + 3600
+	radio.QueueAt(cross(cur), 11, tr, at)
+	start := radio.UpNext(11)[0].Start
+	out := Render("station/11")
+	urequire.True(t, strings.Contains(out, hour(start)+" UTC · [Book Song]"), out)
+	urequire.True(t, strings.Contains(out, "· booked by "), out)
 }
 
 // Unverified profiles get no event link (phishing); report reasons quoting a

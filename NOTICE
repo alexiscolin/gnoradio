@@ -1,0 +1,30 @@
+GnoRadio
+Third-party material included in this repository.
+
+1. Blocked-word list (gno/p/gnoradio/safe/v0/words.gno)
+
+   Part of the list comes from "List of Dirty, Naughty, Obscene and Otherwise
+   Bad Words" (LDNOOBW), Copyright (c) Shutterstock, Inc., licensed under the
+   Creative Commons Attribution 4.0 International License (CC BY 4.0).
+   Source: https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words
+   Licence: https://creativecommons.org/licenses/by/4.0/
+   Changes: entries normalized (lowercase ASCII, single spaces), some removed,
+   others added.
+
+   Some keywords come from the gno.land antispam proposal, gnolang/gno pull
+   request #5178 (https://github.com/gnolang/gno/pull/5178), Copyright (C)
+   NewTendermint, LLC, under the licence of the gnolang/gno repository (GNO
+   Network General Public License, https://github.com/gnolang/gno/blob/master/LICENSE.md).
+
+2. Fonts (app, bundled through @fontsource/geist and @fontsource/geist-mono)
+
+   Geist and Geist Mono, Copyright 2024 The Geist Project Authors
+   (https://github.com/vercel/geist-font), licensed under the SIL Open Font
+   License, Version 1.1 (https://openfontlicense.org). The full licence text
+   ships with the packages (node_modules/@fontsource/geist/LICENSE).
+
+Station jingles (app/public/jingles)
+  Music generated with ACE-Step 1.5 (code and weights under the MIT licence,
+  https://github.com/ace-step/ACE-Step-1.5); voices generated with Kokoro-82M
+  v1.0 (Apache License 2.0, https://huggingface.co/hexgrad/Kokoro-82M).
+  The voices are synthetic.

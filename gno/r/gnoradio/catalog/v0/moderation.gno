@@ -64,10 +64,12 @@ func ResolveReport(cur realm, id int) {
 	emitEvent("ReportResolved", "id", itoa(id))
 }
 
-// Hide or restore content. Admin only. Hidden content stays on-chain (and on
-// IPFS); it is no longer listed, played or tippable. Radio stations drop a
-// hidden track on their next Refresh (radio.RefreshArtist for a whole artist).
-func HideTrack(cur realm, trackID int, hidden bool) {
+// Hide or restore content. Admin only; hiding takes a public reason (4-200
+// characters) and restoring works on anything, whoever hid it. Hidden content
+// stays on-chain (and on IPFS); it is no longer listed, played or tippable.
+// Radio stations drop a hidden track on their next Refresh
+// (radio.RefreshArtist for a whole artist).
+func HideTrack(cur realm, trackID int, hidden bool, reason string) {
 	onlyAdmin(cur)
 	t := getTrack(trackID)
 	if t == nil {
@@ -75,10 +77,10 @@ func HideTrack(cur realm, trackID int, hidden bool) {
 	}
 	t.Hidden = hidden
 	putTrack(t)
-	emitEvent("Moderated", "kind", "track", "target", itoa(trackID), "hidden", strconv.FormatBool(hidden))
+	moderate("track", trackID, hidden, reason)
 }
 
-func HideAlbum(cur realm, albumID int, hidden bool) {
+func HideAlbum(cur realm, albumID int, hidden bool, reason string) {
 	onlyAdmin(cur)
 	al := getAlbum(albumID)
 	if al == nil {
@@ -86,10 +88,10 @@ func HideAlbum(cur realm, albumID int, hidden bool) {
 	}
 	al.Hidden = hidden
 	putAlbum(al)
-	emitEvent("Moderated", "kind", "album", "target", itoa(albumID), "hidden", strconv.FormatBool(hidden))
+	moderate("album", albumID, hidden, reason)
 }
 
-func HideArtist(cur realm, artistID int, hidden bool) {
+func HideArtist(cur realm, artistID int, hidden bool, reason string) {
 	onlyAdmin(cur)
 	a := getArtist(artistID)
 	if a == nil {
@@ -97,10 +99,10 @@ func HideArtist(cur realm, artistID int, hidden bool) {
 	}
 	a.Hidden = hidden
 	putArtist(a)
-	emitEvent("Moderated", "kind", "artist", "target", itoa(artistID), "hidden", strconv.FormatBool(hidden))
+	moderate("artist", artistID, hidden, reason)
 }
 
-func HidePlaylist(cur realm, playlistID int, hidden bool) {
+func HidePlaylist(cur realm, playlistID int, hidden bool, reason string) {
 	onlyAdmin(cur)
 	p := getPlaylist(playlistID)
 	if p == nil {
@@ -108,7 +110,91 @@ func HidePlaylist(cur realm, playlistID int, hidden bool) {
 	}
 	p.Hidden = hidden
 	putPlaylist(p)
-	emitEvent("Moderated", "kind", "playlist", "target", itoa(playlistID), "hidden", strconv.FormatBool(hidden))
+	moderate("playlist", playlistID, hidden, reason)
+}
+
+func moderate(kind string, id int, hidden bool, reason string) {
+	reason = strings.TrimSpace(reason)
+	k := kind + ":" + itoa(id)
+	if hidden {
+		mustText("reason", reason, 4, 200)
+		removed.Set(k, reason)
+	} else {
+		removed.Remove(k)
+	}
+	emitEvent("Moderated", "kind", kind, "target", itoa(id), "hidden", strconv.FormatBool(hidden), "reason", reason, "by", "moderator")
+}
+
+// HideOwn hides or shows again the caller's own track, album or artist
+// profile ("artist", with the profile's id). The artist can show again only
+// what they hid themselves: what the moderator hid stays hidden.
+func HideOwn(cur realm, kind string, id int, hidden bool) {
+	caller := userCaller(cur)
+	noPayment()
+	notFrozen()
+	a := getArtist(artistOf(caller))
+	if a == nil {
+		panic("catalog: create your artist profile first")
+	}
+	k := kind + ":" + itoa(id)
+	if reason, ok := removed.Get(k); ok && reason != "" {
+		panic("catalog: hidden by the moderator; contact them to restore it")
+	}
+	switch kind {
+	case "track":
+		t := getTrack(id)
+		if t == nil || t.Artist != a.ID {
+			panic("catalog: not your track")
+		}
+		mustToggle(t.Hidden, hidden)
+		t.Hidden = hidden
+		putTrack(t)
+	case "album":
+		al := getAlbum(id)
+		if al == nil || al.Artist != a.ID {
+			panic("catalog: not your album")
+		}
+		mustToggle(al.Hidden, hidden)
+		al.Hidden = hidden
+		putAlbum(al)
+	case "artist":
+		if id != a.ID {
+			panic("catalog: not your profile")
+		}
+		mustToggle(a.Hidden, hidden)
+		a.Hidden = hidden
+		putArtist(a)
+	default:
+		panic("catalog: kind must be track, album or artist")
+	}
+	if hidden {
+		removed.Set(k, "")
+	} else {
+		removed.Remove(k)
+	}
+	emitEvent("Moderated", "kind", kind, "target", itoa(id), "hidden", strconv.FormatBool(hidden), "reason", "", "by", "artist")
+}
+
+func mustToggle(was, hidden bool) {
+	if was == hidden {
+		if hidden {
+			panic("catalog: already hidden")
+		}
+		panic("catalog: already shown")
+	}
+}
+
+// HiddenNote says why a track, album, artist or playlist is hidden, for its
+// page: "Removed by moderation: <reason>", "Hidden by the artist.", or "".
+func HiddenNote(kind string, id int) string {
+	reason, ok := removed.Get(kind + ":" + itoa(id))
+	switch {
+	case !ok:
+		return ""
+	case reason == "":
+		return "Hidden by the artist."
+	}
+	return "Removed by moderation: " + reason
 }
 
 // Verify marks an artist whose identity was checked off-chain.
@@ -157,9 +243,15 @@ func Freeze(cur realm, on bool) {
 
 func SetSuccessor(cur realm, pkgPath string) {
 	onlyAdmin(cur)
-	if pkgPath != "" && (!strings.HasPrefix(pkgPath, "gno.land/r/") || !validURLChars(pkgPath) || len(pkgPath) > 120) {
-		panic("catalog: invalid realm path")
+	if pkgPath != "" {
+		mustRealmPath(pkgPath)
 	}
 	successor = pkgPath
 	emitEvent("Successor", "path", pkgPath)
+}
+
+func mustRealmPath(pkgPath string) {
+	if !strings.HasPrefix(pkgPath, "gno.land/r/") || !validURLChars(pkgPath) || len(pkgPath) > 120 {
+		panic("catalog: invalid realm path")
+	}
 }

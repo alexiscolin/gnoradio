@@ -30,7 +30,7 @@ func TestHiddenConcertTicket(cur realm, t *testing.T) {
 	uassert.True(t, strings.Contains(meta, "Secret Gig"))
 
 	testing.SetRealm(testing.NewUserRealm(bob))
-	HideEvent(cross(cur), id, true)
+	HideEvent(cross(cur), id, true, "fake concert")
 	meta = decodeURI(t, TokenURI(itoa(tk)), "data:application/json;base64,")
 	uassert.False(t, strings.Contains(meta, "Secret Gig"), meta)
 	uassert.False(t, strings.Contains(meta, "Tickets Alice"), meta)

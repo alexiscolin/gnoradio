@@ -1,57 +1,26 @@
 import { useEffect } from "react";
 import type { Catalog, View } from "../lib/types";
+import { viewName } from "../lib/catalog";
+import { pageTitle } from "../lib/seo";
 import { useArtwork } from "../components/Cover";
 import type { Player } from "./usePlayer";
 
 const APP = "GnoRadio";
 
-/** viewTitle names a screen for the browser tab: "Air · Scott Buckley — GnoRadio". */
-export function viewTitle(cat: Catalog, v: View): string {
-  const named = (s: string | undefined) => (s ? `${s} — ${APP}` : APP);
-  switch (v.k) {
-    case "listen":
-      return `${APP} · Community radio, open music`;
-    case "track": {
-      const t = cat.byId.get(v.id);
-      return named(t ? `${t.title} · ${t.artistName}` : undefined);
-    }
-    case "artist":
-      return named(cat.artists.get(v.id)?.name);
-    case "album":
-      return named(cat.albums.find((a) => a.id === v.id)?.title);
-    case "playlist":
-      return named(cat.playlists.find((p) => p.id === v.id)?.title);
-    case "library":
-      return named(v.genre ? cat.genres.find((g) => g.id === v.genre)?.name : "Library");
-    case "contribute":
-      return named("Contribute");
-    case "about":
-      return named("About");
-    case "stations":
-      return named("Stations");
-    case "concerts":
-      return named("Concerts");
-    case "community":
-      return named("Community");
-    case "me":
-      return named("Me");
-    case "studio":
-      return named("Studio");
-  }
-}
-
 /**
- * useMediaMeta keeps the tab title in step with the screen, and tells the OS
- * (lock screen, headset keys, media hub) what is playing.
+ * useMediaMeta names the tab after what is playing ("● Title · Artist — Techno
+ * live"), or after the screen when nothing plays, and tells the OS (lock
+ * screen, headset keys, media hub) what is playing.
  */
 export function useMediaMeta(cat: Catalog | null, view: View, player: Player): void {
-  useEffect(() => {
-    if (cat) document.title = viewTitle(cat, view);
-  }, [cat, view]);
-
   const t = cat?.byId.get(player.current);
   const live = player.mode === "live";
   const stationName = cat?.stations.find((s) => s.id === player.station)?.name;
+  const page = pageTitle(view, viewName(cat, view));
+  const onAir = player.playing && t ? `${live ? "●" : "▶"} ${t.title} · ${t.artistName}${live ? ` — ${stationName ?? "Main"} live` : ""}` : "";
+  useEffect(() => {
+    document.title = onAir || page;
+  }, [onAir, page]);
   const art = useArtwork(t);
   useEffect(() => {
     if (!("mediaSession" in navigator)) return;
@@ -69,7 +38,9 @@ export function useMediaMeta(cat: Catalog | null, view: View, player: Player): v
     });
   }, [t, live, stationName, art]);
 
-  const { toggle, next, prev, audio } = player;
+  const { toggle, next, prev, audio, goLive, station } = player;
+  // On the radio, next/previous zap between stations (those with tracks), like a tuner.
+  const ids = cat?.stations.filter((s) => s.tracks > 0).map((s) => s.id).join(",") ?? "";
   useEffect(() => {
     if (!("mediaSession" in navigator)) return;
     const ms = navigator.mediaSession;
@@ -83,13 +54,19 @@ export function useMediaMeta(cat: Catalog | null, view: View, player: Player): v
     // play/pause from the OS are explicit: a "pause" while paused must not start playback.
     set("play", () => { if (audio.paused) toggle(); });
     set("pause", () => { if (!audio.paused) audio.pause(); });
-    // A live station follows the chain's schedule: no skipping.
-    set("nexttrack", live ? null : next);
-    set("previoustrack", live ? null : prev);
+    // A live station follows the chain's schedule: the keys change station instead.
+    const list = ids ? ids.split(",").map(Number) : [];
+    const zap = (d: number) => () => {
+      const i = list.indexOf(station);
+      const to = list[(i + d + list.length) % list.length];
+      if (to !== undefined) goLive(to);
+    };
+    set("nexttrack", live ? (list.length > 1 ? zap(1) : null) : next);
+    set("previoustrack", live ? (list.length > 1 ? zap(-1) : null) : prev);
     return () => {
       for (const a of ["play", "pause", "nexttrack", "previoustrack"] as const) set(a, null);
     };
-  }, [toggle, next, prev, live, audio]);
+  }, [toggle, next, prev, live, audio, goLive, station, ids]);
 
   useEffect(() => {
     if ("mediaSession" in navigator) navigator.mediaSession.playbackState = player.playing ? "playing" : "paused";

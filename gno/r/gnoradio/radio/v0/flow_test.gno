@@ -30,7 +30,7 @@ func TestMainFlow(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(y))
 	catalog.RegisterArtist(cross(cur), "Flow Y", "")
 	var tracks []int
-	for _, g := range []int{3, 11, 10} { // Ambient, Cinematic, Folk: the calm end
+	for _, g := range []int{3, 16, 15} { // Ambient, Cinematic, Folk: the calm end
 		for k := 0; k < 8; k++ {
 			who := x
 			if k%2 == 1 {
@@ -126,13 +126,13 @@ func TestNextGenreFollowsDayparts(cur realm, t *testing.T) {
 	for _, st := range stations {
 		st.live = 1
 	}
-	night, evening := int64(4*3600), int64(20*3600) // targets Ambient, Electronic
-	uassert.Equal(t, 1, nextGenre(4, night))        // Techno -> Electronic, calming down
-	uassert.Equal(t, 11, nextGenre(3, evening))     // Ambient -> Cinematic, warming up
-	g := nextGenre(1, evening)                      // at the target: one step either way
-	uassert.True(t, g == 2 || g == 4)
-	stations[11].live, stations[10].live = 0, 0
-	uassert.Equal(t, 9, nextGenre(3, evening)) // empty genres are skipped
+	night, evening := int64(4*3600), int64(20*3600) // targets Ambient, House
+	uassert.Equal(t, 5, nextGenre(4, night))        // Techno -> House, calming down
+	uassert.Equal(t, 16, nextGenre(3, evening))     // Ambient -> Cinematic, warming up
+	g := nextGenre(5, evening)                      // at the target: one step either way
+	uassert.True(t, g == 1 || g == 4)
+	stations[16].live, stations[15].live = 0, 0
+	uassert.Equal(t, 14, nextGenre(3, evening)) // empty genres are skipped
 	for _, st := range stations {
 		st.live = 0
 	}

@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 
+	"gno.land/p/gnoradio/store/v0"
 	"gno.land/p/nt/avl/v0"
 	"gno.land/p/nt/uassert/v0"
 	"gno.land/p/nt/urequire/v0"
@@ -12,7 +13,7 @@ import (
 func resetSupport() {
 	treasury = dave
 	totalSupport, nSupporters, monthlyGoal = 0, 0, 0
-	supporterTotal, monthly = avl.Tree{}, avl.Tree{}
+	supporterTotal, monthly = store.NewMap(16), avl.Tree{}
 	topSupport = nil
 	activity, activityHead, activityN = [activitySize]Activity{}, 0, 0
 }

@@ -4,13 +4,16 @@
 import { GNOWEB, REALMS } from "./gno";
 import type { View } from "./types";
 
-export const HOME = "gno.land/r/gnoradio/home/v0";
+const HOME = "gno.land/r/gnoradio/home/v0";
 export type Realm = keyof typeof REALMS | "home";
 
 const pathOf = (r: Realm): string => (r === "home" ? HOME : REALMS[r]).replace(/^gno\.land/, "");
 
 /** realmPage is a realm's rendered page on gnoweb, with an optional render path. */
 export const realmPage = (r: Realm, path = ""): string => `${GNOWEB}${pathOf(r)}${path ? `:${path}` : ""}`;
+
+/** txURL opens a realm function's signing form on gnoweb ($help), for actions the app has no screen for. */
+export const txURL = (r: Realm, func: string): string => `${GNOWEB}${pathOf(r)}$help&func=${func}`;
 
 /** sourceURL opens a realm's file on gnoweb ($source), the code that actually runs. */
 export const sourceURL = (r: Realm, file?: string): string => `${GNOWEB}${pathOf(r)}$source${file ? `&file=${file}` : ""}`;
@@ -23,6 +26,8 @@ export function gnowebOf(v: View): string {
     case "album":
     case "playlist":
       return realmPage("home", `${v.k}/${String(v.id)}`);
+    case "listener":
+      return realmPage("home", `listener/${v.address}`);
     case "stations":
       return realmPage("home", "stations");
     case "library":
@@ -32,6 +37,7 @@ export function gnowebOf(v: View): string {
     case "community":
       return realmPage("home", "charts");
     case "about":
+    case "legal":
       return realmPage("home", "about");
     case "contribute":
       return realmPage("home", "join");

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Icon } from "./Icons";
 import { Help } from "./Help";
 import { CHAIN_ID, type Call, WALLET_RPC, hasAdena } from "../lib/gno";
-import { gnokeyCommand } from "../lib/gnokey";
+import { gnokeyAddress, gnokeyCommand, setGnokeyAddress } from "../lib/gnokey";
 
 const KEY = "gnoradio.gnokeyName";
 const savedKey = () => { try { return localStorage.getItem(KEY) ?? ""; } catch { return ""; } };
@@ -36,9 +36,14 @@ export function GnokeySheet({ label, call, onClose }: { readonly label: string; 
           <input value={key} autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={64} placeholder="gnokey list shows it"
             onChange={(e) => { setKey(e.target.value); try { localStorage.setItem(KEY, e.target.value.trim()); } catch { /* this visit only */ } }} />
         </label>
+        <label className="field">Its address <span className="muted">for dedications</span>
+          <input className="mono" defaultValue={gnokeyAddress()} autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={40} placeholder="g1… (gnokey list shows it)"
+            onChange={(e) => { setGnokeyAddress(e.target.value); }} />
+        </label>
         <pre className="mono gnokey-cmd">{command}</pre>
         <button className="send" onClick={() => void copy()}>{copied ? "Copied" : "Copy command"}</button>
         <p className="muted small">Paste it in a terminal and type your key's password. Done when it prints <b>OK!</b>; close this to refresh.</p>
+        {call.func.startsWith("QueueWithNote") && <p className="muted small">Run it within 10 minutes: the dedication approval expires.</p>}
       </div>
     </dialog>
   );

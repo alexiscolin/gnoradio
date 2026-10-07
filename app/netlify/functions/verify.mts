@@ -2,27 +2,30 @@
 // a page only they control, then asks the app to check: this reads that page
 // and, if the line is there, signs a short-lived certificate (catalog.ClaimMessage)
 // that the artist submits with catalog.Claim, paying the gas. The realm keeps the
-// claim public for 72 hours before it counts, caps claims per day and lets the
-// admin cancel it. The signing key holds no other power (netlify/bot.ts).
+// claim public for 72 hours before it counts and lets the admin cancel it or
+// revoke the key (SetBot voids every pending claim it signed). The signing key holds no other power (netlify/bot.ts).
 import type { GnoJSONRPCProvider } from "@gnolang/gno-js-client";
-import { provider, sameSite, signCertificate } from "../bot";
-import { WELL_KNOWN, hasProof, isSharedHost, privateIP, proofLine, proofPage, unquote } from "../../src/lib/proof";
+import { provider, readBody, refuse, reply, signCertificate } from "../bot";
+import { WELL_KNOWN, hasProof, isAddress, isSharedHost, privateIP, proofLine, proofPage, unquote } from "../../src/lib/proof";
+import { REALMS } from "../../src/lib/realms";
 
-const CATALOG = "gno.land/r/gnoradio/catalog/v0";
-const ADDRESS = /^g1[02-9ac-hj-np-z]{38}$/;
+const CATALOG = REALMS.catalog;
 const MAX_PAGE = 1_000_000;
 const CERT_LIFE = 3600; // seconds; the realm accepts at most 2 hours
 const UNREADABLE = "We could not read that file. Check the address and that it is public.";
 
 interface Artist { id: number; kind: string; owner: string; source: string; verified: boolean; tracks: number[] }
 
-const reply = (status: number, body: object) => Response.json(body, { status });
-
 async function readJSON<T>(p: GnoJSONRPCProvider, expr: string): Promise<T> {
   return JSON.parse(unquote(await p.evaluateExpression(CATALOG, expr))) as T;
 }
 
 /** publicHost resolves a name (DNS over HTTPS) and refuses one that points inside a network. */
+// ponytail: fetch() resolves the name again, so a rebinding DNS could answer
+// differently. What it reaches is bounded: https on 443 with a certificate valid
+// for the attacker's name (an internal service cannot present one), a fixed
+// path, one found/notFound bit back. Pin the vetted IP (node:https with a
+// custom lookup) if the robot ever fetches plain http or other paths.
 async function publicHost(host: string): Promise<boolean> {
   const ips: string[] = [];
   for (const type of ["A", "AAAA"]) {
@@ -33,6 +36,22 @@ async function publicHost(host: string): Promise<boolean> {
   return ips.length > 0 && !ips.some(privateIP);
 }
 
+/** readCapped reads at most MAX_PAGE characters, then hangs up: an endless file never fills memory. */
+async function readCapped(body: ReadableStream<Uint8Array>): Promise<string> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let text = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) return text + decoder.decode();
+    text += decoder.decode(value, { stream: true });
+    if (text.length >= MAX_PAGE) {
+      await reader.cancel();
+      return text.slice(0, MAX_PAGE);
+    }
+  }
+}
+
 /** fetchText reads a public page, following redirects only on its own host, with a size and time cap. */
 async function fetchText(url: URL): Promise<string> {
   if (!(await publicHost(url.hostname))) throw new Error(UNREADABLE);
@@ -41,11 +60,11 @@ async function fetchText(url: URL): Promise<string> {
     const r = await fetch(at, { redirect: "manual", signal: AbortSignal.timeout(8000), headers: { "user-agent": "GnoRadio-verify/1" } });
     const next = r.status >= 300 && r.status < 400 ? r.headers.get("location") : null;
     if (next === null) {
-      if (!r.ok) throw new Error(UNREADABLE);
-      return (await r.text()).slice(0, MAX_PAGE);
+      if (!r.ok || !r.body) throw new Error(UNREADABLE);
+      return await readCapped(r.body);
     }
     at = new URL(next, at);
-    if (at.hostname !== url.hostname || at.protocol !== "https:") throw new Error(UNREADABLE);
+    if (at.host !== url.host || at.protocol !== "https:") throw new Error(UNREADABLE); // same host and port
   }
   throw new Error(UNREADABLE);
 }
@@ -64,17 +83,14 @@ async function audiusProof(p: GnoJSONRPCProvider, a: Artist): Promise<{ text: st
 }
 
 export default async (req: Request): Promise<Response> => {
-  if (req.method !== "POST") return reply(405, { error: "POST only" });
-  if (!sameSite(req)) return reply(403, { error: "forbidden" });
-  let body: { artist?: unknown; wallet?: unknown; page?: unknown };
-  try {
-    body = (await req.json()) as typeof body;
-  } catch {
-    return reply(400, { error: "invalid request" });
-  }
+  // An artist checks a few times while publishing the file; each check costs outbound fetches.
+  const no = refuse(req, 5);
+  if (no) return no;
+  const body = (await readBody(req)) as { artist?: unknown; wallet?: unknown; page?: unknown } | null;
+  if (!body || typeof body !== "object") return reply(400, { error: "invalid request" });
   const artistID = Number(body.artist);
   const wallet = typeof body.wallet === "string" ? body.wallet : "";
-  if (!Number.isInteger(artistID) || artistID < 1 || !ADDRESS.test(wallet)) return reply(400, { error: "invalid artist or wallet" });
+  if (!Number.isInteger(artistID) || artistID < 1 || !isAddress(wallet)) return reply(400, { error: "invalid artist or wallet" });
 
   try {
     const p = await provider();
@@ -91,7 +107,7 @@ export default async (req: Request): Promise<Response> => {
     } else {
       const site = proofPage(a.kind === "curated" ? a.source : typeof body.page === "string" ? body.page : "");
       if (!site) return reply(400, { error: "Give your website's address, e.g. https://yourname.com" });
-      if (isSharedHost(site.hostname) || site.hostname.endsWith(".bandcamp.com") || site.hostname.endsWith("soundcloud.com")) {
+      if (isSharedHost(site.hostname)) {
         return reply(400, { error: `${site.hostname} pages can be written by others, so they cannot prove who you are. Use your own website.` });
       }
       const file = new URL(WELL_KNOWN, site.origin);

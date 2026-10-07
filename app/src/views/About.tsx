@@ -2,6 +2,7 @@ import { Icon } from "../components/Icons";
 import { type Glyph, Shape } from "../components/Shapes";
 import { gnot, shortAddr } from "../lib/format";
 import { CHAIN_ID } from "../lib/gno";
+import { ABUSE_EMAIL, CONTACT_EMAIL, NOTICE_DELAY } from "../lib/legal";
 import { realmPage, sourceURL } from "../lib/links";
 import type { Catalog, Navigate, SupportInfo } from "../lib/types";
 
@@ -16,9 +17,9 @@ const STEPS: readonly { readonly g: Glyph; readonly title: string; readonly text
 ];
 
 const VERIFY_STEPS: readonly { readonly g: Glyph; readonly title: string; readonly text: string }[] = [
-  { g: "square", title: "A code on your own page", text: "The artist pastes a short code in their Audius bio, Bandcamp page or website: a place only they control." },
-  { g: "circle", title: "A robot checks it", text: "No email, no human review. The robot reads the page and records the claim publicly on gno.land." },
-  { g: "quarter", title: "72 hours, then tips open", text: "The claim stays public for 72 hours, time to stop it if a page was hacked. Then the profile is verified and fans can tip it." },
+  { g: "square", title: "A code on your own page", text: "The artist adds a short code to their Audius bio or to a file on their own website (/.well-known/gnoradio.txt): places only they control." },
+  { g: "circle", title: "A robot checks it", text: "No email, no human review. The robot reads the page and records the request publicly on gno.land." },
+  { g: "quarter", title: "72 hours, then tips open", text: "The request stays public for 72 hours, time to stop it if a page was hacked. Then the profile is verified and fans can tip it." },
 ];
 
 // What gnoweb shows of GnoRadio, to check it runs as it says.
@@ -38,23 +39,25 @@ const CAN = [
   "Program the stations and remove a slot from rotation; set the monthly goal, the treasury address and the ticket service fee (10 GNOT at most).",
   "Pause every write for an upgrade, name a successor realm, set the app's link on gnoweb.",
 ];
-const CANNOT = "Take or redirect a tip: it reaches the artist in the same transaction. Change an artist's split, edit someone else's track or move anyone's ticket.";
+const CANNOT = "Take or redirect a tip: it reaches the artist in the same transaction. Touch an artist's promo budget. Change an artist's split, edit someone else's track or move anyone's ticket.";
 
 const MONEY = [
-  ["Tip to an artist", "100% to the artist", "Split with collaborators as the artist declared it."],
-  ["Optional, on top of a tip", "+10% to the treasury", "Ticked by default, easy to untick."],
+  ["Tip to an artist", "0% to GnoRadio", "Split with collaborators as the artist declared it. The artist's promo share (5% by default, 0 to 20%) goes to the listener who picked it on air and whoever shared the link."],
+  ["Free pick", "Paid by the artist", "An artist may fund a promo budget that refunds a pick of their track (0.01 to 0.05 GNOT, about the pick's cost) once it has played in full; you collect it within 7 days. Wallets with some pick history only, a few a day. GnoRadio holds no key to it: the artist withdraws the rest at any time."],
+  ["Optional, on top of a tip", "+10% to the treasury", "Optional, off by default."],
   ["Paid concert ticket", "Price to the artist", "A service fee on top goes to the treasury."],
   ["Direct support", "To the treasury", "Pays hosting, storage and the indexer."],
-  ["Storage deposit", "Locked by gno.land", "Returned when the data is freed, e.g. on Unlike."],
+  ["Storage deposit", "Locked by gno.land", "Returned to whoever's transaction frees the data, e.g. your own Unlike."],
 ] as const;
 
 /** About: how GnoRadio works, where the money goes, and how to check it. */
 export function About({ cat, support, go }: { readonly cat: Catalog; readonly support: SupportInfo; readonly go: Navigate }) {
+  const count = (n: number, word: string) => [String(n), n === 1 ? word : `${word}s`] as const;
   const facts = [
-    [String(cat.tracks.length), "tracks"],
-    [String(cat.artists.size), "artists"],
-    [String(cat.stations.filter((s) => s.tracks > 0).length), "live stations"],
-    [String(cat.playlists.length), "playlists"],
+    count(cat.tracks.length, "track"),
+    count(cat.artists.size, "artist"),
+    count(cat.stations.filter((s) => s.tracks > 0).length, "live station"),
+    count(cat.playlists.length, "playlist"),
     [gnot(support.total), "given to keep it on air"],
   ] as const;
   const links = [
@@ -117,7 +120,7 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
             </li>
           ))}
         </ol>
-        <p className="muted small">Why it is safe: GnoRadio never holds money, a tip goes straight to the artist in the same transaction. The robot can only propose a claim, a limited number per day; it cannot move funds or change settings, and the admin can cancel a claim during the wait. Artist? <button className="link" onClick={() => { go({ k: "contribute", path: "claim" }); }}>Verify your profile</button>.</p>
+        <p className="muted small">Why it is safe: GnoRadio never holds money, a tip goes straight to the artist in the same transaction. The robot can only propose a verification; it cannot move funds or change settings, and the admin can cancel one during the wait or revoke the robot key at once. Artist? <button className="link" onClick={() => { go({ k: "contribute", path: "claim" }); }}>Verify your profile</button>.</p>
       </section>
 
       <section className="about-sec">
@@ -164,14 +167,23 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
         </ul>
       </section>
 
-      <section className="about-sec legal" id="legal">
+      <section className="about-sec legal">
         <h2 className="sub">Legal</h2>
         <p className="muted small">
-          GnoRadio is a non-commercial proof of concept, provided as is, without warranty. Published by alexiscolin (non-professional publisher), hosted by Netlify, Inc., 512 2nd Street, Suite 200, San Francisco, CA 94107, USA.
-          Music belongs to its artists and is streamed under the Audius Open Music License or the Creative Commons license shown on each track.
-          On-chain actions (likes, tips, picks, dedications, tickets) are public and final; no tracking cookies, only your browser keeps your saves and volume.
-          Dedications are screened automatically: a word list on-chain, then an automated moderation service (OpenAI) that can hide them; listeners can report them too.
-          Copyright or content issue? <a href={`${REPO}/issues`} {...out}>Open an issue</a>: the track is hidden while we check.
+          GnoRadio is an independent project, not affiliated with or endorsed by Audius, the Open Audio Foundation, Adena or gno.land.
+          Music belongs to its artists and is streamed under the Audius Open Music License or the licence shown on each track.
+          On-chain actions (likes, tips, picks, dedications, tickets, reports) are public and permanent; what your browser keeps and who sees what is in the <button className="link" onClick={() => { go({ k: "legal" }); }}>privacy notice</button>.
+          Dedications are screened before they go on air: a word list on-chain, then an automated moderation service (OpenAI receives the dedication text only, never your address).
+          Listeners can report a track, album, artist or playlist on-chain: the moderator reads every report and hides the content while checking.
+        </p>
+        <p className="muted small">
+          Copyright or illegal content? Email <a href={`mailto:${ABUSE_EMAIL}`}>{ABUSE_EMAIL}</a> with: the link, why it is illegal or which right it infringes, your name and email, and a statement that you believe this in good faith. We hide reported content while we check, usually within {NOTICE_DELAY}, and tell the uploader why.
+        </p>
+        <p className="muted small">
+          Accessibility: GnoRadio is built to work with a keyboard and a screen reader, but it has not been audited. Tell us what gets in your way at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+        </p>
+        <p className="muted small">
+          <button className="link" onClick={() => { go({ k: "legal" }); }}>Legal notice, privacy and terms</button> · <a href={`${REPO}/blob/main/NOTICE`} {...out}>Third-party notices</a>
         </p>
       </section>
 

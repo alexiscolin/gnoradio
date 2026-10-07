@@ -19,4 +19,10 @@ export default tseslint.config(
       "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }],
     },
   },
+  // The Playwright suite (npm run e2e): Node + browser, no React.
+  {
+    files: ["e2e/**/*.ts"],
+    languageOptions: { globals: { ...globals.node, ...globals.browser }, parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname } },
+    rules: { "@typescript-eslint/restrict-template-expressions": ["error", { allowNumber: true }] },
+  },
 );

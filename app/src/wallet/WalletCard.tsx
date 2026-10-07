@@ -78,16 +78,13 @@ function Card({ wallet, onRegister }: { readonly wallet: Wallet; readonly onRegi
     <>
       <span className="wcard-head as-div">
         <span>{missing ? "Get Adena" : s.status === "connecting" ? "Connecting…" : "Connect Adena"}</span>
-        <Icon name={missing ? "external" : "arrow-right"} className={missing ? "nudge-out" : "nudge"} />
+        <Icon name="arrow-right" className="nudge" />
       </span>
       <span className="wcard-art" aria-hidden="true"><Composition variant={0} /></span>
     </>
   );
-  return missing ? (
-    <a className="wcard" href="https://adena.app" target="_blank" rel="noreferrer">{body}</a>
-  ) : (
-    <button className="wcard" onClick={() => void wallet.connectWallet()} disabled={s.status === "connecting"}>{body}</button>
-  );
+  // Without Adena, connectWallet opens the WalletSheet (install it, or use gnokey).
+  return <button className="wcard" onClick={() => void wallet.connectWallet()} disabled={s.status === "connecting"}>{body}</button>;
 }
 
 /** WalletPill is the mobile top-bar version; tapping the address offers Disconnect. */
@@ -111,7 +108,6 @@ export function WalletPill({ wallet }: { readonly wallet: Wallet }) {
     );
   }
   if (s.status === "wrong-network") return <button className="pill red" onClick={() => void wallet.fixNetwork()}>Switch to {CHAIN_ID}</button>;
-  // No Adena on phones yet: listening needs no wallet, so show nothing.
-  if (s.status === "missing") return /Android|iPhone|iPad/i.test(navigator.userAgent) ? null : <a className="pill" href="https://adena.app" target="_blank" rel="noreferrer">Get Adena</a>;
+  // No Adena (every phone today): the pill opens the WalletSheet, which says what to do.
   return <button className="pill" onClick={() => void wallet.connectWallet()} disabled={s.status === "connecting"}>{s.status === "connecting" ? "Connecting…" : "Connect"}</button>;
 }

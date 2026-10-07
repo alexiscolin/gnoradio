@@ -74,6 +74,14 @@ func TestGnowebPages(cur realm, t *testing.T) {
 	// Verification happens in the app (catalog/verify.gno), never through a report.
 	uassert.False(t, strings.Contains(verifyLink(3), "func=Report"))
 	uassert.True(t, strings.Contains(strings.ToLower(verifyLink(3)), "verify it"))
+	urequire.True(t, strings.Contains(about, abuseEmail))
+
+	// A hidden track's page says who hid it.
+	testing.SetRealm(testing.NewUserRealm(singer))
+	catalog.HideOwn(cross(cur), "track", tr, true)
+	hp := Render("track/" + itoa(tr))
+	uassert.True(t, strings.Contains(hp, "Hidden by the artist"), hp)
+	catalog.HideOwn(cross(cur), "track", tr, false)
 }
 
 // Past concerts are listed under the upcoming ones.

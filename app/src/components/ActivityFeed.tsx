@@ -2,6 +2,7 @@ import { gnot } from "../lib/format";
 import { useNames } from "../lib/names";
 import type { Activity, Catalog, Navigate } from "../lib/types";
 import { type Glyph, Shape } from "./Shapes";
+import { Who } from "./common";
 
 const GLYPH: Record<Activity["kind"], Glyph> = {
   like: "circle",
@@ -10,6 +11,7 @@ const GLYPH: Record<Activity["kind"], Glyph> = {
   support: "square",
   queue: "quarter",
   curator: "quarter",
+  sponsored: "quarter",
   claim: "quarter",
   publish: "triangle",
   album: "triangle",
@@ -25,6 +27,67 @@ export function ago(at: number, now: number): string {
   return `${String(Math.floor(s / 86400))}d`;
 }
 
+type Target = Parameters<Navigate>[0];
+
+/** A feed line's parts: what it is about (the title, first), what happened, where. */
+export interface Line {
+  readonly title: string;
+  readonly verb: string;
+  readonly station: string;
+  readonly target?: Target | undefined;
+}
+
+/** activityLine words one activity; null when what it points at is unknown (hidden or not loaded), so the row is left out. */
+export function activityLine(a: Activity, cat: Catalog): Line | null {
+  const t = cat.byId.get(a.track);
+  const artist = cat.artists.get(a.artist ?? t?.artist ?? 0);
+  const onAir = a.kind === "queue" || a.kind === "curator" || a.kind === "sponsored" || a.kind === "tip";
+  const station = onAir && a.station !== undefined ? cat.stations.find((s) => s.id === a.station)?.name ?? "" : "";
+  const track = (verb: string): Line | null => (t ? { title: t.title, verb, station, target: { k: "track", id: t.id } } : null);
+  switch (a.kind) {
+    case "like": return track("Liked");
+    case "tip": return track(`Tipped ${gnot(a.amount ?? 0)}`);
+    case "queue": return track("Picked");
+    case "curator": return track("Programmed");
+    case "sponsored": return track("Free pick");
+    case "publish": return track("Published");
+    case "support": return { title: "GnoRadio", verb: `Supported with ${gnot(a.amount ?? 0)}`, station: "", target: { k: "community" } };
+    case "follow": return artist ? { title: artist.name, verb: "Followed", station: "", target: { k: "artist", id: artist.id } } : null;
+    case "claim": return artist ? { title: artist.name, verb: "Profile verified", station: "", target: { k: "artist", id: artist.id } } : null;
+    case "album": {
+      const al = cat.albums.find((x) => x.id === a.track);
+      return al ? { title: al.title, verb: "New album", station: "", target: { k: "album", id: al.id } } : null;
+    }
+    case "playlist": {
+      const pl = cat.playlists.find((x) => x.id === a.track);
+      return pl ? { title: pl.title, verb: "New playlist", station: "", target: { k: "playlist", id: pl.id } } : null;
+    }
+  }
+}
+
+/** FeedItem is one feed row: the title in bold, then "<verb> by <who> · <station> · <when>" under it. */
+export function FeedItem({ g, line, by, shown, go, when }: {
+  readonly g: Glyph;
+  readonly line: Line;
+  readonly by: string;
+  readonly shown: (a: string) => string;
+  readonly go: Navigate;
+  readonly when: string;
+}) {
+  const { target } = line;
+  return (
+    <li>
+      <Shape g={g} size={12} />
+      <span className="feed-main">
+        {target ? <button className="feed-title" onClick={() => { go(target); }}>{line.title}</button> : <b className="feed-title">{line.title}</b>}
+        <span className="feed-by">
+          {line.verb} by <Who address={by} shown={shown} go={go} />{line.station && ` · ${line.station}`} · <span className="mono">{when}</span>
+        </span>
+      </span>
+    </li>
+  );
+}
+
 /** ActivityFeed is the community pulse: every row is a transaction anyone can verify. */
 export function ActivityFeed({ items, cat, go, now, compact = false }: {
   readonly items: readonly Activity[];
@@ -34,48 +97,13 @@ export function ActivityFeed({ items, cat, go, now, compact = false }: {
   readonly compact?: boolean;
 }) {
   const shown = useNames(items.map((a) => a.by));
-  if (items.length === 0) return <p className="muted">No activity yet. Be the first: like, tip or queue a track.</p>;
+  const rows = items.flatMap((a) => { const line = activityLine(a, cat); return line ? [{ a, line }] : []; });
+  if (rows.length === 0) return <p className="muted">No activity yet. Be the first: like, tip or pick a track.</p>;
   return (
-    <ol className={`feed${compact ? " compact" : ""}`}>
-      {items.map((a, idx) => {
-        const isTrack = a.kind === "like" || a.kind === "tip" || a.kind === "queue" || a.kind === "curator" || a.kind === "publish";
-        const t = isTrack ? cat.byId.get(a.track) : undefined;
-        const who = cat.artists.get(t?.artist ?? 0);
-        const artistName = cat.artists.get(a.artist ?? 0)?.name ?? who?.name ?? "an artist";
-        const title = t?.title ?? "a track";
-        const station = cat.stations.find((s) => s.id === a.station)?.name ?? "the radio";
-        const target = ((): Parameters<Navigate>[0] | undefined => {
-          if (t) return { k: "track", id: t.id };
-          if (a.kind === "playlist" && a.track) return { k: "playlist", id: a.track };
-          if (a.kind === "album" && a.track) return { k: "album", id: a.track };
-          if ((a.kind === "follow" || a.kind === "claim") && a.artist) return { k: "artist", id: a.artist };
-          if (a.kind === "support") return { k: "community" };
-          return undefined;
-        })();
-        const open = () => { if (target) go(target); };
-        let text: string;
-        switch (a.kind) {
-          case "tip": text = `tipped ${gnot(a.amount ?? 0)} to ${artistName}`; break;
-          case "support": text = `supported GnoRadio with ${gnot(a.amount ?? 0)}`; break;
-          case "like": text = `liked ${title}`; break;
-          case "follow": text = `followed ${artistName}`; break;
-          case "queue": text = `queued ${title} on ${station}`; break;
-          case "curator": text = `programmed ${title} on ${station}`; break;
-          case "publish": text = `published ${title}`; break;
-          case "album": text = "released an album"; break;
-          case "playlist": text = "shared a playlist"; break;
-          case "claim": text = `${artistName} claimed their profile`; break;
-        }
-        return (
-          <li key={`${String(idx)}-${a.kind}-${String(a.at)}-${a.by}-${String(a.track)}`}>
-            <Shape g={GLYPH[a.kind]} size={12} />
-            {target
-              ? <button className="feed-txt" onClick={open}><span className="mono who">{shown(a.by)}</span> {text}</button>
-              : <span className="feed-txt"><span className="mono who">{shown(a.by)}</span> {text}</span>}
-            <span className="mono muted">{ago(a.at, now)}</span>
-          </li>
-        );
-      })}
+    <ol className={`feed lines${compact ? " compact" : ""}`}>
+      {rows.map(({ a, line }, idx) => (
+        <FeedItem key={`${String(idx)}-${a.kind}-${String(a.at)}-${a.by}-${String(a.track)}`} g={GLYPH[a.kind]} line={line} by={a.by} shown={shown} go={go} when={ago(a.at, now)} />
+      ))}
     </ol>
   );
 }

@@ -56,7 +56,7 @@ func TestNameSkeletonAndRename(cur realm, t *testing.T) {
 	uassert.Equal(t, 3, ArtistByName("BEYONCE"))
 
 	testing.SetRealm(testing.NewUserRealm(boss))
-	HideArtist(cross(cur), 3, true)
+	HideArtist(cross(cur), 3, true, "impersonation")
 	testing.SetRealm(testing.NewUserRealm(carol))
 	uassert.AbortsContains(t, cur, "hidden artist cannot", func() { RegisterArtist(cross(cur), "Carol", "") })
 	RegisterArtist(cross(cur), "BEYONCÉ", "") // same name, new spelling: allowed

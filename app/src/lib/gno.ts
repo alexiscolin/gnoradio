@@ -2,6 +2,11 @@
 // sends transactions through the Adena wallet (or a session, or gnokey). Listening never touches it.
 
 import { check, type Guard } from "./guard";
+import { MAX_NOTE } from "./moderation";
+import { isAddress, unquote } from "./proof";
+import { REALMS, SAFE } from "./realms";
+
+export { MAX_NOTE, REALMS, SAFE, unquote };
 
 export const RPC = import.meta.env.VITE_RPC ?? "/rpc";
 export const CHAIN_ID = import.meta.env.VITE_CHAIN_ID ?? (import.meta.env.PROD ? "onyx-1" : "dev");
@@ -14,19 +19,9 @@ export function networkLabel(chainId: string): string {
   return chainId;
 }
 
-export const REALMS = {
-  catalog: "gno.land/r/gnoradio/catalog/v0",
-  radio: "gno.land/r/gnoradio/radio/v0",
-  tickets: "gno.land/r/gnoradio/tickets/v0",
-} as const;
-
 export type RealmPath = (typeof REALMS)[keyof typeof REALMS] | SysPath;
 /** gno.land system realms the app reads: names (r/sys/users) and the name registrar. */
 export type SysPath = "gno.land/r/sys/users" | "gno.land/r/sys/namereg/v0" | "gno.land/r/sys/namereg/v1" | typeof SAFE;
-
-/** SAFE screens dedications (p/gnoradio/safe); the app asks it before signing. */
-export const SAFE = "gno.land/p/gnoradio/safe/v0";
-export const MAX_NOTE = 40;
 
 /** noteProblem is why a dedication would be refused ("" when fine): a free read. */
 export async function noteProblem(note: string): Promise<string> {
@@ -103,10 +98,6 @@ async function qevalOnce(pkg: RealmPath, expr: string): Promise<string> {
   return fromBase64(base.Data ?? "");
 }
 
-/** unquote unwraps a qeval string result, ("…" string) → …; "" when it isn't one. */
-import { unquote } from "./proof";
-export { unquote };
-
 /** qjson evaluates a realm function returning a JSON string, parses it and validates it with guard. */
 export async function qjson<T>(pkg: RealmPath, expr: string, guard: Guard<T>): Promise<T> {
   const raw = await qeval(pkg, expr);
@@ -121,11 +112,9 @@ export async function qjson<T>(pkg: RealmPath, expr: string, guard: Guard<T>): P
   }
 }
 
-const ADDRESS = /^g1[02-9ac-hj-np-z]{38}$/;
-
-/** gnoString quotes a value for a qeval expression; addresses are validated first. */
+/** gnoAddress quotes a validated address for a qeval expression. */
 export function gnoAddress(a: string): string {
-  if (!ADDRESS.test(a)) throw new Error("Invalid gno.land address");
+  if (!isAddress(a)) throw new Error("Invalid gno.land address");
   return JSON.stringify(a);
 }
 
@@ -135,9 +124,9 @@ export function gnoAddress(a: string): string {
 /** RPC the wallet itself must reach (the dev proxy /rpc is only for the page). */
 export const WALLET_RPC =
   import.meta.env.VITE_WALLET_RPC ?? (CHAIN_ID === "dev" ? `http://${window.location.hostname}:27157` : "https://rpc.onyx.testnets.gno.land:443");
-export const CHAIN_NAME = CHAIN_ID === "dev" ? "GnoRadio devnet" : `gno.land ${CHAIN_ID}`;
+const CHAIN_NAME = CHAIN_ID === "dev" ? "GnoRadio devnet" : `gno.land ${CHAIN_ID}`;
 
-export interface AdenaResponse<T> {
+interface AdenaResponse<T> {
   readonly code: number;
   readonly status: "success" | "failure";
   readonly type: string;
@@ -215,7 +204,7 @@ export const isCancel = (e: unknown): boolean => e instanceof AdenaError && e.co
 
 export const hasAdena = (): boolean => window.adena !== undefined;
 
-export function adena(): AdenaWallet {
+function adena(): AdenaWallet {
   if (!window.adena) throw new Error("Install the Adena wallet to sign actions.");
   return window.adena;
 }

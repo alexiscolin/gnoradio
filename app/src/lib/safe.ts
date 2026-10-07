@@ -19,7 +19,7 @@ export function safeMedia(u: string): string {
   return u.startsWith("https://") ? safeHttps(u) : u;
 }
 
-export const IPFS_GATEWAYS = ["https://ipfs.io/ipfs/", "https://dweb.link/ipfs/", "https://cloudflare-ipfs.com/ipfs/"] as const;
+const IPFS_GATEWAYS = ["https://ipfs.io/ipfs/", "https://dweb.link/ipfs/", "https://cloudflare-ipfs.com/ipfs/"] as const;
 
 /** mediaURLs resolves a media reference to playable URLs, best first (several IPFS gateways). */
 export function mediaURLs(ref: string): string[] {

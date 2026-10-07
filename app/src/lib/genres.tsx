@@ -1,12 +1,12 @@
 import { type Glyph, Shape } from "../components/Shapes";
 
-// One pure glyph per genre: the 4 shapes × the 3 colours give exactly 12, ids 1..12.
+// One pure glyph per genre: the 4 shapes × the 5 colours give exactly 20, ids 1..20.
 const SHAPES: readonly Glyph[] = ["square", "circle", "triangle", "quarter"];
-const COLOURS = ["var(--blue)", "var(--yellow)", "var(--red)"] as const;
+const COLOURS = ["var(--blue)", "var(--yellow)", "var(--red)", "var(--ink)", "var(--stone)"] as const;
 
-export function genreGlyph(id: number): { readonly g: Glyph; readonly fill: string } {
+function genreGlyph(id: number): { readonly g: Glyph; readonly fill: string } {
   const i = Math.max(0, id - 1);
-  return { g: SHAPES[i % 4] ?? "circle", fill: COLOURS[Math.floor(i / 4) % 3] ?? "var(--red)" };
+  return { g: SHAPES[i % 4] ?? "circle", fill: COLOURS[Math.floor(i / 4) % 5] ?? "var(--red)" };
 }
 
 /** GenreGlyph draws a genre's shape; muted greys it until hovered or chosen. */

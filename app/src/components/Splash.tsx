@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 
-const MIN_MS = 1600; // let the entrance finish even on a fast load
+const MIN_MS = 2200; // the whole entrance (shapes, word, dot: about 1.7 s) plays even on a fast load
 const EXIT_MS = 1350; // matches the .splash.out timeline in styles.css
 
 interface SplashProps {

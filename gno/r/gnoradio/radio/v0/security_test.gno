@@ -86,7 +86,7 @@ func TestQueueCooldownAndAirtimeCap(cur realm, t *testing.T) {
 					capped = true
 				}
 			}()
-			queue(who, 8, ids[i], false, "")
+			queue(cur, who, 8, ids[i], false, false, "", 0)
 		}()
 	}
 	urequire.True(t, capped)

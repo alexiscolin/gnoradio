@@ -6,10 +6,13 @@
   curate.py batch  [--approved approved.json] [--dry-run]
                                              build import_batch.json for catalog.ImportTrack;
                                              every row is checked against the realm's rules first
+  curate.py devseed [--per N] [--batch N]    local devnet only: Audius trending tracks per genre
+                                             -> gno/r/gnoradio/devseed/v0/data.gno (gitignored)
 
 Rule: every track comes from a whitelisted seed (seeds.json). Never open-ended search.
 """
 import argparse
+import concurrent.futures
 import hashlib
 import http.client
 import json
@@ -29,23 +32,29 @@ UA = "GnoRadioCurate/0.1 (+https://gno.land; catalog curation, whitelist only)"
 APP = "GnoRadio"
 AUDIUS = "https://api.audius.co/v1"
 
-GENRES = {1: "Electronic", 2: "Synthwave", 3: "Ambient", 4: "Techno & House", 5: "Lo-fi & Chill",
-          6: "Hip-hop & Beats", 7: "Rock & Indie", 8: "Pop", 9: "Jazz & Soul", 10: "Folk & Acoustic",
-          11: "Cinematic & Classical", 12: "World"}
+GENRES = {1: "Electronica", 2: "Synthwave", 3: "Ambient", 4: "Techno", 5: "House", 6: "Drum & Bass",
+          7: "Dubstep & Trap", 8: "Lo-fi Beats", 9: "Hip-hop & Rap", 10: "R&B & Soul", 11: "Rock & Indie",
+          12: "Metal & Punk", 13: "Pop", 14: "Jazz & Blues", 15: "Folk & Acoustic", 16: "Cinematic & Classical",
+          17: "World", 18: "Latin", 19: "Reggae & Dub", 20: "Funk & Disco"}
 TARGET_PER_GENRE = 80
 
 MIN_SEC, MAX_SEC = 90, 600
 MIN_KBPS = 128      # hard floor (many good archive.org releases are VBR ~130-190 kbps)
 WARN_KBPS = 192     # below this the candidate is flagged low_bitrate for the reviewer
 
-# Audius genre -> GnoRadio genre id (first match wins; checked on lowercase).
+# Audius genre (or, for a broad electronic genre, tag) -> GnoRadio genre id
+# (first match wins; checked on lowercase, so "trap" precedes "rap" and "dubstep" precedes "dub").
 AUDIUS_GENRES = [
-    ("synthwave", 2), ("ambient", 3), ("techno", 4), ("house", 4), ("lo-fi", 5), ("lofi", 5),
-    ("chill", 5), ("hip-hop", 6), ("rap", 6), ("trap", 6), ("beats", 6), ("rock", 7), ("alternative", 7),
-    ("punk", 7), ("pop", 8), ("jazz", 9), ("soul", 9), ("r&b", 9), ("funk", 9), ("folk", 10),
-    ("acoustic", 10), ("country", 10), ("classical", 11), ("soundtrack", 11), ("cinematic", 11),
-    ("world", 12), ("latin", 12), ("reggae", 12), ("afro", 12), ("electronic", 1), ("dubstep", 1),
-    ("drum & bass", 1), ("trance", 1), ("experimental", 1),
+    ("synthwave", 2), ("retrowave", 2), ("outrun", 2), ("vaporwave", 2), ("ambient", 3), ("techno", 4),
+    ("house", 5), ("garage", 5), ("drum & bass", 6), ("drum and bass", 6), ("dnb", 6), ("jungle", 6),
+    ("dubstep", 7), ("future bass", 7), ("hardstyle", 7), ("trap", 7), ("lo-fi", 8), ("lofi", 8),
+    ("downtempo", 8), ("chill", 8), ("hip-hop", 9), ("hip hop", 9), ("rap", 9), ("r&b", 10), ("soul", 10),
+    ("metal", 12), ("punk", 12), ("rock", 11), ("alternative", 11), ("indie", 11), ("pop", 13), ("jazz", 14),
+    ("blues", 14), ("folk", 15), ("acoustic", 15), ("country", 15), ("singer-songwriter", 15),
+    ("classical", 16), ("soundtrack", 16), ("cinematic", 16), ("moombahton", 18), ("reggaeton", 18),
+    ("latin", 18), ("dancehall", 19), ("reggae", 19), ("dub", 19), ("funk", 20), ("disco", 20),
+    ("world", 17), ("afro", 17), ("electro", 1), ("glitch hop", 1), ("experimental", 1), ("trance", 1),
+    ("edm", 1),
 ]
 
 _last_call = {}
@@ -154,8 +163,12 @@ CLOCK_RE = re.compile(r"^(\d{1,3}):([0-5]\d)$")
 
 
 def text_ok(s, lo, hi):
-    """validText: letters (any script), digits, spaces and . , ' - ! ? : / & only."""
+    """text.Valid: letters (any script), digits, spaces and . , ' - ! ? : / & only;
+    no fullwidth or mathematical letters, no blank Hangul fillers."""
     for ch in s:
+        o = ord(ch)
+        if 0xFF01 <= o <= 0xFF5E or 0x1D400 <= o <= 0x1D7FF or o in (0x115F, 0x1160, 0x3164, 0xFFA0):
+            return False
         if not (ch.isalpha() or unicodedata.category(ch) == "Nd" or ch in TEXT_PUNCT):
             return False
     return lo <= len(s) <= hi
@@ -470,15 +483,35 @@ def ccmixter_row(seed, r, stats):
 
 # ---------------------------------------------------------------- Audius
 
-def audius_genre(g, default):
-    g = (g or "").lower()
-    for key, gid in AUDIUS_GENRES:
-        if key in g:
-            return gid
-    return default
+def audius_genre(g, default, tags=""):
+    """Map an Audius genre to a GnoRadio id; a broad electronic genre is refined by the track's tags."""
+    gid = next((i for k, i in AUDIUS_GENRES if k in (g or "").lower()), default)
+    if gid == 1 and tags:
+        gid = next((i for k, i in AUDIUS_GENRES if k in tags.lower()), 1)
+    return gid
 
 
+OML_RE = re.compile(r"\bopen music licen[sc]e\b|^oml$", re.I)
 EDIT_RE = re.compile(r"\b(edit|remix|bootleg|flip|rework|mashup|cover|vip mix|stem drop|live set|mix vol)\b", re.I)
+
+
+def audius_problem(t):
+    """Why an Audius track is not a streamable original with artwork (None when it is)."""
+    if t.get("is_stream_gated") or not t.get("is_streamable", True) or t.get("is_delete") or t.get("is_unlisted"):
+        return "gated/unavailable"
+    if (t.get("remix_of") or {}).get("tracks") or t.get("cover_original_song_title") or t.get("stem_of"):
+        return "remix/cover/stem"
+    if EDIT_RE.search(t.get("title", "")):
+        return "title looks like an edit/remix/set"
+    if not (MIN_SEC <= (t.get("duration") or 0) <= MAX_SEC):
+        return "duration"
+    if not t.get("artwork"):
+        return "no artwork"
+    # The artist's own license overrides the Open Music License: keep only tracks with none, or the OML itself.
+    lic = (t.get("license") or "").strip()
+    if lic and not OML_RE.search(lic):
+        return "own license: " + lic
+    return None
 
 
 def audius_seed(seed, max_items, stats):
@@ -488,17 +521,7 @@ def audius_seed(seed, max_items, stats):
     stats["items"] += len(rows)
     out = []
     for t in rows:
-        why = None
-        if t.get("is_stream_gated") or not t.get("is_streamable", True) or t.get("is_delete") or t.get("is_unlisted"):
-            why = "gated/unavailable"
-        elif (t.get("remix_of") or {}).get("tracks") or t.get("cover_original_song_title") or t.get("stem_of"):
-            why = "remix/cover/stem"
-        elif EDIT_RE.search(t.get("title", "")):
-            why = "title looks like an edit/remix/set"
-        elif not (MIN_SEC <= (t.get("duration") or 0) <= MAX_SEC):
-            why = "duration"
-        elif not t.get("artwork"):
-            why = "no artwork"
+        why = audius_problem(t)
         if why:
             stats["rejected"][why] = stats["rejected"].get(why, 0) + 1
             continue
@@ -514,8 +537,8 @@ def audius_seed(seed, max_items, stats):
             attrib = clean_text(attrib + ", copyright " + copyright_line, MAX_ATTRIBUTION)
         out.append(candidate(
             source="audius", seed=seed["id"], source_id=t["id"], title=title, artist=artist,
-            genre=audius_genre(t.get("genre"), seed["genre"]), duration=clock(sec), seconds=sec,
-            license="Audius-OML", license_url="https://audius.org/open-music-license.pdf",
+            genre=audius_genre(t.get("genre"), seed["genre"], t.get("tags") or ""), duration=clock(sec), seconds=sec,
+            license="Audius-OML", license_url="https://openaudiofoundation.org/open-music-license.pdf",
             audio="audius:" + t["id"], cover=None, preview_cover=cover, source_url=source_url, attribution=attrib,
             notes=["Audius genre: %s" % t.get("genre"), "API terms: session cache only, never mirror"],
             audius_user_id=user["id"], audius_wallets={k: user.get(k) for k in ("erc_wallet", "spl_wallet")}))
@@ -701,6 +724,82 @@ def cmd_batch(a):
         print("%-24s %5d  %s%s" % (GENRES[g], n, bar, "  (short)" if n < TARGET_PER_GENRE else ""))
 
 
+# ---------------------------------------------------------------- devnet seed
+
+# Audius genres whose trending lists fill the local devnet (dev only, never the launch catalog).
+DEVSEED_GENRES = [
+    "Electronic", "Electro", "Glitch Hop", "Experimental", "Trance", "Synthwave", "Vaporwave", "Ambient", "Techno",
+    "House", "Deep House", "Tech House", "Progressive House", "Future House", "Tropical House", "Drum & Bass", "Jungle",
+    "Dubstep", "Future Bass", "Trap", "Hardstyle", "Lo-Fi", "Downtempo", "Hip-Hop/Rap", "R&B/Soul", "Rock",
+    "Alternative", "Metal", "Punk", "Pop", "Hyperpop", "Jazz", "Blues", "Folk", "Acoustic", "Country", "Soundtrack",
+    "Classical", "World", "Latin", "Moombahton", "Reggaeton", "Reggae", "Dancehall", "Funk", "Disco",
+]
+DEVSEED_TAKEN = ("Scott Buckley", "ATTLAS", "Lea Kosmos", "Tryad")  # devseed.Base and the demo artists
+DEVSEED_OUT = os.path.join(HERE, "..", "..", "gno", "r", "gnoradio", "devseed", "v0", "data.gno")
+# Mirror of p/gnoradio/safe hate list, glued: a title or name holding one panics a whole batch.
+HATE = ("nigg", "fagg", "kike", "chink", "gook", "wetback", "raghead", "towelhead", "tranny", "trannies",
+        "zipperhead", "junglebunny", "porchmonkey", "untermensch", "holohoax", "heilhitler", "siegheil",
+        "whitepower", "gasthejews", "killthejews", "killalljews")
+
+
+def slur(s):
+    """Stricter than safe.Slur: letters and leet digits glued, so any hit is refused."""
+    f = "".join("oizeasgtbg"[int(c)] if c.isdigit() else c
+                for c in unicodedata.normalize("NFKD", s.lower()) if c.isascii() and c.isalnum())
+    sq = re.sub(r"(.)\1+", r"\1", f)
+    return any(w in f or w in sq for w in HATE)
+
+
+def audius_trending(genre):
+    """Every track of an Audius genre's trending lists (all time, month, week) and underground list."""
+    lists = [("trending", {"time": tm, "offset": off}) for tm in ("allTime", "month", "week") for off in (0, 100, 200)]
+    lists += [("trending/underground", {"offset": off}) for off in range(0, 500, 100)]
+    for path, q in lists:
+        q.update(genre=genre, limit=100, app_name=APP)
+        try:
+            yield from http_json("%s/tracks/%s?%s" % (AUDIUS, path, urllib.parse.urlencode(q)), 0)["data"] or []
+        except urllib.error.HTTPError:
+            continue  # offset past the end of the list
+
+
+def cmd_devseed(a):
+    picked = {g: [] for g in GENRES}
+    seen, titles, per = set(), set(), {}
+    owner = {skeleton(n): "" for n in DEVSEED_TAKEN}  # skeleton -> Audius handle
+    with concurrent.futures.ThreadPoolExecutor(6) as pool:  # Audius answers slowly; 6 lists in flight
+        lists = list(pool.map(lambda ag: list(audius_trending(ag)), DEVSEED_GENRES))
+    for ag, got in zip(DEVSEED_GENRES, lists):
+        for t in got:
+            g = audius_genre(t.get("genre"), None, t.get("tags") or "")
+            if t["id"] in seen or not g or len(picked[g]) >= a.per or audius_problem(t):
+                continue
+            name, handle = (t["user"]["name"] or "").strip(), t["user"]["handle"]
+            title, sk = clean_text(t["title"], MAX_TITLE), skeleton(name)
+            if not (name_ok(name) and sk and text_ok(title, 1, MAX_TITLE) and https_ok("https://audius.co/" + handle)):
+                continue
+            if slur(name + " " + title) or owner.setdefault(sk, handle) != handle:
+                continue
+            if per.get(sk, 0) >= a.per_artist or (sk, title.lower()) in titles:
+                continue
+            slug = urllib.parse.quote(urllib.parse.unquote((t.get("permalink") or "").split("/", 2)[-1]), safe="-._~")
+            if not https_ok("https://audius.co/%s/%s" % (handle, slug)):
+                slug = ""
+            seen.add(t["id"])
+            titles.add((sk, title.lower()))
+            per[sk] = per.get(sk, 0) + 1
+            picked[g].append("|".join((name, handle, title, str(g), clock(t["duration"]), t["id"], slug)))
+        print("%-18s %s" % (ag, " ".join(str(len(v)) for v in picked.values())), flush=True)
+    # Genres interleaved, so any prefix of the batches seeds every station.
+    rows = [r for rank in zip(*(v + [None] * (a.per - len(v)) for v in picked.values())) for r in rank if r]
+    body = "".join("\t`%s`,\n" % "\n".join(rows[i:i + a.batch]) for i in range(0, len(rows), a.batch))
+    with open(a.out, "w") as f:
+        f.write("// Code generated by tools/curate/curate.py devseed from Audius trending lists. DO NOT EDIT.\n\n"
+                "package devseed\n\nvar batches = []string{\n" + body + "}\n")
+    print("%s: %d tracks in %d batches" % (a.out, len(rows), -(-len(rows) // a.batch)))
+    for g, v in picked.items():
+        print("%-24s %5d%s" % (GENRES[g], len(v), "  (short)" if len(v) < 150 else ""))
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -715,8 +814,13 @@ def main():
     b = sub.add_parser("batch")
     b.add_argument("--approved", default=os.path.join(HERE, "approved.json"))
     b.add_argument("--dry-run", action="store_true", help="check every row against the realm rules, write nothing")
+    d = sub.add_parser("devseed")
+    d.add_argument("--out", default=DEVSEED_OUT)
+    d.add_argument("--per", type=int, default=250, help="tracks per genre")
+    d.add_argument("--per-artist", type=int, default=6, help="tracks per artist")
+    d.add_argument("--batch", type=int, default=85, help="tracks per devseed.Run call (gas)")
     a = p.parse_args()
-    {"fetch": cmd_fetch, "hash": cmd_hash, "batch": cmd_batch}[a.cmd](a)
+    {"fetch": cmd_fetch, "hash": cmd_hash, "batch": cmd_batch, "devseed": cmd_devseed}[a.cmd](a)
 
 
 if __name__ == "__main__":

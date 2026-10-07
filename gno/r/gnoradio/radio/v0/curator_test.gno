@@ -55,3 +55,42 @@ func TestCuratorQueueAndActivity(cur realm, t *testing.T) {
 	uassert.Equal(t, 1069, got[0].Track)
 	uassert.Equal(t, 1006, got[63].Track)
 }
+
+// A curator is one map entry: picks on several stations, across weeks, keep
+// one record whose old station entries go once past the cooldown.
+func TestCuratorOneRecord(t *testing.T) {
+	reset()
+	credit(carol, 4, 1, 0, 0)
+	credit(carol, 5, 1, 0, 0)
+	credit(carol, allStations+1, 0, 1, 9)
+	uassert.Equal(t, 1, curators.Len())
+	c, sts := curRec(carol.String())
+	uassert.Equal(t, int64(2), c[cWeek+1])
+	uassert.Equal(t, int64(1), c[cWeek+2])
+	uassert.Equal(t, int64(1), stationOf(sts, 5)[1])
+	ts := now()
+	old := withStation(sts, 4, []int64{1, 1, 0, 0, ts - queueCooldown}, ts) // an old week, past the cooldown
+	uassert.Equal(t, int64(0), stationOf(withStation(old, 6, []int64{weekOf(ts), 1, 0, 0, ts}, ts), 4)[4])
+	uassert.Equal(t, int64(1), stationOf(withStation(old, 6, []int64{weekOf(ts), 1, 0, 0, ts}, ts), 5)[1])
+}
+
+// The replay record of a station keeps the later time per track and only the
+// picks of the last replayGap.
+func TestLastPickRecord(t *testing.T) {
+	reset()
+	ts := now()
+	setPicked(3, 7, ts-replayGap-1) // already out of the gap: not kept
+	_, ok := lastPicked(3, 7)
+	uassert.False(t, ok)
+	setPicked(3, 7, ts-10)
+	setPicked(3, 70, ts)
+	setPicked(3, 7, ts-100) // an earlier time does not win
+	last, ok := lastPicked(3, 7)
+	uassert.True(t, ok)
+	uassert.Equal(t, ts-10, last)
+	last, _ = lastPicked(3, 70)
+	uassert.Equal(t, ts, last)
+	_, ok = lastPicked(4, 7)
+	uassert.False(t, ok)
+	uassert.Equal(t, 1, lastPick.Len()) // one record per station
+}

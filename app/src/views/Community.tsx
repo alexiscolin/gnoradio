@@ -1,26 +1,24 @@
-import { useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { SearchPick } from "../components/SearchPick";
 import { hhmm } from "../components/PickNext";
 import { useNames } from "../lib/names";
-import { ActivityFeed, ago } from "../components/ActivityFeed";
-import { Head, Proof, TrackRows } from "../components/common";
-import { codeURL, gnowebOf, realmPage } from "../lib/links";
+import { ActivityFeed, FeedItem, ago } from "../components/ActivityFeed";
+import { Head, Proof, Stats, TrackRows, Who } from "../components/common";
+import { codeURL, gnowebOf, realmPage, txURL } from "../lib/links";
+import { Icon } from "../components/Icons";
 import { Shape } from "../components/Shapes";
-import { type RadioPick, listenerPage, loadPicks, loadTicketsOf, loadUser, topProgrammers } from "../lib/community";
-import { DEFAULT_GOAL, UGNOT, gnot, plural, shortAddr } from "../lib/format";
+import { type RadioPick, loadPicks, loadTicketsOf, loadUser } from "../lib/community";
+import { ALL_STATIONS, type Curator, MAX_PROMO, type Promo, type TopCurators, collectable, loadCurator, loadPromo, loadTopCurators, useSponsored } from "../lib/incentives";
+import { DEFAULT_GOAL, UGNOT, gnot, plural } from "../lib/format";
 import { tracksOf } from "../lib/catalog";
-import type { Activity, Catalog, Navigate, SupportInfo, UserInfo } from "../lib/types";
-import type { Actions } from "../player/useActions";
+import type { Activity, Catalog, Navigate, SupportInfo, Track, UserInfo } from "../lib/types";
+import type { Actions, HideKind } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
+import type { Saved } from "../lib/saved";
 
 interface Base {
   readonly cat: Catalog;
   readonly go: Navigate;
-}
-
-/** Listener names a wallet and links to its public page on gnoweb. */
-function Listener({ address, shown }: { readonly address: string; readonly shown: (a: string) => string }) {
-  return <a className="mono who" href={listenerPage(address)} target="_blank" rel="noreferrer" title="Listener page on gno.land">{shown(address)}</a>;
 }
 
 /** Community is where the money and the people are visible: who programs the radio, who pays for it. */
@@ -32,17 +30,20 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
   readonly openPick: (station: number) => void;
 }) {
   const [picks, setPicks] = useState<readonly RadioPick[]>([]);
-  useEffect(() => { void loadPicks().then(setPicks); }, [now]); // now ticks with the app's pulse
-  const programmers = topProgrammers(picks, now);
+  const [curators, setCurators] = useState<TopCurators["top"]>([]);
+  useEffect(() => { // now ticks with the app's pulse
+    void loadPicks().then(setPicks);
+    loadTopCurators(ALL_STATIONS).then((r) => { setCurators(r.top); }, () => undefined);
+  }, [now]);
   const recent = picks.filter((p) => p.kind === "queue").slice(0, 8);
   const goal = support.goal > 0 ? support.goal : DEFAULT_GOAL;
-  const who = useNames([...support.top.map((r) => r.address), ...picks.map((p) => p.by)]);
+  const who = useNames([...support.top.map((r) => r.address), ...picks.map((p) => p.by), ...curators.map((c) => c.address)]);
   const pct = Math.min(100, (support.monthTotal / goal) * 100);
-  const artists = [...cat.artists.values()].filter((a) => a.owner && a.verified).sort((a, b) => b.tips - a.tips).slice(0, 8);
+  const artists = [...cat.artists.values()].filter((a) => a.owner && a.verified && a.tips > 0).sort((a, b) => b.tips - a.tips).slice(0, 8);
   const maxTips = Math.max(1, ...artists.map((a) => a.tips));
   return (
     <section>
-      <Head a="Community" b="on-chain" note="Listeners program the radio and keep it on air. Every pick, like and tip below is a public transaction." />
+      <Head a="Community" note="Listeners program the radio and keep it on air. Every pick, like and tip below is a public transaction." />
       <Proof page={gnowebOf({ k: "community" })} code={codeURL("support")} />
 
       <div className="program">
@@ -54,29 +55,22 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
         <div>
           <h3 className="sub">Recent picks</h3>
           {recent.length === 0 && <p className="muted">No pick yet. Yours could be the first thing everyone hears.</p>}
-          <ol className="feed">
+          <ol className="feed lines">
             {recent.map((p) => {
               const t = cat.byId.get(p.track);
-              const station = cat.stations.find((s) => s.id === p.station)?.name ?? "the radio";
-              return (
-                <li key={`${p.by}-${String(p.at)}`}>
-                  <Shape g="quarter" size={12} />
-                  <span className="feed-txt">
-                    <Listener address={p.by} shown={who} /> put{" "}
-                    {t ? <button className="link" onClick={() => { go({ k: "track", id: t.id }); }}>{t.title}</button> : "a track"} on {station}
-                  </span>
-                  <span className="mono muted">{p.start > now ? `airs ${hhmm(p.start)}` : ago(p.start, now)}</span>
-                </li>
-              );
+              if (!t) return null; // hidden or not loaded: no line without its title
+              const station = cat.stations.find((s) => s.id === p.station)?.name ?? "";
+              return <FeedItem key={`${p.by}-${String(p.at)}-${String(p.station)}-${String(p.start)}`} g="quarter" line={{ title: t.title, verb: "Picked", station, target: { k: "track", id: t.id } }} by={p.by} shown={who} go={go} when={p.start > now ? `airs ${hhmm(p.start)}` : ago(p.start, now)} />;
             })}
           </ol>
         </div>
         <div>
-          <h3 className="sub">Top programmers · this week</h3>
-          {programmers.length === 0 && <p className="muted">Nobody yet this week. Pick a track to top the chart.</p>}
+          <h3 className="sub">Top curators · this week</h3>
+          <p className="muted small">One point per pick, one per tip while it plays. Curators earn the artist's promo share of those tips.</p>
+          {curators.length === 0 && <p className="muted">Nobody yet this week. Pick a track to top the chart.</p>}
           <ol className="top">
-            {programmers.map((r, i) => (
-              <li key={r.by}><span className="mono muted">{String(i + 1).padStart(2, "0")}</span><Listener address={r.by} shown={who} /><b className="mono">{plural(r.picks, "pick")}</b></li>
+            {curators.map((c, i) => (
+              <li key={c.address}><span className="mono muted">{String(i + 1).padStart(2, "0")}</span><Who address={c.address} shown={who} go={go} /><b className="mono">{plural(c.picks, "pick")} · {gnot(c.earned)}</b></li>
             ))}
           </ol>
         </div>
@@ -99,7 +93,7 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
         </div>
         <div>
           <h3 className="sub">Most supported artists</h3>
-          {artists.length === 0 && <p className="muted">No claimed artist yet. Tips open when an artist claims their profile.</p>}
+          {artists.length === 0 && <p className="muted">No tip yet. Artists who verified their profile can be tipped from the player.</p>}
           <div className="bars">
             {artists.map((a) => (
               <button key={a.id} onClick={() => { go({ k: "artist", id: a.id }); }}>
@@ -113,7 +107,7 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
           {support.top.length === 0 && <p className="muted">Be the first.</p>}
           <ol className="top">
             {support.top.map((r, i) => (
-              <li key={r.address}><span className="mono muted">{String(i + 1).padStart(2, "0")}</span><Listener address={r.address} shown={who} /><b className="mono">{gnot(r.amount)}</b></li>
+              <li key={r.address}><span className="mono muted">{String(i + 1).padStart(2, "0")}</span><Who address={r.address} shown={who} go={go} /><b className="mono">{gnot(r.amount)}</b></li>
             ))}
           </ol>
         </div>
@@ -122,49 +116,187 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
   );
 }
 
-/** Me shows what the connected listener did on-chain. */
-export function Me({ cat, go, player, actions, savedIds }: Base & { readonly player: Player; readonly actions: Actions; readonly savedIds: readonly number[] }) {
+/** PromoSetting lets an artist choose the share of each tip that goes to whoever brought the tipper (catalog SetPromoShare). */
+function PromoSetting({ current, onSave }: { readonly current: number; readonly onSave: (pct: number) => void }) {
+  const [pct, setPct] = useState(current);
+  return (
+    <div className="program">
+      <Shape g="quarter" size={22} />
+      <div>
+        <b>Promo share for curators: {current}%</b>
+        <span className="muted small">Of each tip on your tracks, this part goes to the listener who picked it on air and whoever shared the link. 0 to {MAX_PROMO}%, shown to tippers before they sign.</span>
+      </div>
+      <div className="row2">
+        <label><span className="sr">Promo share</span>
+          <select className="station-select" value={pct} onChange={(e) => { setPct(Number(e.target.value)); }}>
+            {Array.from({ length: MAX_PROMO + 1 }, (_, i) => <option key={i} value={i}>{i}%</option>)}
+          </select>
+        </label>
+        <button className="cta" disabled={pct === current} onClick={() => { onSave(pct); }}>Save</button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * PromoBudget lets an artist refund listeners' picks of their tracks (catalog
+ * sponsor.gno): fund it, choose the refund per aired pick, withdraw what is
+ * not reserved. Only the wallet that funded it can withdraw.
+ */
+function PromoBudget({ artist, me, actions }: { readonly artist: number; readonly me: string; readonly actions: Actions }) {
+  const [b, setB] = useState<Promo | null>(null);
+  const [amount, setAmount] = useState("5");
+  const [pay, setPay] = useState("");
+  useEffect(() => { loadPromo(artist).then(setB, () => { setB(null); }); }, [artist, actions.pending]);
+  const refund = Number(pay || (b ? b.pay / UGNOT : 0.03));
+  return (
+    <div className="program">
+      <Shape g="square" size={22} />
+      <div>
+        <b>Promo budget: {gnot(b?.free ?? 0)}{b?.reserved ? ` · ${gnot(b.reserved)} reserved` : ""}</b>
+        <span className="muted small">
+          Listeners can pick your tracks for free: after a pick has played in full, you refund them {gnot(b?.pay ?? 30_000)} (about what a pick costs).
+          {b && b.picks > 0 ? ` ${plural(b.picks, "pick")} refunded so far, ${gnot(b.paid)}.` : ""} Several wallets of one person can still take up to the daily limits: that is the cost of the promotion. Withdraw what is not reserved at any time.
+        </span>
+      </div>
+      <div className="row2">
+        <label><span className="sr">Amount to add, GNOT</span><input className="mono" inputMode="decimal" value={amount} onChange={(e) => { setAmount(e.target.value); }} size={5} /></label>
+        <button className="cta" disabled={!(Number(amount) >= 0.1)} onClick={() => { actions.fundPromo(Math.round(Number(amount) * UGNOT)); }}>Add GNOT</button>
+      </div>
+      <div className="row2">
+        <label><span className="sr">Refund per pick, GNOT</span>
+          <select className="station-select" value={refund} onChange={(e) => { setPay(e.target.value); }}>
+            {[0, 0.01, 0.02, 0.03, 0.04, 0.05].map((v) => <option key={v} value={v}>{v === 0 ? "Paused" : `${String(v)} GNOT per pick`}</option>)}
+          </select>
+        </label>
+        <button className="cta ghost" disabled={!b || Math.round(refund * UGNOT) === b.pay} onClick={() => { actions.setPromoPay(Math.round(refund * UGNOT), b?.perDay ?? 0); }}>Save</button>
+        <button className="cta ghost" disabled={b?.funder !== me || b.free <= 0} onClick={() => { actions.withdrawPromo(artist); }}>Withdraw</button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Me shows what the connected listener did on-chain. Without a wallet the same
+ * sections show empty, so a visitor sees what connecting fills in.
+ */
+export function Me({ cat, go, player, actions, saved, openPick }: Base & { readonly player: Player; readonly actions: Actions; readonly saved: Saved & { readonly ids: readonly number[] }; readonly openPick: (station: number) => void }) {
   const s = actions.wallet.state;
   const address = s.status === "connected" || s.status === "wrong-network" ? s.address : "";
   const [user, setUser] = useState<UserInfo | null>(null);
   const [tickets, setTickets] = useState<{ id: number; event: number; serial: number; attended: boolean }[]>([]);
+  const [curator, setCurator] = useState<Curator | null>(null);
+  const sponsored = useSponsored(address, actions.pending);
+  const show = useNames(address ? [address] : []);
   useEffect(() => {
     if (!address) return;
     loadUser(address).then(setUser, () => { setUser(null); });
+    loadCurator(address).then(setCurator, () => { setCurator(null); });
     loadTicketsOf(address).then(setTickets, () => { setTickets([]); });
   }, [address]);
 
-  // Saved tracks live in this browser: shown with or without a wallet.
-  const savedBlock = (
+  const connect = () => void actions.wallet.connectWallet();
+  // A wallet-only section: its title, a Connect link and one greyed line while no wallet is on.
+  const section = (title: string, empty: string, right?: ReactNode) => (
     <>
-      <h3 className="sub">Saved</h3>
-      {savedIds.length === 0 ? <p className="muted">Save a track with the bookmark in the player. Stored in this browser only.</p> : <TrackRows tracks={tracksOf(cat, savedIds)} player={player} />}
-      <p className="more-links">
-        <button className="link" onClick={() => { go({ k: "concerts" }); }}>Concerts</button>
-        <button className="link" onClick={() => { go({ k: "contribute" }); }}>Contribute</button>
-        <button className="link" onClick={() => { go({ k: "about" }); }}>About</button>
-      </p>
+      <h3 className="sub sub-row" id={anchor(title)}>{title} {address ? right : <button className="link small" onClick={connect}>Connect</button>}</h3>
+      {!address && <p className="me-empty">{empty}</p>}
     </>
   );
-  if (!address) {
-    return (
-      <section>
-        <Head a="Me" note="Connect Adena to see your likes, playlists, tickets and support." />
-        <button className="cta" onClick={() => void actions.wallet.connectWallet()}>Connect Adena</button>
-        {savedBlock}
-      </section>
-    );
-  }
   const myArtist = user?.artist ? cat.artists.get(user.artist) : undefined;
+  const week = curator?.week;
+  const ready = collectable(sponsored);
+  const likedTracks = tracksOf(cat, [...actions.liked]);
+  const savedTracks = tracksOf(cat, saved.ids);
+  // Saves and likes can run into the hundreds: a count, Play all, and only the newest rows until asked.
+  const count = (title: string, n: number) => n > 0 ? <span>{title} <span className="muted">· {n.toLocaleString("en")}</span></span> : title;
+  const playAll = (tracks: readonly Track[]) => tracks.length > 1 && <button className="link small" onClick={() => { player.playList(tracks.map((t) => t.id), 0); }}>Play all</button>;
   return (
     <section>
-      <Head a="Me" b={shortAddr(address)} note="Your public footprint on GnoRadio." />
-      <div className="stats">
-        <div><Shape g="circle" size={14} /><b className="mono">{user?.likes ?? 0}</b><span>likes</span></div>
-        <div><Shape g="square" size={14} /><b className="mono">{gnot(user?.tipped ?? 0)}</b><span>given to artists</span></div>
-        <div><Shape g="quarter" size={14} /><b className="mono">{user?.follows ?? 0}</b><span>follows</span></div>
-        <div><Shape g="square" size={14} /><b className="mono">{tickets.length}</b><span>tickets</span></div>
+      {address
+        ? <Head a="Me" b={show(address)} note="Your public footprint on GnoRadio." right={<button className="btn" onClick={() => { go({ k: "listener", address }); }}>Public page</button>} />
+        : <Head a="Me" note="Your likes, picks, playlists, tickets and support, in one place." />}
+      {!address && (
+        <div className="program">
+          <Shape g="circle" size={22} />
+          <div><b>Connect to fill this page</b><span className="muted small">Everything below fills in from your wallet's public activity. Saved tracks work without one.</span></div>
+          <button className="cta" onClick={connect}>{s.status === "missing" ? "Get a wallet" : "Connect Adena"}</button>
+        </div>
+      )}
+      <div className="actions inline">
+        <button className="cta blue" onClick={() => { openPick(0); }}><Shape g="quarter" size={12} fill="#fff" /> Pick next</button>
+        <button onClick={() => { go({ k: "contribute", path: "listener" }); }}>Make a playlist</button>
       </div>
+      <nav className="chips me-nav" aria-label="Sections">
+        {ME_SECTIONS.map((t) => <button key={t} className="chip" onClick={() => { document.getElementById(anchor(t))?.scrollIntoView({ behavior: "smooth" }); }}>{t.replace(/^My (.)/, (_, c: string) => c.toUpperCase())}</button>)}
+      </nav>
+
+      {/* Saved tracks live in this browser: shown and usable with or without a wallet. */}
+      <h3 className="sub sub-row" id="me-saved">{count("Saved", savedTracks.length)} {playAll(savedTracks)}</h3>
+      {savedTracks.length === 0 ? <p className="me-empty">Save a track with the bookmark on any track. Stored in this browser only.</p> : <TrackRows tracks={savedTracks} player={player} actions={actions} saved={saved} first={ME_ROWS} />}
+
+      {section("My curator stats", "Your picks and what they earned show up here.")}
+      {address && (
+        <>
+          <Stats empty="No pick on air yet." items={[
+            { g: "quarter", value: curator?.picks ?? 0, shown: String(curator?.picks ?? 0), label: "picks on air" },
+            { g: "square", value: curator?.earned ?? 0, shown: gnot(curator?.earned ?? 0), label: "earned as picker" },
+            { g: "circle", value: week?.rank ?? 0, shown: `#${String(week?.rank ?? 0)}`, label: `this week · ${plural(week?.picks ?? 0, "pick")}` },
+            { g: "triangle", value: curator?.promo ?? 0, shown: gnot(curator?.promo ?? 0), label: "refunded by artists" },
+          ]} />
+          {ready.map((p) => (
+            <p key={`${String(p.station)}/${String(p.start)}`} className="pick-blocked" role="status">
+              Your free pick “{cat.byId.get(p.track)?.title ?? "a track"}” played.{" "}
+              <button className="cta" disabled={actions.pending !== ""} onClick={() => { actions.collect(p.station, p.start); }}>Collect {gnot(p.amount)}</button>
+            </p>
+          ))}
+          <p className="muted small">While your pick plays, each tip to its artist sends you their promo share. Tips through links you share pay you too, straight to your wallet (not counted here). Paid by tippers, never by GnoRadio.</p>
+        </>
+      )}
+
+      {section("My likes", "Tracks you like show up here, public and on-chain.", playAll(likedTracks))}
+      {address && (likedTracks.length > 0
+        ? <TrackRows tracks={likedTracks} player={player} actions={actions} saved={saved} first={ME_ROWS} />
+        : <p className="muted">No like yet: tap ♥ on any track.</p>)}
+
+      {section("My playlists", "Your public playlists show up here.", <button className="cta small" onClick={() => { go({ k: "contribute", path: "listener" }); }}>New playlist</button>)}
+      {address && (user && user.playlists.length > 0
+        ? cat.playlists.filter((p) => user.playlists.includes(p.id)).map((p) => (
+          <button key={p.id} className="line" onClick={() => { go({ k: "playlist", id: p.id }); }}>{p.title} <span className="muted">· {p.tracks.length} tracks</span></button>
+        ))
+        : <p className="muted small">No playlist yet. Make one from any tracks: it is public, and others can play it.</p>)}
+
+      {section("My tickets", "Your concert tickets show up here.")}
+      {address && myArtist && (
+        <p className="more-links">
+          <a href={txURL("tickets", "CreateEvent")} target="_blank" rel="noreferrer">Announce a concert <Icon name="external" size={12} /></a>
+          <a href={txURL("tickets", "CheckIn")} target="_blank" rel="noreferrer">Check in a ticket at the door <Icon name="external" size={12} /></a>
+        </p>
+      )}
+      {address && (tickets.length === 0 ? <p className="muted">No ticket yet.</p> : (
+        <div className="tickets">
+          {tickets.map((tk) => {
+            const e = cat.events.find((x) => x.id === tk.event);
+            return (
+              <article key={tk.id} className="ticket">
+                <div><span className="lbl light">Admit one · #{tk.serial}</span><b>{e?.title ?? `Concert ${String(tk.event)}`}</b><span className="muted small">{tk.attended ? "I was there" : "Valid"}</span></div>
+                <div className="stub"><Shape g={tk.attended ? "circle" : "square"} size={26} /></div>
+              </article>
+            );
+          })}
+        </div>
+      ))}
+
+      {section("My support", "What you give to artists and the artists you follow show up here.")}
+      {address && (
+        <Stats empty="Nothing yet: follow or tip an artist, it shows here." items={[
+          { g: "square", value: user?.tipped ?? 0, shown: gnot(user?.tipped ?? 0), label: "given to artists" },
+          { g: "quarter", value: user?.follows ?? 0, shown: String(user?.follows ?? 0), label: "follows" },
+          { g: "circle", value: user?.likes ?? 0, shown: String(user?.likes ?? 0), label: "likes" },
+        ]} />
+      )}
+
+      <h3 className="sub" id="me-make-music">Make music</h3>
       {myArtist ? (
         <div className="program">
           <Shape g="triangle" size={22} />
@@ -177,43 +309,46 @@ export function Me({ cat, go, player, actions, savedIds }: Base & { readonly pla
       ) : (
         <div className="program">
           <Shape g="triangle" size={22} />
-          <div><b>Make music?</b><span className="muted small">Create your artist profile with this wallet and publish your tracks. Tips go 100% to you.</span></div>
+          <div><b>Make music?</b><span className="muted small">Create your artist profile with {address ? "this wallet" : "your wallet"} and publish your tracks. GnoRadio takes nothing from your tips.</span></div>
           <button className="cta" onClick={() => { go({ k: "contribute", path: "artist" }); }}>Become an artist</button>
         </div>
       )}
-      {user && user.playlists.length > 0 && (
-        <>
-          <h3 className="sub">My playlists</h3>
-          {cat.playlists.filter((p) => user.playlists.includes(p.id)).map((p) => (
-            <button key={p.id} className="line" onClick={() => { go({ k: "playlist", id: p.id }); }}>{p.title} <span className="muted">· {p.tracks.length} tracks</span></button>
-          ))}
-        </>
-      )}
-      <h3 className="sub">My tickets</h3>
-      {tickets.length === 0 ? <p className="muted">No ticket yet.</p> : (
-        <div className="tickets">
-          {tickets.map((tk) => {
-            const e = cat.events.find((x) => x.id === tk.event);
-            return (
-              <article key={tk.id} className="ticket">
-                <div><span className="lbl light">Admit one · #{tk.serial}</span><b>{e?.title ?? `Concert ${String(tk.event)}`}</b><span className="muted small">{tk.attended ? "I was there" : "Valid"}</span></div>
-                <div className="stub"><Shape g={tk.attended ? "circle" : "square"} size={26} /></div>
-              </article>
-            );
-          })}
-        </div>
-      )}
-      {savedBlock}
+      {myArtist?.verified && <PromoSetting key={myArtist.promo} current={myArtist.promo} onSave={actions.setPromo} />}
+      {myArtist?.verified && address && <PromoBudget artist={myArtist.id} me={address} actions={actions} />}
+
+      <p className="more-links">
+        <button className="link" onClick={() => { go({ k: "concerts" }); }}>Concerts</button>
+        <button className="link" onClick={() => { go({ k: "contribute" }); }}>Contribute</button>
+        <button className="link" onClick={() => { go({ k: "about" }); }}>About</button>
+        <button className="link" onClick={() => { go({ k: "legal" }); }}>Legal · Privacy · Terms</button>
+      </p>
     </section>
   );
 }
+
+// Rows shown at first in Saved and My likes.
+const ME_ROWS = 5;
+// The Me sections, in page order, for the jump links under the actions.
+const ME_SECTIONS = ["Saved", "My curator stats", "My likes", "My playlists", "My tickets", "My support", "Make music"];
+const anchor = (title: string) => `me-${title.replace("My ", "").toLowerCase().replace(/ /g, "-")}`;
 
 /** Studio is the admin and curator desk. Only shown to the catalog admin. */
 export function Studio({ cat, actions }: Base & { readonly actions: Actions }) {
   const [station, setStation] = useState(0);
   const [track, setTrack] = useState(0);
-  const [modTrack, setModTrack] = useState(0);
+  const [modKind, setModKind] = useState<HideKind>("track");
+  const [modId, setModId] = useState(0);
+  const [modReason, setModReason] = useState("");
   const trackItems = useMemo(() => cat.tracks.map((t) => ({ id: t.id, label: t.title, sub: `#${String(t.id)} · ${t.artistName}` })), [cat.tracks]);
+  const modItems = useMemo(() => {
+    const sub = (id: number, by = "") => `#${String(id)}${by ? ` · ${by}` : ""}`;
+    switch (modKind) {
+      case "track": return trackItems;
+      case "album": return cat.albums.map((al) => ({ id: al.id, label: al.title, sub: sub(al.id, cat.artists.get(al.artist)?.name) }));
+      case "artist": return [...cat.artists.values()].map((a) => ({ id: a.id, label: a.name, sub: sub(a.id) }));
+      case "playlist": return cat.playlists.map((pl) => ({ id: pl.id, label: pl.title, sub: sub(pl.id) }));
+    }
+  }, [modKind, trackItems, cat.albums, cat.artists, cat.playlists]);
   const [goal, setGoal] = useState("50");
   const [fee, setFee] = useState("0.5");
   const [report, setReport] = useState("");
@@ -243,13 +378,23 @@ export function Studio({ cat, actions }: Base & { readonly actions: Actions }) {
         </div>
         <div className="panel">
           <h3><Shape g="circle" size={14} /> Moderation</h3>
-          <SearchPick label="Track" items={trackItems} value={modTrack} onChange={setModTrack} placeholder="Search a track" />
+          <label>Type
+            <select value={modKind} onChange={(e) => { setModKind(e.target.value as HideKind); setModId(0); }}>
+              <option value="track">Track</option>
+              <option value="album">Album</option>
+              <option value="artist">Artist</option>
+              <option value="playlist">Playlist</option>
+            </select>
+          </label>
+          <SearchPick label="Find" items={modItems} value={modId} onChange={setModId} placeholder={`Search a ${modKind}`} />
+          <label className="field">Number<input inputMode="numeric" placeholder="12" value={modId || ""} onChange={(e) => { setModId(Number(e.target.value.replace(/\D/g, ""))); }} /><span className="hint-line">Hidden items are not in the search: type their number to restore them.</span></label>
+          <label className="field">Reason<input maxLength={200} placeholder="Copyright notice from the rights holder" value={modReason} onChange={(e) => { setModReason(e.target.value); }} /><span className="hint-line">Public and permanent: shown as "Removed by moderation: …".</span></label>
           <div className="row2">
-            <button className="cta red" disabled={!modTrack} onClick={() => { actions.hideTrack(modTrack, true); }}>Hide</button>
-            <button className="cta" disabled={!modTrack} onClick={() => { actions.hideTrack(modTrack, false); }}>Restore</button>
+            <button className="cta red" disabled={!modId || modReason.trim().length < 4} onClick={() => { actions.hide(modKind, modId, true, modReason); }}>Hide</button>
+            <button className="cta" disabled={!modId} onClick={() => { actions.hide(modKind, modId, false, ""); }}>Restore</button>
           </div>
-          <button className="cta" disabled={!modTrack} onClick={() => { actions.refreshTrack(modTrack); }}>Refresh its station slots</button>
-          <p className="muted small">After hiding or restoring, Refresh updates the track's slots in the stations. Hidden tracks stay on-chain: hidden, not erased.</p>
+          {modKind === "track" && <button className="cta" disabled={!modId} onClick={() => { actions.refreshTrack(modId); }}>Refresh its station slots</button>}
+          <p className="muted small">After hiding or restoring a track, Refresh updates its slots in the stations. Hidden content stays on-chain: hidden, not erased.</p>
           <label className="field">Report number<input inputMode="numeric" placeholder="12" value={report} onChange={(e) => { setReport(e.target.value.replace(/\D/g, "")); }} /></label>
           <button className="cta" disabled={!report} onClick={() => { actions.resolveReport(Number(report)); setReport(""); }}>Resolve report</button>
           <p className="muted small"><a href={realmPage("home", "moderation")} target="_blank" rel="noreferrer">Open reports on gnoweb</a> · each listener can have 5 open reports.</p>

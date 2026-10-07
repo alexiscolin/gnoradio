@@ -3,7 +3,9 @@ import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Cover } from "../components/Cover";
 import { Help } from "../components/Help";
 import { Shape } from "../components/Shapes";
-import { hostAllowed, loadRightsTerms, loadUser } from "../lib/community";
+import { RIGHTS_FALLBACK, hostAllowed, loadRightsTerms, loadUser } from "../lib/community";
+import { ABUSE_EMAIL } from "../lib/legal";
+import { txURL } from "../lib/links";
 import { clock, errorMessage, plural } from "../lib/format";
 import { SearchPick } from "../components/SearchPick";
 import { VerifyPanel, useClaim } from "../components/Verify";
@@ -44,9 +46,9 @@ function Panel({ id, glyph, title, note, children }: { readonly id: string; read
 
 const PATHS: readonly { readonly id: ContribPath; readonly label: string; readonly line: string; readonly mark: ReactNode }[] = [
   { id: "listener", label: "Listener", line: "Pick what plays, make playlists", mark: <Shape g="quarter" size={34} /> },
-  { id: "artist", label: "Artist", line: "Publish your music, keep 100% of tips", mark: <Shape g="triangle" size={34} /> },
-  { id: "claim", label: "Already on GnoRadio", line: "Verify your profile to receive tips", mark: <Shape g="circle" size={34} /> },
-  { id: "report", label: "Keep it clean", line: "Report what breaks the rules", mark: <Shape g="square" size={34} /> },
+  { id: "artist", label: "Artist", line: "Publish your music, GnoRadio takes 0% of tips", mark: <Shape g="triangle" size={34} /> },
+  { id: "claim", label: "I'm already on GnoRadio", line: "Verify your profile to receive tips", mark: <Shape g="circle" size={34} /> },
+  { id: "report", label: "Report", line: "Report what breaks the rules", mark: <Shape g="square" size={34} /> },
 ];
 
 /** Contribute asks one question, then shows only the chosen path, one step at a time. */
@@ -74,6 +76,7 @@ export function Contribute({ cat, go, path, actions, isAdmin, openPick }: Props 
         ))}
       </div>
 
+      {chosen === "report" && <p className="report-first">Rights holder? Email <a href={`mailto:${ABUSE_EMAIL}`}>{ABUSE_EMAIL}</a> — no wallet needed.</p>}
       {!address && (
         <p className="connect-line">
           <Icon name="wallet" size={18} /> Contributing writes to gno.land, so it needs a wallet. Listening never does.
@@ -85,7 +88,7 @@ export function Contribute({ cat, go, path, actions, isAdmin, openPick }: Props 
         {chosen === "listener" && (
           <div className="contrib two">
             <div className="panel">
-              <h3><Shape g="quarter" size={14} /> Pick what plays next <Help text="Your pick airs for everyone after the picks already waiting. One per station per hour, about 0.1 GNOT deposit." /></h3>
+              <h3><Shape g="quarter" size={14} /> Pick what plays next <Help text="Your pick airs for everyone after the picks already waiting. One per station per hour, about 0.08 GNOT plus a 0.3 GNOT deposit (up to 0.9 for your first)." /></h3>
               <p className="muted small">Choose a track and a station. Everyone hears it at the same second.</p>
               <button className="cta blue" onClick={() => { openPick(0); }}>Pick a track</button>
             </div>
@@ -93,6 +96,7 @@ export function Contribute({ cat, go, path, actions, isAdmin, openPick }: Props 
           </div>
         )}
         {chosen === "artist" && <ArtistPath cat={cat} actions={actions} self={address} artist={myArtist} />}
+        {chosen === "artist" && myArtist && <ArtistTx />}
         {chosen === "claim" && <div className="contrib"><ClaimForm cat={cat} actions={actions} /></div>}
         {chosen === "report" && (
           <div className="contrib">
@@ -140,7 +144,7 @@ function ArtistForm({ actions, existing, existingBio, onNext }: { readonly actio
   return (
     <Panel id="c-artist" glyph="triangle" title={existing ? "Your artist profile" : "Create your artist profile"} note={`One profile per wallet. Saving again renames it and frees the old name. ${deposit(DEPOSIT["Register artist"])}.`}>
       <label>Artist name<input value={name} maxLength={40} onChange={(e) => { setName(e.target.value); }} placeholder="Lea Kosmos" /></label>
-      <label>Bio <span className="muted small">{Array.from(bio).length}/280</span><textarea value={bio} rows={3} onChange={(e) => { setBio(e.target.value); }} placeholder="Night synthwave from Lyon." /></label>
+      <label>Bio<textarea value={bio} rows={3} onChange={(e) => { setBio(e.target.value); }} placeholder="Night synthwave from Lyon." /><span className="muted small">{Array.from(bio).length}/280</span></label>
       <Problems list={problems} />
       <div className="row2">
         <button className="cta" disabled={problems.length > 0} onClick={() => { actions.registerArtist(name, bio); }}>{existing ? "Save profile" : "Create my profile"}</button>
@@ -196,7 +200,7 @@ function TrackInfo({ cat, d, set, onNext }: { readonly cat: Catalog; readonly d:
         <ul>
           <li><b>IPFS</b> through a pinning service such as Pinata or Filebase, then paste <span className="mono">ipfs://&lt;CID&gt;</span>. The CID already proves the content.</li>
           <li><b>Arweave</b>, paid once and kept for good: paste <span className="mono">ar://&lt;id&gt;</span>.</li>
-          <li><b>An https link</b> on a host the moderators allow (archive.org today). Add the file's sha256 so anyone can check it was not swapped.</li>
+          <li><b>An https link</b> on a host the moderator allows (archive.org today). Add the file's sha256 so anyone can check it was not swapped.</li>
         </ul>
       </details>
       <label>Title<input value={d.title} maxLength={64} onChange={(e) => { set("title", e.target.value); }} /></label>
@@ -265,7 +269,7 @@ function TrackPublish({ d, set, actions, self, isArtist }: { readonly d: TrackDr
     <Panel id="c-publish" glyph="triangle" title="Rights & publish" note={`Your track joins the catalog and its genre station after the next Sync. ${deposit(DEPOSIT["Publish track"])}.`}>
       <label className="toggle rights">
         <input type="checkbox" checked={d.rights} onChange={(e) => { set("rights", e.target.checked); }} />
-        <span>{terms || "I own the rights to this recording and composition."}</span>
+        <span>{terms || RIGHTS_FALLBACK}</span>
       </label>
       <Problems list={problems} />
       <button className="cta" disabled={problems.length > 0} onClick={() => { actions.publishTrack(d); }}>Publish on GnoRadio</button>
@@ -318,10 +322,22 @@ function ClaimForm({ cat, actions }: { readonly cat: Catalog; readonly actions: 
   const a = cat.artists.get(artist);
   const claim = useClaim(artist, refresh);
   return (
-    <Panel id="c-claim" glyph="check" title="Verify your artist profile" note="Already on GnoRadio, imported from Audius or an archive, or registered yourself? Prove it is you in 2 minutes, then fans can tip you.">
+    <Panel id="c-claim" glyph="check" title="Verify your artist profile" note="Already on GnoRadio, imported from Audius or an archive, or registered yourself? Prove it's you in 2 minutes; tips open 72 hours later.">
       <SearchPick label="Your profile" items={unverified} value={artist} onChange={setArtist} placeholder={`Search ${String(unverified.length)} profiles`} />
       {a && <VerifyPanel a={a} claim={claim} actions={actions} onClose={() => { setArtist(0); }} onChange={() => { setRefresh((n) => n + 1); }} />}
     </Panel>
+  );
+}
+
+/** ArtistTx links the artist actions the app has no screen for to their gnoweb forms. */
+function ArtistTx() {
+  return (
+    <p className="more-links">
+      <a href={txURL("tickets", "CreateEvent")} target="_blank" rel="noreferrer">Announce a concert <Icon name="external" size={12} /></a>
+      <a href={txURL("catalog", "CreateAlbum")} target="_blank" rel="noreferrer">Make an album <Icon name="external" size={12} /></a>
+      <a href={txURL("tickets", "CheckIn")} target="_blank" rel="noreferrer">Check in a ticket <Icon name="external" size={12} /></a>
+      <a href={txURL("catalog", "HideOwn")} target="_blank" rel="noreferrer">Hide or show your work <Icon name="external" size={12} /></a>
+    </p>
   );
 }
 
@@ -341,7 +357,7 @@ function ReportForm({ cat, actions }: { readonly cat: Catalog; readonly actions:
   }, [cat, kind]);
   const problems = [...(n > 0 ? [] : [`Choose the ${kind}`]), ...reportProblems(reason)];
   return (
-    <Panel id="c-report" glyph="flag" title="Report something" note={`Moderators read every report. 5 open reports per wallet. ${deposit(DEPOSIT["Report"])}.`}>
+    <Panel id="c-report" glyph="flag" title="Report something" note={`The moderator reads every report. 5 open reports per wallet. ${deposit(DEPOSIT["Report"])}.`}>
       <div className="row2">
         <label>What
           <select value={kind} onChange={(e) => { setKind(e.target.value as Kind); setN(0); }}>
@@ -354,6 +370,7 @@ function ReportForm({ cat, actions }: { readonly cat: Catalog; readonly actions:
       </div>
       <SearchPick label={`${kind.charAt(0).toUpperCase()}${kind.slice(1)}`} items={items} value={n} onChange={setN} placeholder={`Search ${String(items.length)} ${kind}s`} />
       <label>Reason<textarea rows={2} value={reason} maxLength={200} placeholder="Not the artist's own recording" onChange={(e) => { setReason(e.target.value); }} /></label>
+      <p className="muted small">Your report and wallet address are public on-chain.</p>
       <Problems list={problems} />
       <button className="cta red" disabled={problems.length > 0} onClick={() => { actions.report(kind, n, reason); }}>{problems[0] ?? "Send the report"}</button>
     </Panel>

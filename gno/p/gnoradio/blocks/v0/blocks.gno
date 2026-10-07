@@ -1,13 +1,16 @@
 // Package blocks stores an ordered list of slots (an id and a duration) in
-// fixed-size blocks plus a slice of per-block sums. It backs a radio
-// rotation: appending is O(1), changing a duration rewrites one block and one
-// sum, and finding the slot at a position in the loop scans the sums and then
-// a single block — O(n/Size + Size) instead of O(n).
+// fixed-size blocks, grouped by Size blocks with their duration sums. It backs
+// a radio rotation: appending is O(1), changing a slot rewrites one block,
+// one group's sums and the short list of group totals, and finding the slot
+// at a position in the loop scans the group totals, one group's sums and a
+// single block: O(n/Size² + Size) for both, flat up to about two million slots.
 //
-// Each block is its own heap object, so a write only rewrites the touched
-// block and the (small) sums slice, never the whole list. Inside a block, ids
-// and durations are packed as fixed-width base-64 digits (4 per id, 2 per
-// duration): 6 bytes of deposit per slot instead of about 76 for two ints.
+// Every block and group is its own heap object, and a write re-saves the
+// objects on its path: a block, its group (Size refs and sums) and the
+// group lists (one entry per Size² slots), never a list of every block.
+// Inside a block, ids and durations are packed as fixed-width base-64 digits
+// (4 per id, 2 per duration): 6 bytes of deposit per slot instead of about
+// 76 for two ints.
 package blocks
 
 // Size is the number of slots per block.
@@ -48,13 +51,21 @@ func encID(id int) string {
 
 func encDur(d int64) string { return string([]byte{digits[d>>6&63], digits[d&63]}) }
 
-// List is an append-only ordered list of slots. The zero value is ready to use.
-type List struct {
+// group holds up to Size blocks and their duration sums.
+type group struct {
 	blocks []*block
 	sums   []int64 // sums[i] = total duration of blocks[i]
+}
+
+// List is an append-only ordered list of slots. The zero value is ready to use.
+type List struct {
+	groups []*group
+	totals []int64 // totals[g] = total duration of groups[g]
 	n      int
 	total  int64
 }
+
+const groupSlots = Size * Size // slots per group
 
 // New returns an empty list.
 func New() *List { return &List{} }
@@ -65,24 +76,30 @@ func (l *List) Len() int { return l.n }
 // Total returns the sum of all durations.
 func (l *List) Total() int64 { return l.total }
 
+// at locates slot i: its group, its block in the group and its place in the block.
+func (l *List) at(i int) (g *group, gi, bi, k int) {
+	gi, bi, k = i/groupSlots, i%groupSlots/Size, i%Size
+	return l.groups[gi], gi, bi, k
+}
+
 // Append adds a slot at the end and returns its index.
 func (l *List) Append(id int, dur int64) int {
-	if id < 0 || id > MaxID {
-		panic("blocks: id out of range")
+	checkSlot(id, dur)
+	if l.n%groupSlots == 0 {
+		l.groups = append(l.groups, &group{})
+		l.totals = append(l.totals, 0)
 	}
-	if dur < 0 || dur > MaxDur {
-		panic("blocks: duration out of range")
+	g := l.groups[len(l.groups)-1]
+	if l.n%Size == 0 {
+		g.blocks = append(g.blocks, &block{})
+		g.sums = append(g.sums, 0)
 	}
-	nb := len(l.blocks)
-	if nb == 0 || l.blocks[nb-1].len() == Size {
-		l.blocks = append(l.blocks, &block{})
-		l.sums = append(l.sums, 0)
-		nb++
-	}
-	b := l.blocks[nb-1]
+	bi := len(g.blocks) - 1
+	b := g.blocks[bi]
 	b.ids += encID(id)
 	b.durs += encDur(dur)
-	l.sums[nb-1] += dur
+	g.sums[bi] += dur
+	l.totals[len(l.totals)-1] += dur
 	l.total += dur
 	l.n++
 	return l.n - 1
@@ -91,25 +108,34 @@ func (l *List) Append(id int, dur int64) int {
 // Slot returns the id and duration of slot i.
 func (l *List) Slot(i int) (int, int64) {
 	l.check(i)
-	b := l.blocks[i/Size]
-	return b.id(i % Size), b.dur(i % Size)
+	g, _, bi, k := l.at(i)
+	b := g.blocks[bi]
+	return b.id(k), b.dur(k)
 }
 
 // SetDuration changes the duration of slot i (0 removes it from the loop).
 func (l *List) SetDuration(i int, dur int64) {
 	l.check(i)
-	if dur < 0 || dur > MaxDur {
-		panic("blocks: duration out of range")
-	}
-	bi := i / Size
-	b := l.blocks[bi]
-	k := i % Size
+	g, _, bi, k := l.at(i)
+	l.Set(i, g.blocks[bi].id(k), dur)
+}
+
+// Set replaces slot i's id and duration (a fixed-size ring reuses its slots).
+func (l *List) Set(i, id int, dur int64) {
+	l.check(i)
+	checkSlot(id, dur)
+	g, gi, bi, k := l.at(i)
+	b := g.blocks[bi]
 	old := b.dur(k)
+	if b.id(k) != id {
+		b.ids = b.ids[:4*k] + encID(id) + b.ids[4*k+4:]
+	}
 	if old == dur {
 		return
 	}
 	b.durs = b.durs[:2*k] + encDur(dur) + b.durs[2*k+2:]
-	l.sums[bi] += dur - old
+	g.sums[bi] += dur - old
+	l.totals[gi] += dur - old
 	l.total += dur - old
 }
 
@@ -118,15 +144,22 @@ func (l *List) PrefixBefore(i int) int64 {
 	if i < 0 || i > l.n {
 		panic("blocks: index out of range")
 	}
-	bi := i / Size
+	gi, bi, k := i/groupSlots, i%groupSlots/Size, i%Size
 	var p int64
-	for k := 0; k < bi; k++ {
-		p += l.sums[k]
+	for j := 0; j < gi; j++ {
+		p += l.totals[j]
 	}
-	if bi < len(l.blocks) {
-		b := l.blocks[bi]
-		for k := 0; k < i%Size; k++ {
-			p += b.dur(k)
+	if gi == len(l.groups) {
+		return p
+	}
+	g := l.groups[gi]
+	for j := 0; j < bi; j++ {
+		p += g.sums[j]
+	}
+	if bi < len(g.blocks) {
+		b := g.blocks[bi]
+		for j := 0; j < k; j++ {
+			p += b.dur(j)
 		}
 	}
 	return p
@@ -139,21 +172,37 @@ func (l *List) Find(pos int64) (slot, id int, offset int64, ok bool) {
 	if pos < 0 || pos >= l.total {
 		return 0, 0, 0, false
 	}
-	for bi, s := range l.sums {
-		if pos >= s {
-			pos -= s
+	for gi, t := range l.totals {
+		if pos >= t {
+			pos -= t
 			continue
 		}
-		b := l.blocks[bi]
-		for k := 0; k < b.len(); k++ {
-			d := b.dur(k)
-			if pos < d {
-				return bi*Size + k, b.id(k), pos, true
+		g := l.groups[gi]
+		for bi, s := range g.sums {
+			if pos >= s {
+				pos -= s
+				continue
 			}
-			pos -= d
+			b := g.blocks[bi]
+			for k := 0; k < b.len(); k++ {
+				d := b.dur(k)
+				if pos < d {
+					return gi*groupSlots + bi*Size + k, b.id(k), pos, true
+				}
+				pos -= d
+			}
 		}
 	}
 	return 0, 0, 0, false // unreachable while sums are consistent
+}
+
+func checkSlot(id int, dur int64) {
+	if id < 0 || id > MaxID {
+		panic("blocks: id out of range")
+	}
+	if dur < 0 || dur > MaxDur {
+		panic("blocks: duration out of range")
+	}
 }
 
 func (l *List) check(i int) {

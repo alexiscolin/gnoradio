@@ -115,25 +115,28 @@ func TestVerifyGuards(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(alice))
 	uassert.AbortsContains(t, cur, "paused", func() { submit(cur, own, proofURL, now()+600, good) })
 
-	// A stolen robot key is capped per day.
+	// A replaced robot key voids the claims it started: a stolen key is
+	// undone in one call, with no daily cap for anyone to use up.
 	testing.SetRealm(testing.NewUserRealm(boss))
 	SetBot(cross(cur), robotPub)
 	testing.SetRealm(testing.NewUserRealm(alice))
-	botCount = maxBotPerDay
-	botDay = now() / 86400
-	uassert.AbortsContains(t, cur, "limit reached", func() { submit(cur, own, proofURL, now()+600, good) })
-
-	// Resubmitting one's own pending claim does not use up the daily quota.
-	botCount = 0
 	submit(cur, own, proofURL, now()+600, good)
-	submit(cur, own, proofURL, now()+600, good)
-	uassert.Equal(t, 1, botCount)
+	testing.SetRealm(testing.NewUserRealm(boss))
+	SetBot(cross(cur), robotPub) // rotated
+	uassert.True(t, strings.Contains(ClaimJSON(own), `"pending":false`))
+	testing.SkipHeights(claimDelay/5 + 1)
+	uassert.AbortsContains(t, cur, "since replaced", func() { FinalizeClaim(cross(cur), own) })
+	// Claiming again with the new key works; many claims a day are fine.
+	testing.SetRealm(testing.NewUserRealm(alice))
+	for i := 0; i < 60; i++ {
+		submit(cur, own, proofURL, now()+600, good)
+	}
+	uassert.True(t, strings.Contains(ClaimJSON(own), `"pending":true`))
 	testing.SetRealm(testing.NewUserRealm(boss))
 	CancelClaim(cross(cur), own)
 	testing.SetRealm(testing.NewUserRealm(alice))
 
 	// A rename during the wait cancels the claim (it was checked for the old name).
-	botCount = 0
 	submit(cur, own, proofURL, now()+600, good)
 	RegisterArtist(cross(cur), "Famous Star", "")
 	uassert.True(t, strings.Contains(ClaimJSON(own), `"pending":false`))

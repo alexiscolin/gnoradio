@@ -3,9 +3,9 @@
 // track, album or playlist this reads its name on-chain and writes it into the
 // page's title and Open Graph tags. Everyone else gets the page untouched.
 import { unquote } from "../../src/lib/proof";
+import { REALMS } from "../../src/lib/realms";
 
 const BOTS = /bot|crawler|spider|facebookexternalhit|whatsapp|telegram|slack|discord|linkedin|embedly|pinterest|skype|vkshare/i;
-const CATALOG = "gno.land/r/gnoradio/catalog/v0";
 const READ: Readonly<Record<string, string>> = { artist: "ArtistJSON", track: "TrackJSON", album: "AlbumJSON", playlist: "PlaylistJSON" };
 
 interface Named { name?: string; title?: string; artistName?: string; bio?: string }
@@ -17,21 +17,22 @@ async function named(kind: string, id: string): Promise<Named | null> {
   const r = await fetch(rpc, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "abci_query", params: { path: "vm/qeval", data: btoa(`${CATALOG}.${fn}(${id})`) } }),
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "abci_query", params: { path: "vm/qeval", data: btoa(`${REALMS.catalog}.${fn}(${id})`) } }),
     signal: AbortSignal.timeout(3000),
   });
   const data = ((await r.json()) as { result?: { response?: { ResponseBase?: { Data?: string } } } }).result?.response?.ResponseBase?.Data;
-  return data ? (JSON.parse(unquote(atob(data))) as Named) : null;
+  return data ? (JSON.parse(unquote(new TextDecoder().decode(Uint8Array.from(atob(data), (c) => c.charCodeAt(0))))) as Named) : null;
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${String(c.charCodeAt(0))};`);
 
+// Replacer functions, not strings: a chain name holding $1 or $` must stay text.
 function setMeta(html: string, title: string, description: string, url: string): string {
   return html
-    .replace(/<title>[^<]*<\/title>/, `<title>${esc(title)}</title>`)
-    .replace(/(<meta (?:name|property)="(?:og:title|twitter:title)" content=")[^"]*"/g, `$1${esc(title)}"`)
-    .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*"/g, `$1${esc(description)}"`)
-    .replace(/(<meta property="og:url" content=")[^"]*"/, `$1${esc(url)}"`);
+    .replace(/<title>[^<]*<\/title>/, () => `<title>${esc(title)}</title>`)
+    .replace(/(<meta (?:name|property)="(?:og:title|twitter:title)" content=")[^"]*"/g, (_m, p1: string) => `${p1}${esc(title)}"`)
+    .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*"/g, (_m, p1: string) => `${p1}${esc(description)}"`)
+    .replace(/(<meta property="og:url" content=")[^"]*"/, (_m, p1: string) => `${p1}${esc(url)}"`);
 }
 
 export default async (req: Request, context: { next: () => Promise<Response> }): Promise<Response> => {
@@ -45,7 +46,7 @@ export default async (req: Request, context: { next: () => Promise<Response> }):
     if (!name) return page;
     const by = n?.artistName ? ` · ${n.artistName}` : "";
     const bio = n?.bio ?? "";
-    const description = bio !== "" ? bio : `Listen to ${name}${by} on GnoRadio, the community radio on gno.land. 100% of tips go to the artist.`;
+    const description = bio !== "" ? bio : `Listen to ${name}${by} on GnoRadio, the community radio on gno.land. Tips go straight to the artist's wallet.`;
     // The body changed: drop the original length and validators.
     const headers = new Headers(page.headers);
     for (const h of ["content-length", "etag", "last-modified"]) headers.delete(h);

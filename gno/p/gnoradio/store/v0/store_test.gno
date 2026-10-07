@@ -81,7 +81,6 @@ func TestJSONList(t *testing.T) {
 	l := Pack([]int{3, 12345678, 40})
 	uassert.Equal(t, "[       3,12345678,      40]", JSON(l))
 	uassert.Equal(t, "[]", JSON(""))
-	uassert.Equal(t, "[      40]", JSON(Slice(l, 2, 9)))
 	uassert.Equal(t, 12345678, At(l, 1))
 }
 
@@ -155,6 +154,75 @@ func TestMapKeysPaging(t *testing.T) {
 	m.Remove("k1")
 	uassert.Equal(t, 299, m.Len())
 	uassert.Equal(t, 299, len(m.Keys(0, 1000)))
+}
+
+// Leaves hang as high as their slot allows and move down only when another
+// leaf needs the slot: lookups, counts and walk order stay those of the full
+// tree whatever the insertion order.
+func TestSparseTree(t *testing.T) {
+	var tr tree
+	keys := []int{70000, 3, 1 << 20, 4, 35, 3 + 32*32*32, 0, 99, 1<<20 + 1}
+	for i, k := range keys {
+		l := tr.leaf(k, true)
+		uassert.Equal(t, "", l.s)
+		l.s = itoa(k)
+		add(tr.path(k, false), 1)
+		if i == 0 {
+			uassert.Equal(t, 1, len(tr.path(k, false))) // a lone leaf is the root
+		}
+	}
+	uassert.Equal(t, len(keys), tr.len())
+	uassert.Equal(t, 5, tr.height)
+	uassert.True(t, len(tr.path(99, false)) < tr.height+1) // hung above level 0
+	for _, k := range []int{1, 5, 36, 3 + 32*32, 70001, 1<<20 + 2, 1 << 25} {
+		uassert.True(t, tr.leaf(k, false) == nil, itoa(k))
+	}
+	for _, k := range keys {
+		uassert.Equal(t, itoa(k), tr.leaf(k, false).s)
+	}
+	all := func(off int, desc bool) string {
+		out := ""
+		tr.walk(off, desc, func(l *node, skip int) bool {
+			out += l.s + " "
+			return true
+		})
+		return out
+	}
+	uassert.Equal(t, "0 3 4 35 99 32771 70000 1048576 1048577 ", all(0, false))
+	uassert.Equal(t, "1048577 1048576 70000 32771 99 35 4 3 0 ", all(0, true))
+	uassert.Equal(t, "35 99 32771 70000 1048576 1048577 ", all(3, false))
+	add(tr.path(35, false), -1) // an emptied leaf is skipped
+	add(tr.path(70000, false), -1)
+	uassert.Equal(t, "0 3 4 99 32771 1048576 1048577 ", all(0, false))
+	uassert.Equal(t, "32771 1048576 1048577 ", all(4, false))
+	uassert.Equal(t, "3 0 ", all(5, true))
+	uassert.Equal(t, len(keys)-2, tr.len())
+}
+
+// A sparse map (buckets far apart) keeps every operation and page exact.
+func TestSparseMapPaging(t *testing.T) {
+	m := NewMap(65536)
+	for i := 0; i < 500; i++ {
+		m.Set("g1user"+itoa(i)+"/0", itoa(i))
+	}
+	m.Set("g1user7/0", "seven")
+	uassert.Equal(t, 500, m.Len())
+	v, ok := m.Get("g1user7/0")
+	uassert.True(t, ok)
+	uassert.Equal(t, "seven", v)
+	uassert.True(t, m.Remove("g1user8/0"))
+	uassert.False(t, m.Remove("g1user8/0"))
+	uassert.False(t, m.Has("g1user8/0"))
+	whole := m.Keys(0, 1000)
+	uassert.Equal(t, 499, len(whole))
+	var paged []string
+	for off := 0; off < 499; off += 13 {
+		paged = append(paged, m.Keys(off, 13)...)
+	}
+	uassert.Equal(t, len(whole), len(paged))
+	for i := range whole {
+		uassert.Equal(t, whole[i], paged[i])
+	}
 }
 
 func sprint(xs []int) string {

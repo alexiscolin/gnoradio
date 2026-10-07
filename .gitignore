@@ -10,3 +10,5 @@ coverage/
 gno/r/gnoradio/devseed/
 app/tsconfig.tsbuildinfo
 __pycache__/
+app/test-results/
+app/playwright-report/

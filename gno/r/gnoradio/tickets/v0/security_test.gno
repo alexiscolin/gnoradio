@@ -28,12 +28,12 @@ func TestUpcomingIndexAndOpenCap(cur realm, t *testing.T) {
 
 	CancelEvent(cross(cur), ids[0])
 	testing.SetRealm(testing.NewUserRealm(bob))
-	HideEvent(cross(cur), ids[1], true)
+	HideEvent(cross(cur), ids[1], true, "duplicate listing")
 	uassert.Equal(t, maxOpenAhead-2, len(Upcoming(50)))
 	js := EventsJSON(0, 50, true)
 	uassert.False(t, strings.Contains(js, `"id":`+itoa(ids[1])+`,`))
 	uassert.True(t, strings.Contains(js, `"id":`+itoa(ids[2])+`,`))
-	HideEvent(cross(cur), ids[1], false)
+	HideEvent(cross(cur), ids[1], false, "")
 	uassert.Equal(t, maxOpenAhead-1, len(Upcoming(50)))
 
 	// The cancelled slot is free again; then a concert passing frees another.
@@ -45,4 +45,28 @@ func TestUpcomingIndexAndOpenCap(cur realm, t *testing.T) {
 	testing.SkipHeights(31 * 720) // 31 hours: the soonest concert (in 30h) is over
 	uassert.Equal(t, maxOpenAhead-1, len(Upcoming(50)))
 	CreateEvent(cross(cur), "Next", "Club", "", inHours(202), "0", 10)
+}
+
+// A hidden artist's concerts leave the Upcoming index once anyone refreshes
+// the artist, so hidden spam cannot fill the scan; restored, they come back.
+func TestRefreshArtistPrunesUpcoming(cur realm, t *testing.T) {
+	reset()
+	ensureArtist(cur, t)
+	testing.SetRealm(testing.NewUserRealm(alice))
+	a := CreateEvent(cross(cur), "Show", "Club", "", inHours(48), "0", 10)
+	b := CreateEvent(cross(cur), "Gone", "Club", "", inHours(50), "0", 10)
+	CancelEvent(cross(cur), b)
+	aid := getEvent(a).ArtistID
+	uassert.Equal(t, 1, upcoming.Size())
+
+	artistVisible = func(int) bool { return false } // moderators hid the profile
+	testing.SetRealm(testing.NewUserRealm(carol))
+	RefreshArtist(cross(cur), aid)
+	uassert.Equal(t, 0, upcoming.Size())
+	uassert.Equal(t, 0, len(Upcoming(50)))
+
+	artistVisible = func(int) bool { return true }
+	RefreshArtist(cross(cur), aid)
+	uassert.Equal(t, 1, upcoming.Size()) // the cancelled one stays out
+	uassert.Equal(t, a, Upcoming(50)[0].ID)
 }

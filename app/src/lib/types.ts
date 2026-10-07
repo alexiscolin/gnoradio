@@ -3,8 +3,7 @@
 import type { Album, Artist, ConcertEvent, Genre, Playlist, Station, Track } from "./schemas";
 
 export type {
-  Activity, Album, Artist, CatalogInfo, ConcertEvent, Fees, Genre, Origin, OwnedTicket, Playlist, Schedule, ScheduleEntry, Split,
-  Station, SupportInfo, Track, UserInfo,
+  Activity, Album, Artist, Booked, ConcertEvent, OwnedTicket, Playlist, Schedule, ScheduleEntry, SupportInfo, Track, UserInfo,
 } from "./schemas";
 
 /** Everything the app renders, loaded once and refreshed after writes. */
@@ -18,6 +17,8 @@ export interface Catalog {
   readonly stations: readonly Station[];
   /** pending counts catalog tracks not yet synced into the stations. */
   readonly pending: number;
+  /** newFloor: only tracks with a higher id can be picked on New this week. */
+  readonly newFloor: number;
   readonly events: readonly ConcertEvent[];
   readonly admin: string;
 }
@@ -33,10 +34,12 @@ export type View =
   | { readonly k: "studio" }
   | { readonly k: "contribute"; readonly path?: ContribPath }
   | { readonly k: "about" }
+  | { readonly k: "legal" }
   | { readonly k: "track"; readonly id: number }
   | { readonly k: "artist"; readonly id: number }
   | { readonly k: "album"; readonly id: number }
-  | { readonly k: "playlist"; readonly id: number };
+  | { readonly k: "playlist"; readonly id: number }
+  | { readonly k: "listener"; readonly address: string };
 
 /** The four ways to contribute, each with its own URL (/contribute/artist…). */
 export type ContribPath = "listener" | "artist" | "claim" | "report";

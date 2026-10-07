@@ -14,6 +14,7 @@ const PATHS = {
   prev: <><path d="M6 5v14" /><path d="M18 6v12l-9-6z" fill="currentColor" /></>,
   next: <><path d="M18 5v14" /><path d="M6 6v12l9-6z" fill="currentColor" /></>,
   play: <path d="M7 5v14l12-7z" fill="currentColor" />,
+  stop: <rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor" />,
   pause: <><rect x="6.5" y="5" width="3.5" height="14" rx="1" fill="currentColor" /><rect x="14" y="5" width="3.5" height="14" rx="1" fill="currentColor" /></>,
   volume: <><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor" /><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11" /></>,
   mute: <><path d="M4 9.5h3.5L12 6v12l-4.5-3.5H4z" fill="currentColor" /><path d="m16 9.5 5 5M21 9.5l-5 5" /></>,
@@ -23,6 +24,8 @@ const PATHS = {
   check: <path d="m5 12.5 4.5 4.5L19 7.5" />,
   menu: <path d="M4 7h16M4 12h16M4 17h16" />,
   flag: <path d="M6 21V4h11l-2 4 2 4H6" />,
+  heart: <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" />,
+  "heart-on": <path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z" fill="currentColor" />,
   bookmark: <path d="M7 4h10v16l-5-4-5 4z" />,
   "bookmark-on": <path d="M7 4h10v16l-5-4-5 4z" fill="currentColor" />,
 } satisfies Record<string, ReactNode>;

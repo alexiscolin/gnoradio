@@ -32,11 +32,13 @@ func flag(b bool) string {
 
 // Track record fields that are read or updated alone.
 const (
-	fArtist = 0
-	fHidden = 3
-	fTitle  = 5
-	fLikes  = 18
-	fEarly  = 21
+	fArtist   = 0
+	fGenre    = 1
+	fDuration = 2
+	fHidden   = 3
+	fTitle    = 5
+	fLikes    = 18
+	fEarly    = 21
 )
 
 func trackRec(id int) (string, bool) { return tracks.Get(id - 1) }
@@ -89,7 +91,7 @@ func brief(id int) (artist, genre int, dur int64, hidden, ok bool) {
 	if !ok {
 		return 0, 0, 0, false, false
 	}
-	return atoi(store.Field(rec, 0)), atoi(store.Field(rec, 1)), atoi64(store.Field(rec, 2)), store.Field(rec, 3) != "", true
+	return atoi(store.Field(rec, fArtist)), atoi(store.Field(rec, fGenre)), atoi64(store.Field(rec, fDuration)), store.Field(rec, fHidden) != "", true
 }
 
 // ---- artists: a small head record (hidden first), the id lists apart ----
@@ -109,6 +111,14 @@ func getArtist(id int) *Artist {
 	}
 }
 
+// Artist head fields read alone; they follow artistRecord's order.
+const (
+	aHidden   = 0
+	aOwner    = 1
+	aName     = 3
+	aVerified = 9
+)
+
 func artistRecord(a *Artist) string {
 	return store.Rec(flag(a.Hidden), a.Owner.String(), a.Kind, a.Name, a.Bio, a.Source, itoa64(a.Joined),
 		itoa64(a.Tips), itoa(a.Followers), flag(a.Verified))
@@ -119,7 +129,7 @@ func putArtist(a *Artist) { artists.Set(a.ID-1, artistRecord(a)) }
 // artistVisible and artistField read one field of the head.
 func artistVisible(id int) bool {
 	rec, ok := artistRec(id)
-	return ok && store.Field(rec, 0) == ""
+	return ok && store.Field(rec, aHidden) == ""
 }
 
 func artistField(id, i int) string {
@@ -195,16 +205,18 @@ func getUser(addr address) *User {
 	}
 	rec, _ := userRecs.Get(atoi(i))
 	f := store.Fields(rec)
-	return &User{Likes: f[0], Follows: f[1], Tipped: atoi64(f[2]), tipped: f[3], Playlists: store.Ints(f[4]),
-		Reports: atoi(f[5])}
+	return &User{Follows: f[0], Tipped: atoi64(f[1]), tipped: f[2], Playlists: store.Ints(f[3]), Reports: atoi(f[4])}
 }
 
 // putUser saves a listener; the address index is written only for a new listener.
 func putUser(addr address, u *User) {
-	rec := store.Rec(u.Likes, u.Follows, itoa64(u.Tipped), u.tipped, store.Pack(u.Playlists), itoa(u.Reports))
+	rec := store.Rec(u.Follows, itoa64(u.Tipped), u.tipped, store.Pack(u.Playlists), itoa(u.Reports))
 	if i, ok := users.Get(addr.String()); ok {
 		userRecs.Set(atoi(i), rec)
 		return
 	}
 	users.Set(addr.String(), itoa(userRecs.Append(rec)))
 }
+
+// likeKey is the likes entry holding trackID for addr.
+func likeKey(addr address, trackID int) string { return addr.String() + "/" + itoa(trackID>>likeRange) }

@@ -14,6 +14,19 @@ export const shortAddr = (a: string): string => (a.length > 12 ? `${a.slice(0, 7
 
 export const licenseLabel = (l: string): string => (l === "Audius-OML" ? "Audius Open Music License" : l.replaceAll("-", " "));
 
+/**
+ * licenseURL links a license id to its text, as home.gno's licenseLink does.
+ * Creative Commons ids read CC-<terms>-<version>[-<port>], e.g. CC-BY-SA-3.0-DE →
+ * creativecommons.org/licenses/by-sa/3.0/de/. "" when there is no public text.
+ */
+export function licenseURL(l: string): string {
+  if (l === "CC0-1.0") return "https://creativecommons.org/publicdomain/zero/1.0/";
+  if (l === "Audius-OML") return "https://openaudiofoundation.org/open-music-license.pdf";
+  const m = /^CC-((?:[A-Z]+-)*[A-Z]+)-(\d+\.\d+)(?:-([A-Z]+))?$/i.exec(l);
+  if (!m?.[1] || !m[2]) return "";
+  return `https://creativecommons.org/licenses/${m[1].toLowerCase()}/${m[2]}/${m[3] ? `${m[3].toLowerCase()}/` : ""}`;
+}
+
 export function hostOf(url: string): string {
   try {
     return new URL(url).host.replace(/^www\./, "");

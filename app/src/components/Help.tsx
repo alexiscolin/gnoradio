@@ -10,6 +10,8 @@ const W = 240; // popover width; it is fixed-positioned and clamped so no panel 
 export function Help({ text, more }: { readonly text: string; readonly more?: string }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<CSSProperties>({});
+  // Inside a modal dialog the popover must render in it: the page under a dialog is inert and drawn below.
+  const [host, setHost] = useState<Element>(document.body);
   const ref = useRef<HTMLSpanElement>(null);
   // A short grace period lets the pointer travel from the "?" to the popover (to reach "Learn more").
   const timer = useRef(0);
@@ -21,6 +23,7 @@ export function Help({ text, more }: { readonly text: string; readonly more?: st
       const left = Math.min(Math.max(8, b.left + b.width / 2 - W / 2), window.innerWidth - W - 8);
       setPos(b.top > 140 ? { left, bottom: window.innerHeight - b.top + 8 } : { left, top: b.bottom + 8 });
     }
+    setHost(ref.current?.closest("dialog") ?? document.body);
     stay();
     setOpen(true);
   };
@@ -38,13 +41,13 @@ export function Help({ text, more }: { readonly text: string; readonly more?: st
   return (
     <span ref={ref} className="help" onMouseEnter={show} onMouseLeave={leave}>
       <button type="button" className="help-q" aria-label="Help" aria-expanded={open} onClick={(e) => { e.stopPropagation(); if (open) setOpen(false); else show(); }}>?</button>
-      {/* Rendered on <body>: no panel overflow, transform or containment can clip or shift it. */}
+      {/* Rendered on <body> (or its dialog): no panel overflow can clip it. */}
       {open && createPortal(
         <span className="help-pop" role="tooltip" style={pos} onMouseEnter={stay} onMouseLeave={leave}>
           {text}
           {more && <> <a href={more}>Learn more</a></>}
         </span>,
-        document.body,
+        host,
       )}
     </span>
   );

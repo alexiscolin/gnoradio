@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickBlock } from "../components/PickNext";
+import { bookAt, gmt, hhmm, pickBlock } from "../components/PickNext";
 import {
   type TrackDraft, artistProblems, formatSplits, mediaProblem, parseClock, playlistProblems, reportProblems,
   sha256Hex, splitsProblem, trackProblems, validName, validText,
@@ -96,9 +96,15 @@ describe("pickBlock", () => {
   it("lets a wallet pick when nothing blocks it", () => {
     expect(pickBlock([{ start: now - 60, end: now + 120, queued: false, by: "" }], now, ME)).toBe("");
   });
-  it("says when the wallet can pick again", () => {
+  it("counts the hour from when the wallet picked, not when its pick aired", () => {
     const e = [{ start: now - 600, end: now - 400, queued: true, by: ME }];
-    expect(pickBlock(e, now, ME)).toMatch(/pick again at/);
+    expect(pickBlock(e, now, ME, now - 3000)).toMatch(/pick again at/);
+    expect(pickBlock(e, now, ME, now - 3700)).toBe("");
+  });
+  it("leaves room for the chosen track only", () => {
+    const e = [{ start: now, end: now + 7100, queued: true, by: OTHER }];
+    expect(pickBlock(e, now, ME, 0, 180)).toMatch(/Too long/);
+    expect(pickBlock(e, now, ME, 0, 60)).toBe("");
   });
   it("sees a pick already waiting", () => {
     expect(pickBlock([{ start: now + 60, end: now + 200, queued: true, by: ME }], now, ME)).toMatch(/already waiting/);
@@ -106,5 +112,28 @@ describe("pickBlock", () => {
   it("reports the 2 hour cap", () => {
     const e = Array.from({ length: 10 }, (_, i) => ({ start: now + i * 800, end: now + (i + 1) * 800, queued: true, by: OTHER }));
     expect(pickBlock(e, now, ME)).toMatch(/Queue full until/);
+  });
+  it("books 15 min to 24 h ahead, 4 per hour, outside the 2 hour cap", () => {
+    const full = Array.from({ length: 10 }, (_, i) => ({ start: now + i * 800, end: now + (i + 1) * 800, queued: true, by: OTHER }));
+    const hour = (Math.floor(now / 3600) + 5) * 3600;
+    expect(pickBlock(full, now, ME, 0, 180, hour)).toBe("");
+    expect(pickBlock([], now, ME, 0, 0, now + 14 * 60)).toMatch(/15 minutes to 24 hours/);
+    expect(pickBlock([], now, ME, 0, 0, now + 24 * 3600 + 60)).toMatch(/15 minutes to 24 hours/);
+    const b = (at: number, by = OTHER) => ({ track: 9, start: at, end: at + 180, at, by });
+    const four = [0, 900, 1800, 2700].map((m) => b(hour + m));
+    expect(pickBlock([], now, ME, 0, 0, hour + 3000, four)).toMatch(/already booked for that hour/);
+    expect(pickBlock([], now, ME, 0, 0, hour + 3600, four)).toBe("");
+    expect(pickBlock([], now, ME, 0, 0, 0, [b(hour, ME)])).toMatch(/already waiting/); // a booked pick waits too
+  });
+  it("books a typed time today, or tomorrow once it has passed, on a quarter hour", () => {
+    const soon = bookAt(hhmm(now + 3600), now);
+    expect(soon % 900).toBe(0);
+    expect(soon).toBeGreaterThanOrEqual(now + 3600 - 900);
+    expect(soon).toBeLessThanOrEqual(now + 3600 + 900);
+    const passed = bookAt(hhmm(now - 3600), now); // an hour ago: tomorrow
+    expect(passed).toBeGreaterThan(now + 20 * 3600);
+    expect(passed).toBeLessThanOrEqual(now + 24 * 3600);
+    expect(bookAt("nope", now)).toBe(0);
+    expect(gmt(now)).toMatch(/^GMT[+-]\d+(:\d\d)?$/);
   });
 });

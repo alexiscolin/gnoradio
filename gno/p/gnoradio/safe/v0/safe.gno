@@ -13,12 +13,32 @@ import "strings"
 type list struct {
 	words map[string]bool // false: not blocked, but starts a blocked phrase
 	stems []string        // blocked inside any word: roots legitimate words lack
+	back  []string        // the stems reversed, for words written backwards ("kcuf")
+	first [32]bool        // letters (r&31) that start a stem or a reversed stem
 }
 
+// newList reverses the stems once. A reversed "nigg" is too often a real word
+// (jogging): the list has "reggin".
+func newList(words map[string]bool, stems ...string) list {
+	l := list{words: words, stems: stems}
+	for _, st := range stems {
+		l.first[st[0]&31] = true
+		if st != "nigg" {
+			b := reverse(st)
+			l.back = append(l.back, b)
+			l.first[b[0]&31] = true
+		}
+	}
+	return l
+}
+
+// maxPhrase is the longest blocked phrase, in words ("go back where you came from").
+const maxPhrase = 6
+
 var (
-	full = list{set(words, "\n"), []string{"fuck", "cunt", "nigg", "fagg", "bitch", "whore", "porn", "encul", "pedoph", "paedoph", "pedofil"}}
+	full = newList(set(words, "\n"), "fuck", "cunt", "nigg", "fagg", "bitch", "whore", "porn", "encul", "pedoph", "paedoph", "pedofil")
 	// hate is what Slur refuses even in titles and names.
-	hate = list{set("kike,chink,gook,wetback,raghead,towelhead,tranny,trannies,zipperhead,jungle bunny,porch monkey,untermensch,holohoax,heil hitler,sieg heil,white power,gas the jews,kill the jews,kill all jews", ","), []string{"nigg", "fagg"}}
+	hate = newList(set("kike,chink,gook,wetback,raghead,towelhead,tranny,trannies,zipperhead,jungle bunny,porch monkey,untermensch,holohoax,heil hitler,sieg heil,white power,gas the jews,kill the jews,kill all jews", ","), "nigg", "fagg")
 	// allow holds real words that a stem, the final s or repeated-letter
 	// folding would catch.
 	allow = set("rapping,lull,sleet,annal,annals,annales,fodder,cull,scunthorpe,bitche,pornic,pornichet,salopette,salopettes", ",")
@@ -67,13 +87,13 @@ func Note(s string, max int) string {
 				}
 			}
 			digits, seq = 0, 0
-		case strings.ContainsRune(" .,!?'-’", r):
+		case strings.ContainsRune(" .,!?'-’¡¿", r):
 			digits, dot = 0, 0
 			if r == '.' {
 				dot = 1
 			}
 		default:
-			return "letters, digits and . , ! ? ' - only"
+			return "letters, digits and . , ! ? ¡ ¿ ' - only"
 		}
 	}
 	if n > max {
@@ -108,11 +128,11 @@ func (l list) in(s string) bool {
 }
 
 func (l list) blocked(s string) bool {
-	ws := strings.Fields(s)
+	ws := fields(s)
 	run := ""
 	for i, w := range append(ws, "") {
 		if _, starts := l.words[w]; starts {
-			for j := i + 2; j <= i+4 && j <= len(ws); j++ {
+			for j := i + 2; j <= i+maxPhrase && j <= len(ws); j++ {
 				if l.words[strings.Join(ws[i:j], " ")] {
 					return true
 				}
@@ -132,22 +152,40 @@ func (l list) blocked(s string) bool {
 
 // word reports whether w or its letters squeezed is listed, or whether w
 // holds a stem, also reversed ("kcuf"). A reversed listed word is too often
-// a real one (lana, setup), and so is a reversed "nigg" (jogging): the list
-// has "reggin".
+// a real one (lana, setup).
 func (l list) word(w string) bool {
 	if w == "" || allow[w] {
 		return false
 	}
-	sq := squeeze(w)
-	if l.listed(w) || sq != w && l.listed(sq) {
+	if l.listed(w) {
 		return true
 	}
-	if len(w) < 4 {
+	// One pass finds repeated letters (else w is its own squeeze) and a
+	// letter that starts a stem (else no stem can match).
+	dup, stem := false, false
+	var last rune
+	for _, r := range w {
+		dup = dup || r == last
+		stem = stem || l.first[r&31]
+		last = r
+	}
+	sq := w
+	if dup {
+		sq = squeeze(w)
+		if l.listed(sq) {
+			return true
+		}
+	}
+	if len(w) < 4 || !stem {
 		return false
 	}
-	rev := reverse(w)
 	for _, st := range l.stems {
-		if strings.Contains(w, st) || strings.Contains(sq, st) || st != "nigg" && strings.Contains(rev, st) {
+		if has(w, st) || dup && has(sq, st) {
+			return true
+		}
+	}
+	for _, st := range l.back {
+		if has(w, st) {
 			return true
 		}
 	}
@@ -156,7 +194,43 @@ func (l list) word(w string) bool {
 
 // listed matches w whole or without a final s (never "es": spices, not spic).
 func (l list) listed(w string) bool {
-	return l.words[w] || l.words[strings.TrimSuffix(w, "s")]
+	n := len(w)
+	return l.words[w] || n > 1 && w[n-1] == 's' && l.words[w[:n-1]]
+}
+
+// The helpers below run on every character of every checked text, so they
+// stick to what the VM does cheaply: ranging over a string and writing into
+// a byte slice (indexing a string or appending costs several times more).
+
+// has is strings.Contains for short words (Contains hashes both strings).
+func has(w, st string) bool {
+	c, n := rune(st[0]), len(st)
+	for i, r := range w {
+		if r == c && i+n <= len(w) && w[i:i+n] == st {
+			return true
+		}
+	}
+	return false
+}
+
+// fields is strings.Fields for folded text (lowercase letters and spaces).
+func fields(s string) []string {
+	var ws []string
+	start := -1
+	for i, r := range s {
+		if r != ' ' {
+			if start < 0 {
+				start = i
+			}
+		} else if start >= 0 {
+			ws = append(ws, s[start:i])
+			start = -1
+		}
+	}
+	if start >= 0 {
+		ws = append(ws, s[start:])
+	}
+	return ws
 }
 
 func reverse(w string) string {
@@ -187,50 +261,69 @@ const cyrillic, cyrillicAs = "аеорсухіјѕһԁԛԝӏАВЕНІЈКМОР
 // words split by - or ' and reads 1 ! ß as l i b (1 and ! before a letter);
 // odd reports whether alt reads s differently.
 func fold(s string, alt bool) (f string, odd bool) {
-	b := make([]byte, 0, len(s))
+	b := make([]byte, len(s)) // folding never lengthens s
+	n := 0
 	for i, r := range s {
+		if r >= 'a' && r <= 'z' || r == ' ' {
+			b[n] = byte(r)
+			n++
+			continue
+		}
+		if r >= 'A' && r <= 'Z' {
+			b[n] = byte(r) + 32
+			n++
+			continue
+		}
 		if r == '-' || r == '\'' || r == '’' || r == 'ß' || (r == '1' || r == '!') && i+1 < len(s) && letter(rune(s[i+1])) {
 			odd = true
 			if alt {
 				if j := strings.IndexRune("1!ß", r); j >= 0 {
-					b = append(b, "lib"[j])
+					b[n] = "lib"[j]
+					n++
 				}
 				continue
 			}
 		}
 		switch {
-		case r >= 'A' && r <= 'Z':
-			b = append(b, byte(r)+32)
-		case r >= 'a' && r <= 'z':
-			b = append(b, byte(r))
 		case r >= 0xC0 && r <= 0xFF:
 			if c := latin[r-0xC0]; c != '-' {
-				b = append(b, c)
+				b[n] = c
+				n++
 			}
 		case r == 'Ĳ' || r == 'ĳ':
-			b = append(b, 'i', 'j')
+			b[n], b[n+1] = 'i', 'j'
+			n += 2
 		case r == 'Œ' || r == 'œ':
-			b = append(b, 'o', 'e')
+			b[n], b[n+1] = 'o', 'e'
+			n += 2
 		case r >= 0x100 && r <= 0x17F:
-			b = append(b, latinA[r-0x100])
+			b[n] = latinA[r-0x100]
+			n++
 		case r >= '0' && r <= '9':
-			b = append(b, "oizeasgtbg"[r-'0'])
+			b[n] = "oizeasgtbg"[r-'0']
+			n++
 		case r >= 0x400 && r <= 0x52F && strings.ContainsRune(cyrillic, r):
-			b = append(b, cyrillicAs[strings.IndexRune(cyrillic, r)/2])
+			b[n] = cyrillicAs[strings.IndexRune(cyrillic, r)/2]
+			n++
 		default:
-			b = append(b, ' ')
+			b[n] = ' '
+			n++
 		}
 	}
-	return string(b), odd
+	return string(b[:n]), odd
 }
 
 // squeeze collapses repeated letters ("fuuuck" -> "fuck").
 func squeeze(w string) string {
-	b := make([]byte, 0, len(w))
-	for i := 0; i < len(w); i++ {
-		if i == 0 || w[i] != w[i-1] {
-			b = append(b, w[i])
+	b := []byte(w)
+	n := 0
+	var last byte
+	for i, c := range b {
+		if i == 0 || c != last {
+			b[n] = c
+			n++
 		}
+		last = c
 	}
-	return string(b)
+	return string(b[:n])
 }
