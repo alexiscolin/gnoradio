@@ -2,12 +2,10 @@ import { Icon } from "../components/Icons";
 import { type Glyph, Shape } from "../components/Shapes";
 import { gnot, shortAddr } from "../lib/format";
 import { CHAIN_ID } from "../lib/gno";
-import { ABUSE_EMAIL, CONTACT_EMAIL, NOTICE_DELAY } from "../lib/legal";
+import { CONTACT, NOTICE_DELAY, REPO } from "../lib/legal";
 import { realmPage, sourceURL } from "../lib/links";
 import type { Catalog, Navigate, SupportInfo } from "../lib/types";
 
-const GITHUB = "https://github.com/alexiscolin";
-const REPO = `${GITHUB}/gnoradio`;
 const out = { target: "_blank", rel: "noreferrer" } as const;
 
 const STEPS: readonly { readonly g: Glyph; readonly title: string; readonly text: string }[] = [
@@ -177,10 +175,10 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
           Listeners can report a track, album, artist or playlist on-chain: the moderator reads every report and hides the content while checking.
         </p>
         <p className="muted small">
-          Copyright or illegal content? Email <a href={`mailto:${ABUSE_EMAIL}`}>{ABUSE_EMAIL}</a> with: the link, why it is illegal or which right it infringes, your name and email, and a statement that you believe this in good faith. We hide reported content while we check, usually within {NOTICE_DELAY}, and tell the uploader why.
+          Copyright or illegal content? Open an <a href={CONTACT} {...out}>issue on GitHub</a>, or report it on-chain from its page, with: the link, why it is illegal or which right it infringes, your name and a way to reach you, and a statement that you believe this in good faith. We hide reported content while we check, usually within {NOTICE_DELAY}, and tell the uploader why.
         </p>
         <p className="muted small">
-          Accessibility: GnoRadio is built to work with a keyboard and a screen reader, but it has not been audited. Tell us what gets in your way at <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
+          Accessibility: GnoRadio is built to work with a keyboard and a screen reader, but it has not been audited. Tell us what gets in your way in a <a href={CONTACT} {...out}>GitHub issue</a>.
         </p>
         <p className="muted small">
           <button className="link" onClick={() => { go({ k: "legal" }); }}>Legal notice, privacy and terms</button> · <a href={`${REPO}/blob/main/NOTICE`} {...out}>Third-party notices</a>
@@ -189,7 +187,7 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
 
       <footer className="about-credit">
         <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z" /></svg>
-        <span>Made by <a href={GITHUB} {...out}><b>alexiscolin</b></a> · source <a href={REPO} {...out}>GitHub <Icon name="external" size={12} /></a></span>
+        <span>Made by <a href="https://github.com/alexiscolin" {...out}><b>alexiscolin</b></a> · source <a href={REPO} {...out}>GitHub <Icon name="external" size={12} /></a></span>
       </footer>
     </article>
   );

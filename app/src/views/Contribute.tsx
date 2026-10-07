@@ -4,8 +4,8 @@ import { Cover } from "../components/Cover";
 import { Help } from "../components/Help";
 import { Shape } from "../components/Shapes";
 import { RIGHTS_FALLBACK, hostAllowed, loadRightsTerms, loadUser } from "../lib/community";
-import { ABUSE_EMAIL } from "../lib/legal";
 import { txURL } from "../lib/links";
+import { CONTACT } from "../lib/legal";
 import { clock, errorMessage, plural } from "../lib/format";
 import { SearchPick } from "../components/SearchPick";
 import { VerifyPanel, useClaim } from "../components/Verify";
@@ -76,7 +76,7 @@ export function Contribute({ cat, go, path, actions, isAdmin, openPick }: Props 
         ))}
       </div>
 
-      {chosen === "report" && <p className="report-first">Rights holder? Email <a href={`mailto:${ABUSE_EMAIL}`}>{ABUSE_EMAIL}</a> — no wallet needed.</p>}
+      {chosen === "report" && <p className="report-first">Rights holder? Open a <a href={CONTACT} target="_blank" rel="noreferrer">GitHub issue</a>: no wallet needed.</p>}
       {!address && (
         <p className="connect-line">
           <Icon name="wallet" size={18} /> Contributing writes to gno.land, so it needs a wallet. Listening never does.

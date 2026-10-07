@@ -1,21 +1,19 @@
-// Owner details for the legal pages, filled once before launch. Every
-// bracketed value is a placeholder: the owner replaces it.
+// Owner details for the legal pages. GnoRadio is published by a private
+// individual as a non-professional: under French law (LCEN art. 6-III-2) they
+// may stay anonymous, their identity being held by the host named below.
 
-/** Publisher: the person or company responsible for GnoRadio, with postal address. */
-export const PUBLISHER = "[PUBLISHER: name, legal form, postal address]";
-/** Publication director (France: directeur de la publication). */
-export const DIRECTOR = "[PUBLICATION DIRECTOR]";
-/** General contact for privacy and legal questions. */
-export const CONTACT_EMAIL = "[CONTACT EMAIL]";
-/** Where copyright and illegal-content notices go. */
-export const ABUSE_EMAIL = "[ABUSE EMAIL]";
+/** Publisher, as shown in the legal notice. */
+export const PUBLISHER = "a private individual, publishing as a non-professional (French LCEN art. 6-III-2); their identity is held by the host below";
 /** Usual time to hide reported content. */
-export const NOTICE_DELAY = "[72 h]";
-/** Minimum age to use the on-chain features. */
-export const MIN_AGE = "[MINIMUM AGE]";
+export const NOTICE_DELAY = "72 hours";
+/** Minimum age to use the on-chain features (they move money). */
+export const MIN_AGE = "18";
 /** Who holds the treasury address that receives support and service fees. */
-export const TREASURY_HOLDER = "[TREASURY HOLDER]";
+export const TREASURY_HOLDER = "the publisher";
 /** What happens to an uploader after repeated valid copyright notices. */
-export const REPEAT_INFRINGER = "[REPEAT-INFRINGER RULE, e.g. a profile hidden after 3 valid notices]";
-/** Host, from Netlify's privacy statement (address). [VERIFY phone before launch] */
-export const HOST = "Netlify, Inc., 101 2nd Street, San Francisco, CA 94105, USA · +1 415 691 1573 [VERIFY]";
+export const REPEAT_INFRINGER = "A profile is hidden after 3 valid notices";
+/** Host, from Netlify's privacy statement (netlify.com/privacy); Netlify publishes no phone line, only its contact page. */
+export const HOST = "Netlify, Inc., 101 2nd Street, San Francisco, CA 94105, USA · netlify.com/contact";
+/** The public repository, and where to write to the publisher: its issues (a GitHub account, public). */
+export const REPO = "https://github.com/alexiscolin/gnoradio";
+export const CONTACT = `${REPO}/issues/new`;
