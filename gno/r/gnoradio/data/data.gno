@@ -26,7 +26,7 @@ import (
 
 // DELAY is how long a ready release waits before it takes over. It is a
 // constant so that it can never be shortened.
-const DELAY = 72 * 3600
+const DELAY = 12 * 3600
 
 // Limits: every call is bounded.
 const (
@@ -335,11 +335,11 @@ func GuardianRenounce(cur realm) {
 
 // GuardianReplace is the owner's way out of a lost or stolen guardian key,
 // which could otherwise cancel every release and pause after every resume
-// for good: to becomes the guardian 2x DELAY (six days) later. The guardian
+// for good: to becomes the guardian 2x DELAY (a day) later. The guardian
 // cannot cancel it; the owner withdraws it with to = "" or announces another
 // one, which restarts the clock. The wait outlasts a release's DELAY, so a
-// stolen owner key that replaces the guardian is public for six days before
-// its own release can even start its 72 hours. Owner only.
+// stolen owner key that replaces the guardian is public for a day before
+// its own release can even start its 12 hours. Owner only.
 func GuardianReplace(cur realm, to address) {
 	onlyOwner(cur)
 	settleGuardian()

@@ -14,7 +14,7 @@ about music: ordered collections of string keys to string values. The rules real
 (catalog, radio, tickets, home) keep no state of their own. Each one is the only
 writer of its role's collections ("catalog/…", "radio/…"). A new version of the
 rules is a set of new realms. The data owner proposes it. Each new realm says
-`Ready`. 72 hours later the whole set becomes the writers at once. No data is
+`Ready`. 12 hours later the whole set becomes the writers at once. No data is
 copied, so no deposit is paid again. Coins held for promo budgets sit in a vault
 inside `data`. Funders can always withdraw them, even while the rules are paused
 or replaced. Every owner or admin role is passed in two steps (offer, accept)
@@ -88,7 +88,7 @@ owner and guardian.
    `Ready(cur) { data.Ready(cross(cur)) }`, and anyone may call it: it only works
    for the realm whose code is now on chain. When every proposed role is ready,
    `at = now + DELAY`.
-3. `DELAY = 72h` is a constant, so it can never be shortened. From `at` on, reads
+3. `DELAY = 12h` is a constant (onyx's data realm, deployed first, has 72h), so it can never be shortened. From `at` on, reads
    (`Writer`) already return the new set. The first write applies it (`settle`) and
    emits `WriterChanged` for each role.
 4. `Cancel(cur)`. Owner or guardian. It drops a release that is not yet in force.
@@ -104,12 +104,12 @@ owner and guardian.
 8. Guardian: `GuardianOffer` / `GuardianAccept` / `GuardianRenounce`, a second
    `p/role`. The current guardian offers its role; the new one accepts. The
    owner's one call on it is `GuardianReplace(cur, to)`: `to` becomes guardian
-   `2 × DELAY` (144 h) later, and the guardian cannot cancel it (`""` withdraws
+   `2 × DELAY` (24 h) later, and the guardian cannot cancel it (`""` withdraws
    it, a new call restarts the clock). Without it a stolen guardian key could
    cancel every release and pause after every resume for good
    (`TestThiefGuardianIsReplaced`). The trade-off: a stolen owner key can also
-   replace the guardian, but only after six public days, and its own release
-   then needs 72 h more, so funders have nine days to withdraw. Once the owner
+   replace the guardian, but only after a public day, and its own release
+   then needs 12 h more, so funders have 36 hours to withdraw. Once the owner
    renounced, the guardian can no longer pause, since nobody could resume.
 
 Reads: `Writer(role)`, `Writers()` (JSON: writer, paused, proposed and ready per
@@ -270,7 +270,7 @@ the catalog admin, as today: home has no admin role of its own, so no `p/role`.
 through the catalog's dev admin and dedicate through the robot's real
 certificate (`home/v1/filetests/z_note_filetest.gno`). `Render` reads
 `data.Writer("home")` (moved), `data.Paused` (paused) and `data.Writers()` "at"
-(a ready release and when it takes over: the 72 h window is shown to visitors).
+(a ready release and when it takes over: the 12 h window is shown to visitors).
 
 ## 4. Coins
 
@@ -333,7 +333,7 @@ treats a method whose first parameter is a `realm` as crossing, and refuses that
 
 | Realm | Role | Can | Cannot |
 |---|---|---|---|
-| `data` | owner (multisig recommended) | propose, cancel, pause, resume, offer, renounce, replace the guardian 144 h after announcing it (`GuardianReplace`) | write data, touch the vault, offer, accept or renounce the guardian role |
+| `data` | owner (multisig recommended) | propose, cancel, pause, resume, offer, renounce, replace the guardian 24 h after announcing it (`GuardianReplace`) | write data, touch the vault, offer, accept or renounce the guardian role |
 | `data` | guardian (deployer at init, then a separate cold key or multisig) | pause (while an owner exists), cancel a pending release, offer or renounce its own role | resume, propose, anything of the owner's, cancel a `GuardianReplace`, write data, touch the vault |
 | catalog | admin (moderator) | hide/restore content, resolve reports, curated imports, assign/verify/cancel/reset claims, allowed hosts, `SetBot`, treasury, monthly goal, release names | budgets, tips |
 | radio | admin | curator queue, drop/restore slot, unqueue, unmute, restore note, `SetModBot` | |
@@ -625,10 +625,10 @@ are gone; `List` survives only as the codec's test oracle
 | A realm or account writes data it does not own | `gate`: the immediate caller's pkgpath must equal `writer[role of c]`. Accounts, MsgRun and the owner never pass | `TestOnlyWriterWritesItsRole` (P2, passes) |
 | catalog writes radio's collections | the role comes from the collection prefix, checked for every op of a `Batch` | same test, `Batch` case |
 | A swap without the delay | `DELAY` is a constant. The clock starts when every proposed realm said `Ready`. Any `Propose` resets it. Only proposed realms call `Ready`, once. A proposed path is a plain realm path, never `data`, `tickets/nft` or the current writer | `TestReleaseTakesOverAfterDelay`, `TestProposeChecksPath` (P2, pass): an early write is refused, the switch happens after `SkipHeights` |
-| **A private package re-uploaded after the delay** (`private = true` packages can be re-uploaded) | cannot be checked at runtime. Release checklist: the proposed `gnomod.toml` has no `private` or `replace`. Rehearsed on a v1.5.0 gnodev (P6): a second `addpkg` of a `private = true` realm **is accepted and replaces its code**; a normal realm is refused (`PkgExistError`). So the checklist is the only guard: the guardian checks every proposed realm during the 72 h | P6 release rehearsal |
-| Owner key stolen: a malicious release | 72h public window, `VaultWithdraw` stays open, the owner should be a multisig, and the guardian (a separate key) pauses and cancels the release | `TestWithdrawWhilePaused` (a release proposed and ready, every role paused, the funder withdraws), `TestGuardian` (P2) |
-| Owner key stolen: the thief removes or replaces the guardian first | the owner cannot offer, accept or renounce the guardian role. Its `GuardianReplace` takes 144 h (2 × DELAY), in public (`Writers()` "nextGuardian", the home banner reads `Writers()`); the guardian keeps pausing and cancelling meanwhile, and a malicious release still needs its own 72 h after that. **Accepted**: nine days of notice, not a permanent block, because the owner needs a way back from a lost or stolen guardian key (next row) | `TestGuardian` (owner-only `GuardianOffer`, `GuardianRenounce`, `GuardianAccept` fail), `TestThiefGuardianIsReplaced` |
-| Guardian key stolen (review M3) | it can only pause and cancel: writes stop (reads and `VaultWithdraw` go on), no coin moves, no writer changes. The thief can move the role to its own key, but the owner's `GuardianReplace` hands it to a fresh key after 144 h, and the guardian can neither cancel that nor touch the owner. Until then the owner resumes after each pause | `TestThiefGuardianIsReplaced` (the thief takes the role, vetoes, cannot cancel the replacement, loses the role at 2 × DELAY), `TestGuardian` (P2) |
+| **A private package re-uploaded after the delay** (`private = true` packages can be re-uploaded) | cannot be checked at runtime. Release checklist: the proposed `gnomod.toml` has no `private` or `replace`. Rehearsed on a v1.5.0 gnodev (P6): a second `addpkg` of a `private = true` realm **is accepted and replaces its code**; a normal realm is refused (`PkgExistError`). So the checklist is the only guard: the guardian checks every proposed realm during the 12 h | P6 release rehearsal |
+| Owner key stolen: a malicious release | 12h public window, `VaultWithdraw` stays open, the owner should be a multisig, and the guardian (a separate key) pauses and cancels the release | `TestWithdrawWhilePaused` (a release proposed and ready, every role paused, the funder withdraws), `TestGuardian` (P2) |
+| Owner key stolen: the thief removes or replaces the guardian first | the owner cannot offer, accept or renounce the guardian role. Its `GuardianReplace` takes 24 h (2 × DELAY), in public (`Writers()` "nextGuardian", the home banner reads `Writers()`); the guardian keeps pausing and cancelling meanwhile, and a malicious release still needs its own 12 h after that. **Accepted**: 36 hours of notice, not a permanent block, because the owner needs a way back from a lost or stolen guardian key (next row) | `TestGuardian` (owner-only `GuardianOffer`, `GuardianRenounce`, `GuardianAccept` fail), `TestThiefGuardianIsReplaced` |
+| Guardian key stolen (review M3) | it can only pause and cancel: writes stop (reads and `VaultWithdraw` go on), no coin moves, no writer changes. The thief can move the role to its own key, but the owner's `GuardianReplace` hands it to a fresh key after 24 h, and the guardian can neither cancel that nor touch the owner. Until then the owner resumes after each pause | `TestThiefGuardianIsReplaced` (the thief takes the role, vetoes, cannot cancel the replacement, loses the role at 2 × DELAY), `TestGuardian` (P2) |
 | Pause misused | owner, or guardian for a pause only. Never blocks reads or `VaultWithdraw` | `TestPauseResumeRenounce`, `TestGuardian`, `TestWithdrawWhilePaused`, `TestWithdrawAfterRenounce` (P2) |
 | Renounce bricks GnoRadio | refused while any role is paused. Drops a pending release | `TestPauseResumeRenounce` |
 | Stale or forged realm value used for authority (Class 2) | `p/role` checks `rlm.IsCurrent()` and `home`. Every entrypoint uses the runtime-current `cur.Previous()`. No `caller address` parameter carries authority (`VaultCredit`'s `funder` is data the writer records, not authority) | `TestRoleRefusesStaleRealm`, `TestRoleFromForeignRealm` (P1, pass) |
@@ -670,7 +670,7 @@ Also added in P5: **a malicious release takes tickets.** Mitigation: the permane
 mints to, and moves from, only the wallet that signed the transaction, so a rogue tickets release
 cannot move the tickets of a holder who signs nothing. It does not prove the holder asked for that
 move (review L2): a holder who signs any call to the rogue release can lose every ticket they hold,
-since the NFT realm sees only the tickets realm and the signer, not the call. The 72 h window, and
+since the NFT realm sees only the tickets realm and the signer, not the call. The 12 h window, and
 the guardian's cancel, are the protection there. Tested in tickets/v1's threat tests and nft
 `TestOnlyTicketsWriter`.
 
@@ -697,7 +697,7 @@ deploying `data` and the v1 realms under a namespace only its owner can publish 
    passes the role on in two steps and can renounce. The guardian, the deployer at
    init, can only pause (while an owner exists) and cancel a pending release. Rule
    for changing the guardian: **the current guardian offers, the new guardian
-   accepts; the owner can only replace it 144 h after announcing it, and the
+   accepts; the owner can only replace it 24 h after announcing it, and the
    guardian cannot cancel that** (review M3). A stolen owner key alone therefore
    cannot remove the guardian quickly, and a stolen guardian key cannot veto
    forever (section 8).

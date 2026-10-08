@@ -243,7 +243,7 @@ then accepted) and can be renounced; an admin survives a new release of the rule
 | Role | Can | Cannot |
 |---|---|---|
 | **Admin** (catalog, radio, tickets) | moderate (hide, resolve reports, restore dedications, unmute), allow hosts, set the robot keys, the treasury, the service fee, the app URL and contact line; reassign an imported (curated or Audius) profile with `ResetOwner` + `AssignArtist`, which sends its future tips to the new wallet; pass the role on with `OfferAdmin` / `AcceptAdmin`, or `RenounceAdmin` | take a tip, ticket money or support already paid (they are paid out in the same transaction), reassign a profile an artist registered themselves, touch the artists' promo budgets, pause or replace the rules |
-| **Owner** (data realm) | propose a new release of the rules (it takes over 72 h after it is on chain and ready), cancel it, pause and resume writes, pass the role on (`Offer` / `Accept`), renounce it, replace the guardian 144 h after announcing it (`GuardianReplace`) | write data, move anyone's money, skip the 72 h delay, change the guardian faster than 144 h |
+| **Owner** (data realm) | propose a new release of the rules (it takes over 12 h after it is on chain and ready; onyx's data realm, deployed first, keeps 72 h), cancel it, pause and resume writes, pass the role on (`Offer` / `Accept`), renounce it, replace the guardian 24 h after announcing it (`GuardianReplace`) | write data, move anyone's money, skip the 12 h delay, change the guardian faster than 24 h |
 | **Guardian** (data realm) | pause writes (while there is an owner), cancel a release not yet in force, hand its role to another address (two steps), renounce it | propose, resume, change the owner, cancel the owner's `GuardianReplace`, write data, move money |
 
 Reads and promo withdrawals (`data.VaultWithdraw`, by the funder) keep working while
@@ -261,7 +261,7 @@ the app, which revokes it on chain): the old admin before `OfferAdmin`, the new 
 
 GnoRadio holds money (artists' promo budgets in the data realm's vault); gnogolf holds scores,
 so it has an owner only. With a guardian on a **different key**, a stolen owner key is not the
-end: during the 72 h before a malicious release takes over, the guardian pauses and cancels it.
+end: during the 12 h before a malicious release takes over, the guardian pauses and cancels it.
 If owner and guardian are the same key, the guardian protects nothing: whoever steals the key
 has both roles.
 
@@ -276,10 +276,10 @@ that matter.
 A stolen guardian key alone can keep pausing writes and cancelling releases (no money moves,
 reads and withdrawals go on), and can move the guardian role to the thief's own key, so the
 holder cannot hand it on any more. The owner's way out: `GuardianReplace(<fresh address>)` on
-`data`. The fresh address becomes guardian 144 h (twice the release delay) later, and the
+`data`. The fresh address becomes guardian 24 h (twice the release delay) later, and the
 guardian cannot cancel it; meanwhile the owner resumes after each pause. The same call in a
-thief's hands (a stolen owner key) is public for those six days, and its release then needs
-72 h more: nine days for funders to withdraw. `GuardianReplace("")` withdraws an announced
+thief's hands (a stolen owner key) is public for that day, and its release then needs
+12 h more: 36 hours for funders to withdraw. `GuardianReplace("")` withdraws an announced
 replacement; `Writers()` shows it as `nextGuardian` and `guardianAt`.
 
 ### Moving the guardian to the second key
@@ -322,12 +322,12 @@ only call on the role is the slow `GuardianReplace` above.
    package can be re-uploaded after the delay (checked on a v1.5.0 gnodev: a second
    `addpkg` of a `private = true` realm replaced its code; a normal one is refused with
    `PkgExistError`). Check it on gnoweb's source view before `Propose`, and again before
-   the 72 h are over.
+   the 12 h are over.
 2. As owner, on `data`: `Propose(<role>, <new realm path>)` for each role in the release.
-3. Call `Ready()` on each new realm (anyone may); 72 h after the last one, the whole release
+3. Call `Ready()` on each new realm (anyone may); 12 h after the last one, the whole release
    takes over at once. The data stays where it is: nothing is copied, no deposit is paid again.
    Admins carry over. The app then points to the new paths (`app/src/lib/realms.ts`).
-4. During those 72 h anyone can read the new code on gnoweb; the owner or the guardian can
+4. During those 12 h anyone can read the new code on gnoweb; the owner or the guardian can
    `Cancel()` it.
 
 ## In an emergency
@@ -336,9 +336,9 @@ only call on the role is the slow `GuardianReplace` above.
   the owner resumes with `Pause(..., false)` once fixed, or proposes a fixed release.
 - Owner key stolen: the guardian pauses and cancels any release the thief proposes, then you
   move what you can; a new owner can only be set by the current owner (`Offer` / `Accept`).
-  If the thief calls `GuardianReplace`, the guardian keeps that up for the 144 h it takes;
+  If the thief calls `GuardianReplace`, the guardian keeps that up for the 24 h it takes;
   tell funders to withdraw their promo budgets.
 - Guardian key stolen: as owner, `GuardianReplace(<fresh key>)`, and resume after each pause
-  until it takes over 144 h later.
+  until it takes over 24 h later.
 - `Renounce()` makes the rules permanent for good: no release, no pause, ever. Only for a
   GnoRadio meant to run on its own forever.
