@@ -394,7 +394,7 @@ func onAir(st int) string {
 		live = " · " + l
 	}
 	out := onAirSVG(radio.StationName(st), t.Title, catalog.ArtistName(t.Artist), off, t.Duration) + "\n\n" +
-		"**[▶ Listen from " + clock(off) + "](" + listenURL(t.ID, t.Audio, t.SourceURL, off) + ")** · " + trackLink(t) + " · " + src + live + "\n\n"
+		"**[▶ Listen from " + clock(off) + "](" + listenURL(t.ID, t.Audio, off) + ")** · " + trackLink(t) + " · " + src + live + "\n\n"
 	if tippable(catalog.ArtistOwner(t.Artist), catalog.ArtistVerified(t.Artist)) {
 		out += "**◈ Tip it on air:** [1 GNOT](" + tipOnAirURL(st, t.ID, 1) + ") · [5 GNOT](" + tipOnAirURL(st, t.ID, 5) + ") · [20 GNOT](" + tipOnAirURL(st, t.ID, 20) + ")"
 		if queued && radio.OnAirPay(st) == 0 {
@@ -533,7 +533,7 @@ func renderTrack(t catalog.Track) string {
 		}
 	}
 	// One primary action line; the rest waits in the folded block below.
-	b.WriteString("\n\n**[▶ Listen](" + listenURL(t.ID, t.Audio, t.SourceURL, 0) + ")** · **[♥ Like](" + catalogTx.NewLink("Like").AddArgs("trackID", id).URL() + ")** · " +
+	b.WriteString("\n\n**[▶ Listen](" + listenURL(t.ID, t.Audio, 0) + ")** · **[♥ Like](" + catalogTx.NewLink("Like").AddArgs("trackID", id).URL() + ")** · " +
 		"**[Pick it on Main](" + queueURL(0, t.ID) + ")**")
 	if l := inApp("track/"+id, "Open in the app"); l != "" {
 		b.WriteString(" · " + l)
@@ -544,9 +544,13 @@ func renderTrack(t catalog.Track) string {
 	switch t.Origin {
 	case catalog.OriginCurated:
 		b.WriteString("> [!NOTE] Curated · " + licenseLink(t.License) + "\n> " + md(t.Attribution) + "." + sourceLink("Source", t.SourceURL) + "\n\n")
-	case catalog.OriginAudius:
-		b.WriteString("> [!NOTE] Streamed from Audius\n> " + md(t.Attribution) + ". © the artist. Licensed to GnoRadio under the Audius Open Music License." +
-			sourceLink("Listen on Audius", t.SourceURL) + "\n\n")
+	case catalog.OriginAudius, catalog.OriginJamendo:
+		b.WriteString("> [!NOTE] Read live from " + platformName(t.Origin) + ": its title, artist and cover are not stored on chain (the platform's terms), the app shows them. © the artist, " +
+			licenseLink(t.License) + ".")
+		if l := inApp("track/"+id, "Open in the app"); l != "" {
+			b.WriteString(" " + l + ".")
+		}
+		b.WriteString("\n\n")
 	}
 
 	if len(t.Splits) > 0 {
@@ -599,11 +603,15 @@ func support(t catalog.Track, a catalog.Artist) string {
 		}
 		return out + to + ", same transaction.\n"
 	}
-	s := verifyNote(a)
-	if u := sanitize.URL(a.Source); t.Origin == catalog.OriginAudius && u != "" {
-		s = "**[Support on Audius](" + u + ")** · " + s
+	return verifyNote(a) + "\n"
+}
+
+// platformName names the platform a pointer is read from.
+func platformName(origin string) string {
+	if origin == catalog.OriginJamendo {
+		return "Jamendo"
 	}
-	return s + "\n"
+	return "Audius"
 }
 
 // verifyNote says where an artist without tips stands: verified without a
@@ -676,12 +684,8 @@ func renderArtist(a catalog.Artist, pg int) string {
 			b.WriteString("  \n" + verifyNote(a))
 		}
 		b.WriteString("\n")
-	case a.Kind == catalog.OriginAudius:
-		src := "Streamed from Audius"
-		if u := sanitize.URL(a.Source); u != "" {
-			src = "Streamed from [Audius](" + u + ")"
-		}
-		b.WriteString(src + " · " + followers + "  \n" + verifyNote(a) + "\n")
+	case a.Kind == catalog.OriginAudius || a.Kind == catalog.OriginJamendo:
+		b.WriteString("Read live from " + platformName(a.Kind) + " · " + followers + "  \n" + verifyNote(a) + "\n")
 	default:
 		b.WriteString("Curated CC artist" + sourceLink("source", a.Source) + " · " + followers + "  \n" + verifyNote(a) + "\n")
 	}
@@ -1487,14 +1491,14 @@ func who(addr address) string {
 // host takes a #t= fragment; an Audius track without its page stays here.
 // Values from the catalog are checked again here (sanitize.URL): this page
 // keeps rendering records later releases write.
-func listenURL(id int, audio, source string, offset int64) string {
-	if u := sanitize.URL(rawListenURL(id, audio, source, offset)); u != "" {
+func listenURL(id int, audio string, offset int64) string {
+	if u := sanitize.URL(rawListenURL(id, audio, offset)); u != "" {
 		return u
 	}
 	return page("track/" + text.Itoa(id))
 }
 
-func rawListenURL(id int, audio, source string, offset int64) string {
+func rawListenURL(id int, audio string, offset int64) string {
 	frag := ""
 	if offset > 0 && !strings.Contains(audio, "#") {
 		frag = "#t=" + text.Itoa64(offset)
@@ -1504,11 +1508,8 @@ func rawListenURL(id int, audio, source string, offset int64) string {
 		return "https://ipfs.io/ipfs/" + strings.TrimPrefix(audio, "ipfs://") + frag
 	case strings.HasPrefix(audio, "ar://"):
 		return "https://arweave.net/" + strings.TrimPrefix(audio, "ar://") + frag
-	case strings.HasPrefix(audio, "audius:"):
-		if source == "" {
-			return page("track/" + text.Itoa(id))
-		}
-		return source
+	case strings.HasPrefix(audio, "audius:"), strings.HasPrefix(audio, "jamendo:"):
+		return page("track/" + text.Itoa(id)) // a pointer plays in the app
 	}
 	return audio + frag
 }

@@ -216,6 +216,7 @@ func isSHA256(s string) bool {
 //	ipfs://<cid>        content-addressed, sha256 optional
 //	ar://<txid>         Arweave, sha256 optional
 //	audius:<trackId>    audio only, streamed through the Audius API
+//	jamendo:<trackId>   audio only, streamed from Jamendo
 //	https://<host>/…    host must be allowed, sha256 required
 func mustMedia(field, uri, sha string, audioField bool) {
 	if sha != "" && !isSHA256(sha) {
@@ -231,9 +232,10 @@ func mustMedia(field, uri, sha string, audioField bool) {
 		if len(id) != 43 || !text.URLChars(id) {
 			panic("catalog: " + field + " ar:// needs a 43-character transaction id")
 		}
-	case strings.HasPrefix(uri, "audius:"):
-		if !audioField || !alnum(strings.TrimPrefix(uri, "audius:"), 1, 24) {
-			panic("catalog: " + field + " audius:<trackId> is only valid for audio")
+	case strings.HasPrefix(uri, "audius:"), strings.HasPrefix(uri, "jamendo:"):
+		_, id, _ := strings.Cut(uri, ":")
+		if !audioField || !alnum(id, 1, 32) {
+			panic("catalog: " + field + " audius:<id> or jamendo:<id> is only valid for audio")
 		}
 	case strings.HasPrefix(uri, "https://"):
 		if !text.HTTPS(uri, 300) || !data.Has(cHosts, hostOf(uri)) {
@@ -243,7 +245,7 @@ func mustMedia(field, uri, sha string, audioField bool) {
 			panic("catalog: " + field + " over https needs the file's sha256")
 		}
 	default:
-		panic("catalog: " + field + " must be ipfs://, ar://, audius: or an allowed https:// link")
+		panic("catalog: " + field + " must be ipfs://, ar://, audius:, jamendo: or an allowed https:// link")
 	}
 }
 

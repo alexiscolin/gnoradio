@@ -8,13 +8,15 @@
 // catalog writer may change (db.gno). Promo budgets sit in data's vault, so a
 // later release takes over the data and the coins without copying anything.
 //
-// Three track origins share one catalog:
+// Four track origins share one catalog:
 //   - "artist":  published by the artist's own wallet, tips enabled;
 //   - "curated": imported by the admin from CC0 / CC BY / CC BY-SA / CC BY-NC / CC BY-NC-SA sources;
-//   - "audius":  selected by the admin from Audius, streamed under the Audius
-//     Open Music License (session cache only, attribution required).
+//   - "audius", "jamendo": pointers the admin imports. The record keeps only
+//     what the radio needs (platform id, genre, duration, licence); the app
+//     reads title, artist and cover live, since both platforms' API terms
+//     allow session caching only (attribution required).
 //
-// Curated and Audius artists start unclaimed; once the admin assigns them to
+// Imported artists start unclaimed; once the admin assigns them to
 // a wallet (AssignArtist) or the robot verifies a claim, their tracks receive
 // tips.
 //
@@ -42,6 +44,7 @@ const (
 	OriginArtist  = "artist"
 	OriginCurated = "curated"
 	OriginAudius  = "audius"
+	OriginJamendo = "jamendo"
 
 	minTip         = 100_000           // 0.1 GNOT
 	maxTip         = 1_000_000 * ugnot // keeps share math far from overflow

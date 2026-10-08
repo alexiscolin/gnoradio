@@ -19,11 +19,11 @@ type Split struct {
 
 type Artist struct {
 	ID        int
-	Owner     address // "" while unclaimed (curated / Audius)
-	Kind      string  // artist | curated | audius
+	Owner     address // "" while unclaimed (curated / Audius / Jamendo)
+	Kind      string  // artist | curated | audius | jamendo
 	Name      string
 	Bio       string
-	Source    string // curated: source page; audius: profile URL
+	Source    string // curated: source page; audius / jamendo: platform id (audius-user:<id>, jamendo-artist:<id>)
 	Joined    int64
 	Tips      int64
 	Followers int
@@ -43,7 +43,7 @@ type Track struct {
 	License     string
 	CMO         string // none | sacem-nc
 	Credits     string
-	Audio       string // ipfs://… ar://… audius:… https://…
+	Audio       string // ipfs://… ar://… audius:… jamendo:… https://…
 	AudioSHA    string // sha256 hex, required for https
 	Cover       string
 	CoverSHA    string

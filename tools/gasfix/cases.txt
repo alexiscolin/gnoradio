@@ -27,6 +27,15 @@ radio|import25|5k,20k
 	}
 	radio.ImportTracks(cross(cur), b)
 
+radio|ref25|5k,20k
+	testing.SetRealm(testing.NewUserRealm(catalog.Admin()))
+	a := strconv.Itoa(catalog.CreateArtist(cross(cur), catalog.OriginJamendo, "", "", "jamendo-artist:7"))
+	b := a + "\t\t3\t3:30\tCC-BY-SA-3.0\t\tjamendo:1886257\t\t\t\t\t"
+	for i := 1; i < 25; i++ {
+		b += "\n" + a + "\t\t3\t3:30\tCC-BY-SA-3.0\t\tjamendo:1886257\t\t\t\t\t"
+	}
+	radio.ImportTracks(cross(cur), b)
+
 radio|queue|5k,20k
 	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
 	radio.Queue(cross(cur), 5, track(5, 5, 9))

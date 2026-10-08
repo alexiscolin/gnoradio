@@ -67,12 +67,18 @@ func PlayableTitle(id int) string {
 
 func TrackTitle(id int) string {
 	if rec := point(cTracks, id); rec != "" {
-		return store.Field(rec, fTitle)
+		return refLabel(store.Field(rec, fOrigin), store.Field(rec, fTitle), "track")
 	}
 	return ""
 }
 
-func ArtistName(artistID int) string   { return artistAt(artistID, aName) }
+func ArtistName(artistID int) string {
+	if rec := point(cArtists, artistID); rec != "" {
+		return refLabel(store.Field(rec, aKind), store.Field(rec, aName), "artist")
+	}
+	return ""
+}
+
 func ArtistOwner(artistID int) address { return address(artistAt(artistID, aOwner)) }
 func ArtistOf(owner address) int       { return artistOf(rd(), owner) }
 
@@ -92,9 +98,11 @@ func ArtistVisible(artistID int) bool {
 
 // ---- Value getters for the home realm and tools ----
 
-// GetTrack returns a copy of a track; ok is false if unknown.
+// GetTrack returns a copy of a track; ok is false if unknown. A pointer's
+// empty title reads as its platform ("Audius track").
 func GetTrack(id int) (Track, bool) {
 	if tr := getTrack(rd(), id); tr != nil {
+		tr.Title = refLabel(tr.Origin, tr.Title, "track")
 		return *tr, true
 	}
 	return Track{}, false
@@ -103,9 +111,16 @@ func GetTrack(id int) (Track, bool) {
 func GetArtist(id int) (Artist, bool) {
 	t := rd()
 	if a := getArtist(t, id); a != nil {
+		a.Name = refLabel(a.Kind, a.Name, "artist")
 		return *withLists(t, a), true
 	}
 	return Artist{}, false
+}
+
+// ArtistByRef looks a pointer artist up by its platform id ("audius-user:12").
+func ArtistByRef(ref string) int {
+	v, _ := data.Get(cNames, strings.TrimSpace(ref))
+	return text.Atoi(v)
 }
 
 // ArtistByName looks a profile up by its (case-insensitive) name.
@@ -174,7 +189,7 @@ func ArtistBrief(artistID int) (name string, verified, hidden, ok bool) {
 	if rec == "" {
 		return "", false, false, false
 	}
-	return store.Field(rec, aName), store.Field(rec, aVerified) != "", store.Field(rec, aHidden) != "", true
+	return refLabel(store.Field(rec, aKind), store.Field(rec, aName), "artist"), store.Field(rec, aVerified) != "", store.Field(rec, aHidden) != "", true
 }
 
 // PlaylistBrief returns a playlist's header without its track ids.

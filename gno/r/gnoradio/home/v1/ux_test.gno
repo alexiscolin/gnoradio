@@ -106,10 +106,11 @@ func TestTrackActionsAndTipOnAir(cur realm, t *testing.T) {
 	uassert.True(t, strings.Contains(out, "Promo share: **5%**"))
 	uassert.True(t, strings.Contains(onAir(radio.MainStation)+onAir(5), "func=TipOnAir") || !playing(5, tr))
 
-	uassert.Equal(t, page("track/7"), listenURL(7, "audius:123", "", 30))
-	uassert.Equal(t, "https://x.org/a.mp3#t=5", listenURL(1, "https://x.org/a.mp3#t=5", "", 30))
+	uassert.Equal(t, page("track/7"), listenURL(7, "audius:123", 30))
+	uassert.Equal(t, page("track/8"), listenURL(8, "jamendo:42", 0))
+	uassert.Equal(t, "https://x.org/a.mp3#t=5", listenURL(1, "https://x.org/a.mp3#t=5", 30))
 	// Records a later release might write are checked again here.
-	uassert.Equal(t, page("track/3"), listenURL(3, "javascript:alert(1)", "", 0))
+	uassert.Equal(t, page("track/3"), listenURL(3, "javascript:alert(1)", 0))
 	uassert.Equal(t, "", sourceLink("Source", "data:text/html,x"))
 	uassert.Equal(t, "CC\\-BY\\-4\\.0\\)\\[x\\]", licenseLink("CC-BY-4.0)[x]"))
 	uassert.Equal(t, md(nickname("x)[y](z")), who("x)[y](z"))

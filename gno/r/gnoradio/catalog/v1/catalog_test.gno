@@ -86,18 +86,46 @@ func TestCuratedAudiusAndClaim(cur realm, t *testing.T) {
 	})
 	testing.SetRealm(testing.NewUserRealm(boss))
 	k := CreateArtist(cross(cur), OriginCurated, name("Komiku"), "French composer.", "https://archive.org/details/komiku")
-	au := CreateArtist(cross(cur), OriginAudius, name("Night Tapes"), "", "https://audius.co/nighttapes")
+	au := CreateArtist(cross(cur), OriginAudius, "", "", "audius-user:nt1")
+	jm := CreateArtist(cross(cur), OriginJamendo, "", "", "jamendo-artist:420")
+	uassert.Equal(t, au, ArtistByRef("audius-user:nt1"))
+	uassert.Equal(t, jm, ArtistByRef("jamendo-artist:420"))
+	uassert.AbortsContains(t, cur, "already taken", func() { CreateArtist(cross(cur), OriginAudius, "", "", "audius-user:nt1") })
+	for _, bad := range [][3]string{{"Night Tapes", "", "audius-user:x"}, {"", "bio", "audius-user:x"}, {"", "", "https://audius.co/x"}, {"", "", "jamendo-artist:1"}, {"", "", "audius-user:a/b"}} {
+		uassert.AbortsContains(t, cur, "no name or bio", func() { CreateArtist(cross(cur), OriginAudius, bad[0], bad[1], bad[2]) }, bad[2])
+	}
+	uassert.Equal(t, "Audius artist", ArtistName(au)) // gnoweb's label; the record keeps no name
+	uassert.Equal(t, "", getArtist(rd(), au).Name)
 	t1 := ImportTrack(cross(cur), k, "Dreams", 5, "2:58", "CC0", "Komiku", ia, sha, "", "",
 		"https://archive.org/details/komiku-dreams", "Komiku, CC0 1.0, via archive.org")
 	uassert.Equal(t, OriginCurated, getTrack(rd(), t1).Origin)
 	uassert.AbortsContains(t, cur, "BY-NC or BY-NC-SA", func() {
 		ImportTrack(cross(cur), k, "X", 5, "2:00", "CC-BY-ND", "", ia, sha, "", "", "https://archive.org/details/x", "Komiku")
 	})
-	t2 := ImportTrack(cross(cur), au, "Midnight Drive", 1, "3:41", "", "", "audius:Dk3aQ", "", "", "",
-		"https://audius.co/nighttapes/midnight-drive", "Night Tapes, Audius Open Music License")
-	uassert.Equal(t, AudiusLicense, getTrack(rd(), t2).License)
-	uassert.AbortsContains(t, cur, "audius:<trackId>", func() {
-		ImportTrack(cross(cur), au, "X", 1, "2:00", "", "", ipfs, "", "", "", "https://audius.co/x", "Night Tapes")
+	// Pointers keep only what the radio needs: no title, credits, cover, source or attribution.
+	t2 := ImportTrack(cross(cur), au, "", 1, "3:41", "", "", "audius:Dk3aQ", "", "", "", "", "")
+	tr2 := getTrack(rd(), t2)
+	uassert.Equal(t, AudiusLicense, tr2.License)
+	uassert.Equal(t, "", tr2.Title)
+	uassert.Equal(t, "Audius track", TrackTitle(t2))
+	t3 := ImportTrack(cross(cur), jm, "", 2, "4:05", "CC-BY-NC-SA-3.0", "", "jamendo:1886257", "", "", "", "", "")
+	uassert.Equal(t, "CC-BY-NC-SA-3.0", getTrack(rd(), t3).License)
+	uassert.AbortsContains(t, cur, "BY-NC or BY-NC-SA", func() {
+		ImportTrack(cross(cur), jm, "", 2, "4:05", "CC-BY-ND-3.0", "", "jamendo:1", "", "", "", "", "")
+	})
+	uassert.AbortsContains(t, cur, "no title or credits", func() {
+		ImportTrack(cross(cur), au, "Midnight Drive", 1, "3:41", "", "", "audius:Dk3aQ", "", "", "", "", "")
+	})
+	uassert.AbortsContains(t, cur, "no cover, source or attribution", func() {
+		ImportTrack(cross(cur), au, "", 1, "3:41", "", "", "audius:Dk3aQ", "", "", "", "https://audius.co/x", "")
+	})
+	for _, audio := range []string{ipfs, "jamendo:1"} { // an Audius artist's track lives on Audius
+		uassert.AbortsContains(t, cur, "audio audius:<id> or jamendo:<id>", func() {
+			ImportTrack(cross(cur), au, "", 1, "2:00", "", "", audio, "", "", "", "", "")
+		})
+	}
+	uassert.AbortsContains(t, cur, "audio audius:<id> or jamendo:<id>", func() { // and a curated one never does
+		ImportTrack(cross(cur), k, "X", 5, "2:00", "CC0", "", "audius:Dk3aQ", "", "", "", "https://archive.org/details/x", "Komiku")
 	})
 
 	// Unverified artists cannot be tipped.
@@ -290,4 +318,56 @@ func TestHideOwn(cur realm, t *testing.T) {
 	HideTrack(cross(cur), id, false, "")
 	_, _, _, ok = TrackBrief(id)
 	uassert.True(t, ok)
+}
+
+// A platform ending GnoRadio's API access is one call per 50 artists: every
+// artist read from it is hidden, with its tracks; the others stay.
+func TestHideSource(cur realm, t *testing.T) {
+	testing.SetRealm(testing.NewUserRealm(boss))
+	a1 := CreateArtist(cross(cur), OriginAudius, "", "", "audius-user:hs1")
+	c := CreateArtist(cross(cur), OriginCurated, name("Kept"), "", "")
+	j := CreateArtist(cross(cur), OriginJamendo, "", "", "jamendo-artist:hs1")
+	a2 := CreateArtist(cross(cur), OriginAudius, "", "", "audius-user:hs2")
+	tr := ImportTrack(cross(cur), a2, "", 1, "3:00", "", "", "audius:hs2t", "", "", "", "", "")
+	testing.SetRealm(testing.NewUserRealm(boss))
+	uassert.AbortsContains(t, cur, "HideSource(", func() { HideSource(cross(cur), "curated", a1, 10, "API access ended") })
+	uassert.AbortsContains(t, cur, "HideSource(", func() { HideSource(cross(cur), "audius", a1, 51, "API access ended") })
+	uassert.AbortsContains(t, cur, "reason must be", func() { HideSource(cross(cur), "audius", a1, 10, "x") })
+	next := HideSource(cross(cur), "audius", a1, 2, "API access ended")
+	uassert.Equal(t, a1+2, next)
+	uassert.Equal(t, 0, HideSource(cross(cur), "audius", next, 50, "API access ended"))
+	uassert.True(t, getArtist(rd(), a1).Hidden)
+	uassert.True(t, getArtist(rd(), a2).Hidden)
+	uassert.False(t, getArtist(rd(), c).Hidden)
+	uassert.False(t, getArtist(rd(), j).Hidden)
+	_, _, _, ok := TrackBrief(tr)
+	uassert.False(t, ok)
+	uassert.Equal(t, "Removed by moderation: API access ended", HiddenNote("artist", a2))
+	testing.SetRealm(testing.NewUserRealm(who("carol")))
+	uassert.AbortsContains(t, cur, "admin", func() { HideSource(cross(cur), "jamendo", j, 1, "API access ended") })
+}
+
+// A claimed Audius or Jamendo profile's owner may fill in their name and
+// their own tracks' titles: the record then stores them with their consent.
+// Nobody else can, not even the admin while the profile is unclaimed.
+func TestClaimedPointerNamed(cur realm, t *testing.T) {
+	dave, carol := who("dave"), who("carol")
+	testing.SetRealm(testing.NewUserRealm(boss))
+	au := CreateArtist(cross(cur), OriginAudius, "", "", "audius-user:cp1")
+	tr := ImportTrack(cross(cur), au, "", 1, "3:41", "", "", "audius:cp1t", "", "", "", "", "")
+	testing.SetRealm(testing.NewUserRealm(boss))
+	uassert.AbortsContains(t, cur, "no title or credits", func() { EditTrack(cross(cur), tr, "Admin Title", 1, "3:41", "", "audius:cp1t", "", "", "") })
+	EditTrack(cross(cur), tr, "", 2, "3:42", "", "audius:cp1t", "", "", "") // the admin may fix a pointer's genre and duration
+	uassert.Equal(t, 2, getTrack(rd(), tr).Genre)
+
+	testing.SetRealm(testing.NewUserRealm(boss))
+	AssignArtist(cross(cur), au, dave)
+	testing.SetRealm(testing.NewUserRealm(dave))
+	uassert.Equal(t, au, RegisterArtist(cross(cur), name("Night Tapes"), "Dream pop from London."))
+	EditTrack(cross(cur), tr, "Midnight Drive", 2, "3:42", "Night Tapes", "audius:cp1t", "", "", "")
+	uassert.Equal(t, "Midnight Drive", TrackTitle(tr))
+	uassert.True(t, strings.HasPrefix(ArtistName(au), "Night Tapes"))
+	uassert.AbortsContains(t, cur, "audio audius:<id> or jamendo:<id>", func() { EditTrack(cross(cur), tr, "Midnight Drive", 2, "3:42", "", ipfs, "", "", "") })
+	testing.SetRealm(testing.NewUserRealm(carol))
+	uassert.AbortsContains(t, cur, "only the artist", func() { EditTrack(cross(cur), tr, "Stolen", 2, "3:42", "", "audius:cp1t", "", "", "") })
 }

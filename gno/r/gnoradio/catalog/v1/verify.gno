@@ -184,7 +184,7 @@ func ResetOwner(cur realm, artistID int) {
 // domain proves who that artist is (neither the import site's operator nor
 // any domain an impersonator buys). The moderator assigns it (AssignArtist).
 func mustRobotVerifiable(a *Artist) {
-	if a.Kind == OriginCurated {
+	if a.Kind == OriginCurated || a.Kind == OriginJamendo { // Jamendo has no bio a robot could read
 		panic("catalog: an imported profile is verified by the GnoRadio moderator, not with a proof page")
 	}
 }

@@ -31,7 +31,8 @@ func PublishFor(cur realm, caller address, title string, genre int, duration, li
 		panic("catalog: accept the rights declaration (answer yes)")
 	}
 	tr := &Track{Origin: OriginArtist, CMO: "none"}
-	setInfo(tr, title, genre, duration, credits)
+	setInfo(tr, title, genre, duration, credits, true)
+	mustRefAudio(tr, audio)
 	setLicense(tr, license, cmo)
 	setMedia(tr, audio, audioSHA, cover, coverSHA)
 	tr.Splits = parseSplits(splits, caller)
@@ -40,8 +41,12 @@ func PublishFor(cur realm, caller address, title string, genre int, duration, li
 	return id
 }
 
-// ImportFor adds a curated (CC0 / CC BY / CC BY-SA / CC BY-NC / CC BY-NC-SA) or Audius track to an
-// unclaimed artist. by must be the admin. Audius tracks use audio "audius:<trackId>".
+// ImportFor adds a curated (CC0 / CC BY / CC BY-SA / CC BY-NC / CC BY-NC-SA)
+// track, or a pointer to an Audius or Jamendo track, to an unclaimed artist.
+// by must be the admin. A pointer keeps only what the radio needs (audio
+// "audius:<id>" or "jamendo:<id>", genre, duration, licence): title, credits,
+// cover, source and attribution stay empty and the app reads them live from
+// the platform, whose API terms allow session caching only.
 func ImportFor(cur realm, by address, artistID int, title string, genre int, duration, license, credits, audio, audioSHA, cover, coverSHA, sourceURL, attribution string) int {
 	onlyRadio(cur)
 	noPayment()
@@ -54,25 +59,25 @@ func ImportFor(cur realm, by address, artistID int, title string, genre int, dur
 		panic("catalog: artists publish their own tracks")
 	}
 	tr := &Track{Origin: a.Kind, CMO: "none"}
-	setInfo(tr, title, genre, duration, credits)
-	if a.Kind == OriginAudius {
-		if !strings.HasPrefix(audio, "audius:") {
-			panic("catalog: Audius tracks use audio audius:<trackId>")
-		}
+	setInfo(tr, title, genre, duration, credits, false)
+	mustRefAudio(tr, audio)
+	if tr.Origin == OriginAudius {
 		tr.License = AudiusLicense
-	} else {
-		lic := curatedLicense(license)
-		if lic == "" {
-			panic("catalog: curated imports must be CC0, CC BY, BY-SA, BY-NC or BY-NC-SA")
-		}
-		tr.License = lic
+	} else if tr.License = curatedLicense(license); tr.License == "" {
+		panic("catalog: curated imports must be CC0, CC BY, BY-SA, BY-NC or BY-NC-SA")
 	}
 	setMedia(tr, audio, audioSHA, cover, coverSHA)
 	sourceURL, attribution = strings.TrimSpace(sourceURL), strings.TrimSpace(attribution)
-	if !text.HTTPS(sourceURL, 300) {
-		panic("catalog: sourceURL must be the track's https page at the source")
+	if isRef(tr.Origin) {
+		if cover != "" || sourceURL != "" || attribution != "" {
+			panic("catalog: a pointer stores no cover, source or attribution")
+		}
+	} else {
+		if !text.HTTPS(sourceURL, 300) {
+			panic("catalog: sourceURL must be the track's https page at the source")
+		}
+		mustText("attribution", attribution, 2, maxCredits)
 	}
-	mustText("attribution", attribution, 2, maxCredits)
 	tr.SourceURL, tr.Attribution = sourceURL, attribution
 	id := addTrack(t, adminAddr(), a.ID, tr)
 	save(cur, t)
@@ -86,14 +91,15 @@ func EditFor(cur realm, caller address, trackID int, title string, genre int, du
 	noPayment()
 	t := rd()
 	tr := mustTrack(t, trackID)
-	if !mayEdit(caller, getArtist(t, tr.Artist)) {
+	a := getArtist(t, tr.Artist)
+	if !mayEdit(caller, a) {
 		panic("catalog: only the artist can edit this track")
 	}
-	if tr.Origin == OriginAudius && !strings.HasPrefix(audio, "audius:") {
-		panic("catalog: Audius tracks use audio audius:<trackId>")
-	}
+	mustRefAudio(tr, audio)
 	oldGenre := tr.Genre
-	setInfo(tr, title, genre, duration, credits)
+	// The owner of a claimed Audius or Jamendo profile may name their own
+	// tracks: the record then stores the title with the artist's consent.
+	setInfo(tr, title, genre, duration, credits, a.Owner != "")
 	if tr.Genre != oldGenre {
 		t.removeID(cGenres, store.Pad(oldGenre), tr.ID)
 		t.addID(cGenres, store.Pad(tr.Genre), tr.ID)
@@ -122,10 +128,18 @@ func addTrack(t *tx, publisher address, artistID int, tr *Track) int {
 	return tr.ID
 }
 
-func setInfo(tr *Track, title string, genre int, duration, credits string) {
+// setInfo sets a track's text and timing. An Audius or Jamendo pointer stores
+// no title or credits unless named: its claimed artist's owner fills them in.
+func setInfo(tr *Track, title string, genre int, duration, credits string, named bool) {
 	title, credits = strings.TrimSpace(title), strings.TrimSpace(credits)
-	mustText("title", title, 1, maxTitle)
-	mustText("credits", credits, 0, maxCredits)
+	switch {
+	case isRef(tr.Origin) && title == "" && credits == "":
+	case isRef(tr.Origin) && !named:
+		panic("catalog: a pointer stores no title or credits (the app reads them from the platform)")
+	default:
+		mustText("title", title, 1, maxTitle)
+		mustText("credits", credits, 0, maxCredits)
+	}
 	if genre < 1 || genre > NumGenres {
 		panic("catalog: genre must be 1.." + text.Itoa(NumGenres))
 	}
@@ -134,6 +148,31 @@ func setInfo(tr *Track, title string, genre int, duration, credits string) {
 		panic("catalog: duration as m:ss, between 0:10 and 20:00")
 	}
 	tr.Title, tr.Genre, tr.Duration, tr.Credits = title, genre, d, credits
+}
+
+// isRef reports whether tracks of this origin are pointers: read live from
+// Audius or Jamendo, with no title or credits stored on chain.
+func isRef(origin string) bool { return origin == OriginAudius || origin == OriginJamendo }
+
+// mustRefAudio keeps a pointer's audio on its platform ("audius:<id>",
+// "jamendo:<id>") and every other track off both.
+func mustRefAudio(tr *Track, audio string) {
+	prefix := strings.TrimSpace(audio)
+	if i := strings.IndexByte(prefix, ':'); i >= 0 {
+		prefix = prefix[:i]
+	}
+	if isRef(prefix) != isRef(tr.Origin) || isRef(tr.Origin) && prefix != tr.Origin {
+		panic("catalog: Audius and Jamendo tracks use audio audius:<id> or jamendo:<id>, other tracks neither")
+	}
+}
+
+// refLabel is what gnoweb shows for a pointer's empty title or name: the
+// platform it is read from ("Audius track", "Jamendo artist").
+func refLabel(origin, stored, what string) string {
+	if stored != "" || !isRef(origin) {
+		return stored
+	}
+	return strings.ToUpper(origin[:1]) + origin[1:] + " " + what
 }
 
 func setLicense(tr *Track, license, cmo string) {

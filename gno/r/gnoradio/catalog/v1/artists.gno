@@ -38,18 +38,27 @@ func RegisterArtist(cur realm, name, bio string) int {
 	return a.ID
 }
 
-// CreateArtist adds an unclaimed curated or Audius artist. Admin only.
-// source is the artist's page at the source (https), shown for attribution.
+// CreateArtist adds an unclaimed artist. Admin only. A curated artist has a
+// name and its page at the source (https), shown for attribution. An Audius
+// or Jamendo artist is a pointer: no name or bio, and source is its platform
+// id ("audius-user:<id>", "jamendo-artist:<id>"), which also keeps it unique;
+// the app reads its name live from the platform.
 func CreateArtist(cur realm, kind, name, bio, source string) int {
 	onlyAdmin(cur)
-	if kind != OriginCurated && kind != OriginAudius {
-		panic("catalog: kind must be curated or audius")
-	}
 	name, bio, source = strings.TrimSpace(name), strings.TrimSpace(bio), strings.TrimSpace(source)
-	mustName(name)
-	mustText("bio", bio, 0, maxBio)
-	if source != "" && !text.HTTPS(source, 300) {
-		panic("catalog: source must be an https link")
+	switch {
+	case kind == OriginCurated:
+		mustName(name)
+		mustText("bio", bio, 0, maxBio)
+		if source != "" && !text.HTTPS(source, 300) {
+			panic("catalog: source must be an https link")
+		}
+	case isRef(kind):
+		if name != "" || bio != "" || !validRef(kind, source) {
+			panic("catalog: an Audius or Jamendo artist has no name or bio, and source " + refUser(kind) + "<id>")
+		}
+	default:
+		panic("catalog: kind must be curated, audius or jamendo")
 	}
 	t := rd()
 	a := newArtist(t, kind, name, bio, source, "")
@@ -126,6 +135,9 @@ func Unfollow(cur realm, artistID int) {
 
 func newArtist(t *tx, kind, name, bio, source string, owner address) *Artist {
 	k := skeleton(name)
+	if isRef(kind) {
+		k = source // a pointer is reserved under its platform id ("audius-user:12")
+	}
 	if _, taken := t.get(cNames, k); taken {
 		panic("catalog: this artist name is already taken")
 	}
@@ -150,7 +162,7 @@ func rename(t *tx, a *Artist, name string) {
 		panic("catalog: this artist name is already taken")
 	}
 	t.set(cNames, k, text.Itoa(a.ID))
-	if id, ok := t.get(cNames, old); ok && text.Atoi(id) == a.ID {
+	if id, ok := t.get(cNames, old); old != "" && ok && text.Atoi(id) == a.ID { // a pointer had no name
 		t.del(cNames, old)
 	}
 	a.Name = name
@@ -179,4 +191,16 @@ func ReleaseName(cur realm, name string) {
 	t.del(cNames, k)
 	save(cur, t)
 	emitEvent("NameReleased", "name", k)
+}
+
+// refUser is the source prefix of a pointer artist's platform id.
+func refUser(kind string) string {
+	if kind == OriginJamendo {
+		return "jamendo-artist:"
+	}
+	return "audius-user:"
+}
+
+func validRef(kind, source string) bool {
+	return strings.HasPrefix(source, refUser(kind)) && alnum(strings.TrimPrefix(source, refUser(kind)), 1, 32)
 }

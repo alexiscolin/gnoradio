@@ -71,9 +71,9 @@ func skip(n int64) {
 func main(cur realm) {
 	admin := catalog.Admin()
 	testing.SetRealm(testing.NewUserRealm(admin))
-	k := catalog.CreateArtist(cross(cur), catalog.OriginAudius, "Night Tapes", "", proof)
+	k := catalog.CreateArtist(cross(cur), catalog.OriginAudius, "", "", "audius-user:nt1")
 	testing.SetRealm(testing.NewCodeRealm("gno.land/r/gnoradio/radio/v1")) // radio.ImportTrack does this
-	tr := catalog.ImportFor(cross(cur), admin, k, "Drive", 1, "3:00", "", "", "audius:Dk3aQ", "", "", "", "https://audius.co/x", "Night Tapes")
+	tr := catalog.ImportFor(cross(cur), admin, k, "", 1, "3:00", "", "", "audius:Dk3aQ", "", "", "", "", "")
 	testing.SetRealm(testing.NewUserRealm(alice))
 	own := catalog.RegisterArtist(cross(cur), "Alice", "")
 	testing.SetRealm(testing.NewUserRealm(admin))

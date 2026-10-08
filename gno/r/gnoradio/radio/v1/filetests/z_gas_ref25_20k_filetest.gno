@@ -280,15 +280,20 @@ func init(cur realm) {
 }
 
 func main(cur realm) {
-	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
-	radio.Queue(cross(cur), 5, track(5, 5, 9))
+	testing.SetRealm(testing.NewUserRealm(catalog.Admin()))
+	a := strconv.Itoa(catalog.CreateArtist(cross(cur), catalog.OriginJamendo, "", "", "jamendo-artist:7"))
+	b := a + "\t\t3\t3:30\tCC-BY-SA-3.0\t\tjamendo:1886257\t\t\t\t\t"
+	for i := 1; i < 25; i++ {
+		b += "\n" + a + "\t\t3\t3:30\tCC-BY-SA-3.0\t\tjamendo:1886257\t\t\t\t\t"
+	}
+	radio.ImportTracks(cross(cur), b)
 }
 
 // Gas:
-// 13116533555
+// 13281389027
 
 // Storage:
-// gno.land/r/gnoradio/catalog/v1: 0
-// gno.land/r/gnoradio/data: 626
+// gno.land/r/gnoradio/catalog/v1: 6
+// gno.land/r/gnoradio/data: 8252
 // gno.land/r/gnoradio/gas: 0
 // gno.land/r/gnoradio/radio/v1: 0

@@ -152,6 +152,12 @@ func HidePlaylist(cur realm, playlistID int, hidden bool, reason string) {
 
 // moderate records the moderator's public reason and saves t.
 func moderate(cur realm, t *tx, kind string, id int, hidden bool, reason string) {
+	mark(t, kind, id, hidden, reason)
+	save(cur, t)
+}
+
+// mark records the moderator's public reason for one item (the caller saves).
+func mark(t *tx, kind string, id int, hidden bool, reason string) {
 	reason = strings.TrimSpace(reason)
 	k := kind + ":" + text.Itoa(id)
 	if hidden {
@@ -160,8 +166,37 @@ func moderate(cur realm, t *tx, kind string, id int, hidden bool, reason string)
 	} else {
 		t.del(cRemoved, k)
 	}
-	save(cur, t)
 	emitEvent("Moderated", "kind", kind, "target", text.Itoa(id), "hidden", strconv.FormatBool(hidden), "reason", reason, "by", "moderator")
+}
+
+// maxHideBatch bounds HideSource: 2 writes per artist.
+const maxHideBatch = 50
+
+// HideSource hides every artist read from a platform ("audius" or
+// "jamendo"), and so all their tracks, for a platform that ends GnoRadio's
+// API access. It walks artist ids from `from`, count (1-50) at a time, and
+// returns where to go on (0 once past the last artist). One artist opting out
+// is a HideArtist. Admin only.
+func HideSource(cur realm, kind string, from, count int, reason string) int {
+	onlyAdmin(cur)
+	if !isRef(kind) || from < 1 || count < 1 || count > maxHideBatch {
+		panic("catalog: HideSource(audius|jamendo, from >= 1, count 1-" + text.Itoa(maxHideBatch) + ", reason)")
+	}
+	mustText("reason", strings.TrimSpace(reason), 4, maxReason)
+	t := rd()
+	last := int(t.count(mArtists))
+	for id := from; id < from+count && id <= last; id++ {
+		if a := getArtist(t, id); a != nil && a.Kind == kind && !a.Hidden {
+			a.Hidden = true
+			putArtist(t, a)
+			mark(t, "artist", id, true, reason)
+		}
+	}
+	save(cur, t)
+	if from+count > last {
+		return 0
+	}
+	return from + count
 }
 
 // HideOwn hides or shows again the caller's own track, album or artist

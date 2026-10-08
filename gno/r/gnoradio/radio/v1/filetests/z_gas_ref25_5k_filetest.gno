@@ -1,8 +1,8 @@
 // PKGPATH: gno.land/r/gnoradio/gas
 package gas
 
-// Gas and deposit of one radio/v1 action (main) on a catalog of 20000 tracks
-// by 80 verified artists (track i*80+a is by artist a, genre
+// Gas and deposit of one radio/v1 action (main) on a catalog of 5000 tracks
+// by 20 verified artists (track i*20+a is by artist a, genre
 // 1+i%20: a genre's tracks alternate artists), synced into the stations, and a radio in use:
 // Listeners' choice holding 210 tracks, weekly tops
 // of ten, a full activity ring, picks waiting on station 5, a pick on
@@ -12,7 +12,7 @@ package gas
 // section 6). init writes the catalog as
 // catalog/v1 would and the rotations as radio/v1 would (p/blocks), then
 // programs the rest through radio/v1's own calls. Gas counts init too:
-// compare with z_gas_noop_20k (docs/ARCHITECTURE-v1.md, section 6).
+// compare with z_gas_noop_5k (docs/ARCHITECTURE-v1.md, section 6).
 // Storage is main's alone.
 
 import (
@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	nTracks   = 20000
+	nTracks   = 5000
 	perArtist = 250
 	ipfs      = "ipfs://bafybeigdyrzt5sfp7udm7hu76uh7y26nf3efuylqabf3oclgtqy55fbzdi"
 	t0        = int64(1234567890)
@@ -280,15 +280,20 @@ func init(cur realm) {
 }
 
 func main(cur realm) {
-	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
-	radio.Queue(cross(cur), 5, track(5, 5, 9))
+	testing.SetRealm(testing.NewUserRealm(catalog.Admin()))
+	a := strconv.Itoa(catalog.CreateArtist(cross(cur), catalog.OriginJamendo, "", "", "jamendo-artist:7"))
+	b := a + "\t\t3\t3:30\tCC-BY-SA-3.0\t\tjamendo:1886257\t\t\t\t\t"
+	for i := 1; i < 25; i++ {
+		b += "\n" + a + "\t\t3\t3:30\tCC-BY-SA-3.0\t\tjamendo:1886257\t\t\t\t\t"
+	}
+	radio.ImportTracks(cross(cur), b)
 }
 
 // Gas:
-// 13116533555
+// 3578164171
 
 // Storage:
-// gno.land/r/gnoradio/catalog/v1: 0
-// gno.land/r/gnoradio/data: 626
+// gno.land/r/gnoradio/catalog/v1: 6
+// gno.land/r/gnoradio/data: 7637
 // gno.land/r/gnoradio/gas: 0
 // gno.land/r/gnoradio/radio/v1: 0
