@@ -108,6 +108,7 @@ func TestCuratedAudiusAndClaim(cur realm, t *testing.T) {
 	uassert.Equal(t, AudiusLicense, tr2.License)
 	uassert.Equal(t, "", tr2.Title)
 	uassert.Equal(t, "Audius track", TrackTitle(t2))
+	uassert.Equal(t, "Audius track", PlayableTitle(t2)) // a pointer airs: the radio skips only what has no title
 	t3 := ImportTrack(cross(cur), jm, "", 2, "4:05", "CC-BY-NC-SA-3.0", "", "jamendo:1886257", "", "", "", "", "")
 	uassert.Equal(t, "CC-BY-NC-SA-3.0", getTrack(rd(), t3).License)
 	uassert.AbortsContains(t, cur, "BY-NC or BY-NC-SA", func() {

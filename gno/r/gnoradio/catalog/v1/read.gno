@@ -53,7 +53,9 @@ func TrackBriefFor(id int, addr address) (artistID, genre int, duration int64, p
 	return a, text.Atoi(store.Field(rec, fGenre)), text.Atoi64(store.Field(rec, fDuration)), playable_, own
 }
 
-// PlayableTitle is a track's title, "" unless it is playable (TrackBrief).
+// PlayableTitle is a track's title, "" unless it is playable (TrackBrief). An
+// Audius or Jamendo pointer stores no title: it is "Audius track" here, the
+// app names it from the platform.
 func PlayableTitle(id int) string {
 	rec := point(cTracks, id)
 	if rec == "" || store.Field(rec, fHidden) != "" {
@@ -62,7 +64,7 @@ func PlayableTitle(id int) string {
 	if arec := point(cArtists, text.Atoi(store.Field(rec, fArtist))); arec == "" || store.Field(arec, aHidden) != "" {
 		return ""
 	}
-	return store.Field(rec, fTitle)
+	return refLabel(store.Field(rec, fOrigin), store.Field(rec, fTitle), "track")
 }
 
 func TrackTitle(id int) string {

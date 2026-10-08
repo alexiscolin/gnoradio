@@ -34,7 +34,7 @@ func TestPages(cur realm, t *testing.T) {
 	radio.Sync(cross(cur), 200)
 	catalog.Like(cross(cur), 2)
 	catalog.PublishPlaylist(cross(cur), "Late night", "3,2,1")
-	radio.Queue(cross(cur), 0, 5)
+	radio.Queue(cross(cur), 0, 3) // Ambient: never Main's own hour genre, so never already on air there
 	tickets.BuyTicket(cross(cur), 1)
 	catalog.Report(cross(cur), "track", 4, "broken link")
 
