@@ -38,8 +38,9 @@ case $NET in
 esac
 # The chains run gno v1.5.0 (commit e75fef82c): lint with the same release.
 GNO=${GNO:-$HOME/.cache/gno-toolchains/onyx-v1.5.0/gno}
-GNOHOME=${GNOHOME:-$HOME/.cache/gno-toolchains/onyx-v1.5.0/gnohome}
-export GNOHOME
+# Lint's module cache only: gnokey keeps reading your own GNOHOME, where your
+# keys are.
+LINTHOME=${LINTHOME:-$HOME/.cache/gno-toolchains/onyx-v1.5.0/gnohome}
 FEE=200000 # ugnot per submission: 200M gas at 1ugnot/1000gas
 CAP=100000000 # ugnot, the most one package's storage deposit may take (vm default_deposit)
 OUT=build/$NET
@@ -48,7 +49,7 @@ cd "$(dirname "$0")/../.."
 DIRS=$(python3 tools/deploy/stage.py "$NS" "$OUT")
 touch "$OUT/gnowork.toml" # the staged packages resolve each other locally
 echo "lint ($GNO)"
-(cd "$OUT" && "$GNO" lint ./...) || { echo "lint failed: nothing submitted" >&2; exit 1; }
+(cd "$OUT" && GNOHOME=$LINTHOME "$GNO" lint ./...) || { echo "lint failed: nothing submitted" >&2; exit 1; }
 
 n=$(echo "$DIRS" | wc -l | tr -d ' ')
 bytes=$(cat $(for d in $DIRS; do echo "$d"/*.gno; done) | wc -c | tr -d ' ')
