@@ -34,3 +34,7 @@ assert all(len(l.split("\t")) == 12 for l in arg.split("\n"))
 assert imp.gas_for(25) == 1103250000 and imp.gas_for(25) < 3000000000  # under the block max
 assert imp.fee(0.001, imp.gas_for(25)) == 1323901
 print("ok")
+
+# Pointers have no name: an Audius or Jamendo artist is found by its platform id.
+assert imp.artist_lookup("gno.land/r/x/catalog/v1", {"kind": "jamendo", "name": "", "source_url": "jamendo-artist:7"}) == 'gno.land/r/x/catalog/v1.ArtistByRef("jamendo-artist:7")'
+assert imp.artist_lookup("gno.land/r/x/catalog/v1", {"kind": "curated", "name": "Komiku", "source_url": ""}) == 'gno.land/r/x/catalog/v1.ArtistByName("Komiku")'

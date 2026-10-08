@@ -60,12 +60,19 @@ Done to launch this way:
 What the launch catalog can draw on, given that its records are written to a public chain for
 good:
 
-- **Audius:** not imported. Its API Terms allow only session caching of its data and require
-  honouring an artist's later opt-out, which a permanent record cannot. Artists from Audius
-  are welcome to publish on GnoRadio themselves (their own records, their own consent).
-- **Platforms with API terms (Jamendo and others):** only if their terms allow keeping track
-  metadata permanently; otherwise, after launch, as an on-chain pointer (id, duration, genre)
-  with the title and artist read live from their API.
+- **Audius and Jamendo: as pointers only.** Their API terms allow session caching only, so the
+  chain keeps no title, name, cover or link of theirs: just what the radio needs (the platform's
+  track id `audius:<id>` / `jamendo:<id>`, genre, duration, licence) and an artist record keyed
+  by the platform id (`audius-user:<id>`, `jamendo-artist:<id>`), with no name. The app reads
+  titles, names and covers live through `/api/meta` (ARCHITECTURE section 6, "Pointers"). An
+  artist opting out is a `HideArtist`; a platform ending GnoRadio's access is
+  `catalog.HideSource("audius" | "jamendo", from, 50, reason)`, repeated until it returns 0.
+  A claimed pointer's owner may fill in their name and titles (their consent, on chain).
+  Build a batch with `tools/curate/pointers.py`, import it with `tools/deploy/import.py`.
+  Jamendo is free for non-commercial use only: keep the no-fee launch while Jamendo tracks
+  are in.
+- **Artists from anywhere** may publish on GnoRadio themselves (their own records, their own
+  consent).
 - **Sources without API terms** (archive.org, artists' own sites, open datasets): fine, under
   their CC licence, with attribution.
 
@@ -179,6 +186,8 @@ override the UI's and pin every site to one chain).
 | `BOT_SIGNING_KEY` | a robot key | **another** robot key (a key per chain) |
 | `OPENAI_API_KEY` | the dedication filter's key | the same or another |
 | `VITE_POSTHOG_KEY` | optional | optional |
+| `AUDIUS_API_KEY` | the Audius key (api.audius.co/plans), functions only | the same |
+| `JAMENDO_CLIENT_ID` | the Jamendo client id (devportal.jamendo.com), functions only | the same |
 
 `VITE_NETWORK` sets the chain id, the RPC (the page reads the chain's public RPC directly; both
 answer cross-origin requests), the RPC given to Adena and the gnoweb links

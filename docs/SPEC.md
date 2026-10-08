@@ -12,18 +12,20 @@ Two ways to listen, in the same player:
 - **Library** (on demand): albums, playlists, tracks, in any order you like. Playback is 100% in the app, no transaction.
 - **Live** (radio): **stations** (one main station + one per genre). Everyone hears the same thing at the same second, from an on-chain schedule.
 
-Tracks come from three origins, mixed in the same genres, albums, playlists and stations:
+Tracks come from four origins, mixed in the same genres, albums, playlists and stations:
 
-| | Artist track | Curated CC track | Audius track |
+| | Artist track | Curated CC track | Audius / Jamendo pointer |
 |---|---|---|---|
 | Published by | the artist (their wallet) | the admin (curated import) | the admin (selection) |
-| Legal basis | the artist's statement | CC0 / CC BY / CC BY-SA | Audius Open Music License §1.2 (streaming and public performance granted to players) |
-| Audio | `ipfs://`, `ar://`, `https://` + sha256 | source link + sha256, copy allowed | `audius:<trackId>`, played through the API, **session cache only** |
-| Attribution | artist | artist, license, source | artist, ©, OML notice, Audius link (§1.5) |
-| Tips | yes, to the artist + collaborators (minus the promo share the artist chose, see Listener rewards), once verified | no, "Claim this profile" | no, "Support on Audius" + "Claim this profile" |
+| Legal basis | the artist's statement | CC0 / CC BY / CC BY-SA / CC BY-NC / CC BY-NC-SA | Audius Open Music License §1.2; Jamendo's CC licence per track (no ND), its API non-commercial |
+| On chain | everything | everything | only the platform id (`audius:<id>`, `jamendo:<id>`), genre, duration, licence: no title, name, cover or link (their API terms allow **session caching only**) |
+| Audio | `ipfs://`, `ar://`, `https://` + sha256 | source link + sha256, copy allowed | streamed from the platform (Audius API; Jamendo through `/api/jamendo/<id>`, a cached redirect) |
+| Shown | from the chain | from the chain | read live by the app (`/api/meta`); gnoweb says "Audius track" / "Jamendo track" |
+| Attribution | artist | artist, license, source | artist, licence, "via Audius" / "via Jamendo", link to the track |
+| Tips | yes, to the artist + collaborators (minus the promo share the artist chose, see Listener rewards), once verified | no, "Claim this profile" | no, "Claim this profile" |
 | Concerts, tickets | yes | after a claim | after a claim |
 
-A curated or Audius artist who **claims** their profile (a code on a page they control, checked by a robot that signs a certificate; 72 h public wait) gets their tracks back: tips and concerts are turned on.
+A curated or Audius artist who **claims** their profile (a code on a page they control, checked by a robot that signs a certificate; 72 h public wait) gets their tracks back: tips and concerts are turned on. A Jamendo profile is claimed through the moderator (`AssignArtist`). The owner of a claimed pointer may then store their name (`RegisterArtist`) and their tracks' titles (`EditTrack`): their own consent.
 
 ## 2. Features, by module and by phase
 
@@ -154,7 +156,7 @@ Position in the loop at time `t`: `(t − epoch − paused(t)) mod total`, where
 ```go
 // catalog
 func RegisterArtist(cur realm, name, bio string) int
-func CreateArtist(cur realm, kind, name, bio, source string) int              // admin, unclaimed curated or Audius artist
+func CreateArtist(cur realm, kind, name, bio, source string) int              // admin, unclaimed curated artist, or an Audius / Jamendo pointer artist (no name, source = platform id)
 func AssignArtist(cur realm, artistID int, owner address)                      // admin, claim
 func PublishFor(cur realm, caller address, ...) int  // radio writer only: radio.PublishTrack names the signer
 func ImportFor(cur realm, by address, ...) int       // radio writer only, by = the catalog admin
@@ -264,7 +266,7 @@ The sources below total about 1,200 tracks. `tools/curate` aims at up to 80 per 
 
 Excluded: FMA (direct links forbidden), SoundCloud (radio and aggregation forbidden), Jamendo (commercial license likely, to be asked), NC/ND licenses (caution, to be reviewed with legal advice).
 
-Audius (terms read on 2026-10-06, versions of 2 July 2025): OML §1.2 grants "Music Players" the right to stream and to perform publicly; the API forbids persistent caching, bulk extraction and AI training. We store the Audius id and the attribution; title and cover are read live by the dApp. API key to request (api.audius.co/plans).
+Audius (terms read on 2026-10-06, versions of 2 July 2025): OML §1.2 grants "Music Players" the right to stream and to perform publicly; the API forbids persistent caching, bulk extraction and AI training. We store the Audius id only (a pointer: genre, duration, licence); title, artist and cover are read live by the dApp. API key to request (api.audius.co/plans).
 
 Pipeline (`tools/curate`): allowlist → metadata (archive.org / ccMixter API) → filters (license, duration 1:30–10:00, bitrate ≥ 128 kbps and flagged under 192, cover, complete metadata) → normalization (genre, artist, SPDX license) → sha256 and LUFS computation → listening screen keep / drop → import file → `ImportTrack` in batches.
 

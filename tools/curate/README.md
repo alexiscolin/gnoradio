@@ -58,3 +58,13 @@ Excluded: Free Music Archive (its terms forbid direct links), SoundCloud (radio 
 - **Covers**: ccMixter has none; the realm then draws an SVG cover.
 - **Genres**: the seed's genre is the default. For Audius, it comes from the genre the artist declared. It can be fixed while listening.
 - **Loudness in LUFS**: needs `ffmpeg` (`brew install ffmpeg`).
+
+## Audius and Jamendo pointers
+
+`pointers.py` builds a batch of pointers (`audius:<id>`, `jamendo:<id>`: genre, duration and
+licence only, no title) for `tools/deploy/import.py`. The app reads their titles live; see
+docs/DEPLOY.md, "Launch policy".
+
+    python3 tools/curate/pointers.py audius <handle>... [--max 60]
+    JAMENDO_CLIENT_ID=… python3 tools/curate/pointers.py jamendo <artist id>... [--max 60]
+    python3 tools/curate/pointers.py --selftest

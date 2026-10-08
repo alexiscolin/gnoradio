@@ -6,7 +6,9 @@
 As the catalog admin: catalog.CreateArtist for each artist not on chain yet, then
 radio.ImportTracks for the tracks, BATCH at a time (each joins its stations in the same
 transaction; the realms load once per batch, which is most of a single import's gas).
-It is resumable: artists are looked up by name (catalog.ArtistByName), imported
+It also imports Audius and Jamendo pointers (tools/curate/pointers.py builds that batch:
+no title, the app reads it from the platform). It is resumable: artists are looked up by
+name (catalog.ArtistByName), pointers by their platform id (ArtistByRef), imported
 tracks are recorded next to the batch in import_done.<net>.<namespace>.json (one file per
 network and namespace, "/" as "_"), so a rerun on the same chain skips them.
 It prints the cost up front. gnokey asks for your password on each call unless you
@@ -99,9 +101,17 @@ def batch_arg(tracks, ids):
     for t in tracks:
         row = [str(ids[t["artist_key"]])] + [str(t[f]) for f in FIELDS]
         if any("\t" in v or "\n" in v for v in row):
-            sys.exit("a tab or newline in %r: fix the batch file" % t["title"])
+            sys.exit("a tab or newline in %r: fix the batch file" % (t["title"] or t["audio"]))
         lines.append("\t".join(row))
     return "\n".join(lines)
+
+
+def artist_lookup(catalog, a):
+    """The expression that finds an artist already on chain: an Audius or Jamendo
+    pointer by its platform id (it has no name), a curated artist by name."""
+    if a["kind"] in ("audius", "jamendo"):
+        return "%s.ArtistByRef(%s)" % (catalog, json.dumps(a["source_url"]))
+    return "%s.ArtistByName(%s)" % (catalog, json.dumps(a["name"]))
 
 
 def main(argv):
@@ -132,16 +142,17 @@ def main(argv):
 
     ids = {}
     for a in batch["artists"]:
-        aid = first_int(qeval(remote, "%s.ArtistByName(%s)" % (catalog, json.dumps(a["name"]))))
+        find = artist_lookup(catalog, a)
+        aid = first_int(qeval(remote, find))
         if aid == 0:
-            print("artist:", a["name"])
+            print("artist:", a["name"] or a["source_url"])
             if not call(net, key, catalog, "CreateArtist", [a["kind"], a["name"], "", a["source_url"]], password, dry, one, GAS_ONE, DEPOSIT_ONE):
-                sys.exit("CreateArtist failed for %r: fix it and run again" % a["name"])
-            aid = 0 if dry else first_int(qeval(remote, "%s.ArtistByName(%s)" % (catalog, json.dumps(a["name"]))))
+                sys.exit("CreateArtist failed for %r: fix it and run again" % (a["name"] or a["source_url"]))
+            aid = 0 if dry else first_int(qeval(remote, find))
         ids[a["key"]] = aid
 
     for i, g in enumerate(groups, 1):
-        print("batch %d/%d: %s ... %s" % (i, len(groups), g[0]["title"], g[-1]["title"]))
+        print("batch %d/%d: %s ... %s" % (i, len(groups), g[0]["title"] or g[0]["audio"], g[-1]["title"] or g[-1]["audio"]))
         if not call(net, key, radio, "ImportTracks", [batch_arg(g, ids)], password, dry, fee(price, gas_for(len(g))), gas_for(len(g)), DEPOSIT_BATCH):
             sys.exit("ImportTracks failed for batch %d: fix it and run again (done batches are skipped)" % i)
         if not dry:

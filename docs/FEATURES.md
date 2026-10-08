@@ -58,7 +58,7 @@ the repository.
 ## Known limits
 
 - Some first actions lock a storage deposit (100 ugnot per byte; measured on the v1 devnet with 5,000 tracks): about 0.1 GNOT for a first like (0.005 for the next ones nearby), 0.05 for a first follow, 0.07 for a pick (0.22 for a listener's first), 0.4 for a first ticket, 0.55 to open a promo budget.
-- Cover art from Audius is fetched per track and can hit Audius's rate limit.
+- Audius and Jamendo tracks are pointers: their titles, names and covers are read live (`/api/meta`, cached); a search reads every pointer's title first, so the first search of a session waits for it. gnoweb shows "Audius track" / "Jamendo track" for an unclaimed one.
 - Past dedications are not kept anywhere readable on-chain; an indexer would be needed for history.
 - The app reads the whole catalog on a first visit (then caches it a day); past tens of thousands of tracks it needs an indexer or per-view loading.
 - When Main relays a genre whose only playable tracks were dropped from Main, Main is silent for those tracks' turns (rare: drop them from the genre station too).
