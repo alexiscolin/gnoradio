@@ -2,7 +2,7 @@
 // onyx, mainnet); VITE_RPC, VITE_CHAIN_ID, VITE_WALLET_RPC and VITE_GNOWEB
 // still override one value each. Shared by the app (gno.ts, inlined at build)
 // and netlify/ (read at run time through runtimeEnv).
-import { runtimeEnv } from "./realms";
+import { runtimeEnv } from "./realms.ts";
 
 export type Network = "dev" | "onyx" | "mainnet";
 

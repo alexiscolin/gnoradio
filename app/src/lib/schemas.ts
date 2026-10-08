@@ -1,4 +1,4 @@
-import { arr, bool, type Infer, num, obj, oneOf, opt, str } from "./guard";
+import { arr, bool, type Infer, num, obj, oneOf, opt, str } from "./guard.ts";
 
 // The domain types are derived from these guards (bottom of file): one source of truth.
 const origin = oneOf("artist", "curated", "audius", "jamendo");

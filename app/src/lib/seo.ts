@@ -1,6 +1,6 @@
-import { nickname } from "./nickname";
-import type { Section } from "./router";
-import type { View } from "./types";
+import { nickname } from "./nickname.ts";
+import type { Section } from "./router.ts";
+import type { View } from "./types.ts";
 
 /** FEATURES_NAME: the /features page, in the menu, the tab title and its share card. */
 export const FEATURES_NAME = "Get started";

@@ -3,9 +3,9 @@
 // playlist, station, listener or concert this reads it on-chain (cards.ts) and
 // writes it into the page's title and Open Graph tags, with its own image
 // (functions/og.mts). Everyone else gets the page untouched.
-import { cardOf, version } from "../cards";
-import { serverRPC } from "../../src/lib/network";
-import { esc } from "../../src/lib/format";
+import { cardOf, version } from "../cards.ts";
+import { serverRPC } from "../../src/lib/network.ts";
+import { esc } from "../../src/lib/format.ts";
 
 const BOTS = /bot|crawler|spider|facebookexternalhit|whatsapp|telegram|slack|discord|linkedin|embedly|pinterest|skype|vkshare|mastodon|bluesky|iframely/i;
 

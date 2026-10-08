@@ -13,3 +13,5 @@ __pycache__/
 app/test-results/
 app/playwright-report/
 build/
+# Netlify CLI state (site link, build output)
+.netlify/

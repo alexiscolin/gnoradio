@@ -1,5 +1,5 @@
-import { isAddress } from "./proof";
-import type { View } from "./types";
+import { isAddress } from "./proof.ts";
+import type { View } from "./types.ts";
 
 /** slug turns a name into a URL word: "Scott Buckley" -> "scott-buckley". */
 export const slug = (name: string): string =>

@@ -1,10 +1,10 @@
 // Domain types: the chain data types are derived from the runtime guards in
 // schemas.ts; only app-side types are declared here.
-import type { Album, Artist, ConcertEvent, Genre, Playlist, Station, Track } from "./schemas";
+import type { Album, Artist, ConcertEvent, Genre, Playlist, Station, Track } from "./schemas.ts";
 
 export type {
   Activity, Album, Artist, Booked, ConcertEvent, OwnedTicket, Playlist, Schedule, ScheduleEntry, SupportInfo, Track, UserInfo,
-} from "./schemas";
+} from "./schemas.ts";
 
 /** Everything the app renders, loaded once and refreshed after writes. */
 export interface Catalog {

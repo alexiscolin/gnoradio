@@ -1,11 +1,11 @@
 // Link previews: what a shared page shows in a preview (title, line, cover),
 // read on-chain. Shared by the edge function meta.ts (the tags, Deno) and the
 // function og.mts (the image, Node): plain fetch, nothing else.
-import { fnv, utf8Base64 } from "../src/lib/format";
-import { nickname } from "../src/lib/nickname";
-import { isAddress, unquote } from "../src/lib/proof";
-import { REALMS, SAFE } from "../src/lib/realms";
-import { FEATURES_META, FEATURES_NAME } from "../src/lib/seo";
+import { fnv, utf8Base64 } from "../src/lib/format.ts";
+import { nickname } from "../src/lib/nickname.ts";
+import { isAddress, unquote } from "../src/lib/proof.ts";
+import { REALMS, SAFE } from "../src/lib/realms.ts";
+import { FEATURES_META, FEATURES_NAME } from "../src/lib/seo.ts";
 
 export interface Card {
   /** path is the card's canonical page, its image lives at /og<path>.png. */
