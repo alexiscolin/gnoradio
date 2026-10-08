@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { coverHost, mediaURLs, safeHttps, safeMedia } from "./safe";
+import { coverHost, mediaURLs, safeHttps, safeMedia, setStream } from "./safe";
 
 describe("safe URLs", () => {
   it("only lets https through to links", () => {
@@ -18,8 +18,13 @@ describe("safe URLs", () => {
   });
   it("resolves nothing for an unsafe reference", () => {
     expect(mediaURLs("javascript:alert(1)")).toEqual([]);
-    expect(mediaURLs("jamendo:42", 205)).toEqual(["/api/stream/205"]); // by track id: the chain says which Jamendo track
-    expect(mediaURLs("jamendo:42")).toEqual([]); // never by a client-chosen platform id
+    expect(mediaURLs("jamendo:42")).toEqual([]); // no stream from the live meta yet: no source yet
+    setStream("jamendo:42", "https://evil.example/x.mp3");
+    expect(mediaURLs("jamendo:42")).toEqual([]); // jamendo.com only
+    setStream("jamendo:42", "https://prod-1.storage.jamendo.com/?trackid=42&from=tok");
+    expect(mediaURLs("jamendo:42")).toEqual(["https://prod-1.storage.jamendo.com/?trackid=42&from=tok"]);
+    setStream("jamendo:42");
+    expect(mediaURLs("jamendo:42")).toEqual([]);
   });
 });
 

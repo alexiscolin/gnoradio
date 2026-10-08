@@ -22,17 +22,23 @@ export function safeMedia(u: string): string {
 
 const IPFS_GATEWAYS = ["https://ipfs.io/ipfs/", "https://dweb.link/ipfs/", "https://cloudflare-ipfs.com/ipfs/"] as const;
 
+const streams = new Map<string, string>(); // jamendo:<id> → its stream, set and dropped by lib/refs.ts
+/** setStream keeps (or, with no url, drops) a Jamendo pointer's stream; only https on jamendo.com is kept. */
+export function setStream(ref: string, url?: string): void {
+  const ok = url !== undefined && /^https:\/\/([^/?#@]+\.)?jamendo\.com(:\d+)?\//.test(url);
+  if (ok) streams.set(ref, url); else streams.delete(ref);
+}
+
 /** mediaURLs resolves a media reference to playable URLs, best first (several IPFS gateways). */
-export function mediaURLs(ref: string, trackId = 0): string[] {
+export function mediaURLs(ref: string): string[] {
   const u = safeMedia(ref);
   if (u.startsWith("ipfs://")) return IPFS_GATEWAYS.map((g) => g + u.slice(7));
   if (u.startsWith("ar://")) return [`https://arweave.net/${u.slice(5)}`];
   // Plays go out with app_name only: GnoRadio's API key (server side, /api/meta) is kept for the metadata,
   // so its monthly quota does not grow with the audience.
   if (u.startsWith("audius:")) return [`https://api.audius.co/v1/tracks/${encodeURIComponent(u.slice(7))}/stream?app_name=GnoRadio`];
-  // Jamendo's stream URL comes from its API with GnoRadio's client id: /api/stream/<track id> reads the track
-  // on chain and answers with a redirect kept an hour. Only a track on chain streams (no id, no source).
-  if (u.startsWith("jamendo:")) return trackId > 0 ? [`/api/stream/${String(trackId)}`] : [];
+  // Jamendo's signed stream URL comes with the bucket's meta (lib/refs.ts, memory only): no meta yet, no source yet.
+  if (u.startsWith("jamendo:")) return streams.has(u) ? [streams.get(u) ?? ""] : [];
   return u ? [u] : [];
 }
 

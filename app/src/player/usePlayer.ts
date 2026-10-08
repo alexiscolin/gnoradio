@@ -2,6 +2,7 @@ import { track } from "../lib/analytics";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { audioURLs, loadSchedule } from "../lib/catalog";
 import { isDead, markDead } from "../lib/playable";
+import { dropBucket, want } from "../lib/refs";
 import { errorMessage } from "../lib/format";
 import type { Catalog, ScheduleEntry } from "../lib/types";
 import { jingleURL, playingNow, tail, topOfHour } from "./jingle";
@@ -460,7 +461,8 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
       }
       // Every source failed and none ever answered for this load: the track is dead, its buttons
       // grey out everywhere. One that answered then dropped is the network, not the file.
-      if (!gotMeta.current) markDead(loadedId.current);
+      // A Jamendo stream is a signed URL that may have expired: forget the bucket's meta once, the next want() fetches it again.
+      if (audio.src.includes("jamendo.com")) { dropBucket(loadedId.current); void want([{ id: loadedId.current }]); } else if (!gotMeta.current) markDead(loadedId.current);
       // Every source failed: stop, and in an album or playlist go on with the next track
       // (twice in a row at most: more is the network, not the files). The note stays until sound.
       audio.pause();

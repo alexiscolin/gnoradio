@@ -1,6 +1,7 @@
 import { renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { CHUNK, clearRefs, isRef, loadMeta, nameRefs, type RefMeta, useWant, want } from "./refs";
+import { CHUNK, clearRefs, dropBucket, isRef, loadMeta, nameRefs, type RefMeta, useWant, want } from "./refs";
+import { mediaURLs } from "./safe";
 import type { Artist, Catalog, Track } from "./types";
 
 const meta = (title: string, artist = "Night Tapes", streamable = true): RefMeta =>
@@ -164,5 +165,21 @@ describe("useWant", () => {
     rerender({ ids: [1] });
     expect(f).toHaveBeenCalledTimes(1);
     vi.unstubAllGlobals();
+  });
+});
+
+describe("Jamendo streams", () => {
+  const STREAM = "https://prod-1.storage.jamendo.com/?trackid=9&from=tok";
+  it("plays the stream that came with the bucket meta, and drops the bucket once when it fails", async () => {
+    nameRefs(catalogOf([track(2, "jamendo:9")]));
+    expect(mediaURLs("jamendo:9")).toEqual([]); // no meta yet: no source yet
+    const j = api({ "jamendo:9": { ...meta("J"), stream: STREAM } });
+    await want([{ id: 2 }], j.f);
+    expect(mediaURLs("jamendo:9")).toEqual([STREAM]);
+    dropBucket(2);
+    expect(mediaURLs("jamendo:9")).toEqual([]);
+    await want([{ id: 2 }], j.f); // the next want() fetches the bucket again
+    expect(j.asked).toHaveLength(2);
+    expect(mediaURLs("jamendo:9")).toEqual([STREAM]);
   });
 });

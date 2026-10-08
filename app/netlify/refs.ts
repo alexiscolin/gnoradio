@@ -1,9 +1,9 @@
 // Titles, artists and covers of the Audius and Jamendo tracks GnoRadio points
 // to (the chain keeps only audius:<id> / jamendo:<id>): read live from the two
 // platforms, whose API terms allow session caching only: the shared copies
-// (CDN) last an hour. Used by /api/meta and /api/stream only, and only for
-// pointers the chain holds. Fixed hosts only: api.audius.co and
-// api.jamendo.com; the stream and artwork URLs they return are checked too.
+// (CDN) last three hours. Used by /api/meta only, and only for pointers the
+// chain holds. Fixed hosts only: api.audius.co and api.jamendo.com; the
+// stream and artwork URLs they return are checked too.
 import { REALMS, runtimeEnv } from "../src/lib/realms";
 import { qeval } from "./cards";
 
@@ -15,6 +15,8 @@ export interface RefMeta {
   artwork: string;
   permalink: string;
   streamable: boolean;
+  /** A Jamendo pointer's signed stream URL (jamendo.com only), played as is: no API call per play. */
+  stream?: string;
 }
 
 export const MAX_IDS = 100;
@@ -48,7 +50,7 @@ async function audius(ids: string[]): Promise<Map<string, RefMeta>> {
 /** JAMENDO_IDS: Jamendo takes at most 50 values per parameter (checked live: 100 is refused). */
 const JAMENDO_IDS = 50;
 
-/** jamendo reads the tracks 50 ids a call (id=1+2+3); its audio URL is for /api/stream only. */
+/** jamendo reads the tracks 50 ids a call (id=1+2+3); its audio URL goes out as the `stream` of /api/meta. */
 export async function jamendo(ids: string[]): Promise<Map<string, RefMeta & { audio: string }>> {
   const client = runtimeEnv("JAMENDO_CLIENT_ID");
   if (!client) throw new Error("JAMENDO_CLIENT_ID is not set"); // an error (never cached), not "unknown tracks"
@@ -85,7 +87,7 @@ export async function metaOf(refs: string[]): Promise<{ meta: Record<string, Ref
     if (by.jamendo.length) ok++;
     for (const id of by.jamendo) {
       const m = j.value.get(id) as (RefMeta & { audio: string }) | undefined;
-      out[`jamendo:${id}`] = m ? { title: m.title, artist: m.artist, artistId: m.artistId, artwork: m.artwork, permalink: m.permalink, streamable: m.streamable } : null;
+      out[`jamendo:${id}`] = m ? { title: m.title, artist: m.artist, artistId: m.artistId, artwork: m.artwork, permalink: m.permalink, streamable: m.streamable, stream: m.audio } : null;
     }
   } else failed++;
   if (failed > 0 && ok === 0) throw new Error("no music source answered");
@@ -100,11 +102,6 @@ export async function bucketOf(rpc: string, n: number): Promise<string[]> {
   if (lo > hi) return [];
   const page = JSON.parse(await qeval(rpc, REALMS.catalog, `TracksJSON(${String(total - hi)}, ${String(hi - lo + 1)})`)) as { tracks: { id: number; audio: string }[] };
   return [...new Set(page.tracks.filter((t) => t.id >= lo && t.id <= hi && REF.test(t.audio)).map((t) => t.audio))].sort();
-}
-
-/** audioOf is the audio reference of track id on chain; RealmError when it is unknown or hidden. */
-export async function audioOf(rpc: string, id: number): Promise<string> {
-  return (JSON.parse(await qeval(rpc, REALMS.catalog, `TrackJSON(${String(id)})`)) as { audio: string }).audio;
 }
 
 /** parseBucket reads ?bucket=N as the only query param, a canonical number (no sign, zeros or fraction); null otherwise. */

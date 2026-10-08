@@ -67,10 +67,10 @@ describe("metaOf", () => {
     expect(audiusURL).toBe("https://api.audius.co/v1/tracks?id=Ab1&id=Off&id=Nope&app_name=GnoRadio");
     expect((init?.headers as Record<string, string>)["x-api-key"]).toBe("akey");
     expect(net.mock.calls.find(([u]) => u.includes("jamendo"))?.[0]).toBe("https://api.jamendo.com/v3.0/tracks/?client_id=cid&format=json&limit=50&audioformat=mp32&id=42+66");
-    expect(m["audius:Ab1"]).toEqual({ title: "Midnight Drive", artist: "Night Tapes", artistId: "u1", artwork: "https://creatornode.audius.co/a.jpg", permalink: "https://audius.co/nt/midnight-drive", streamable: true });
+    expect(m["audius:Ab1"]).toEqual({ title: "Midnight Drive", artist: "Night Tapes", artistId: "u1", artwork: "https://creatornode.audius.co/a.jpg", permalink: "https://audius.co/nt/midnight-drive", streamable: true }); // no stream for Audius
     expect(m["audius:Off"]?.streamable).toBe(false);
     expect(m["audius:Nope"]).toBeNull();
-    expect(m["jamendo:42"]).toMatchObject({ title: "Sunrise", artist: "Lobo", artwork: "https://usercontent.jamendo.com/a.jpg", streamable: true });
+    expect(m["jamendo:42"]).toMatchObject({ title: "Sunrise", artist: "Lobo", artwork: "https://usercontent.jamendo.com/a.jpg", streamable: true, stream: "https://prod-1.storage.jamendo.com/?trackid=42&format=mp32" });
     expect(m["jamendo:66"]?.streamable).toBe(false); // an audio URL off jamendo.com is never followed
   });
 
@@ -104,10 +104,10 @@ describe("metaOf", () => {
 const platformCalls = () => net.mock.calls.filter(([u]) => u !== "https://rpc.test").length;
 
 describe("/api/meta", () => {
-  it("is bounded by the chain: the pointers of the bucket only, one hour of cache, one key per bucket", async () => {
+  it("is bounded by the chain: the pointers of the bucket only, three hours of cache, one key per bucket", async () => {
     const ok = await get("/api/meta?bucket=1");
     expect(ok.status).toBe(200);
-    expect(ok.headers.get("netlify-cdn-cache-control")).toBe("public, durable, s-maxage=3600, stale-while-revalidate=300");
+    expect(ok.headers.get("netlify-cdn-cache-control")).toBe("public, durable, s-maxage=10800, stale-while-revalidate=300");
     expect(ok.headers.get("netlify-vary")).toBe("query=bucket");
     expect(ok.headers.get("cache-control")).toBe("public, max-age=300");
     const body = (await ok.json()) as Record<string, { title: string } | null>;
@@ -140,30 +140,6 @@ describe("/api/meta", () => {
     expect(down.headers.get("cache-control")).toBe("no-store");
     net.mockImplementation(() => Promise.reject(new Error("rpc down")));
     expect((await get("/api/meta?bucket=1")).status).toBe(502); // the chain unreachable
-  });
-});
-
-describe("/api/stream", () => {
-  it("reads the track on chain and redirects to jamendo.com only, for an hour at most and never in the durable cache", async () => {
-    const r = await get("/api/stream/102");
-    expect(r.status).toBe(302);
-    expect(r.headers.get("location")).toBe("https://prod-1.storage.jamendo.com/?trackid=42&format=mp32");
-    expect(r.headers.get("netlify-cdn-cache-control")).toBe("public, s-maxage=3600");
-    expect(r.headers.get("cache-control")).toBe("public, max-age=300");
-    expect((await get("/api/stream/103")).status).toBe(404); // an audio URL off jamendo.com is never followed
-  });
-
-  it("is a 404 for anything that is not a Jamendo pointer on chain, with no platform call", async () => {
-    for (const id of ["101", "105", "150", "999"]) expect((await get(`/api/stream/${id}`)).status).toBe(404);
-    expect(platformCalls()).toBe(0);
-    for (const bad of ["/api/stream/abc", "/api/stream/102?x=1", "/api/stream/0102", "/api/stream/102/x"]) expect((await get(bad)).status).toBe(400);
-  });
-
-  it("is a short, uncached-in-browser 502 without a Jamendo key, never a 404", async () => {
-    vi.stubEnv("JAMENDO_CLIENT_ID", "");
-    const r = await get("/api/stream/102");
-    expect(r.status).toBe(502);
-    expect(r.headers.get("cache-control")).toBe("no-store");
   });
 });
 

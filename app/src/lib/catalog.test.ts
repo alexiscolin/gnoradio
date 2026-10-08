@@ -14,8 +14,7 @@ describe("audioURLs", () => {
     expect(audioURLs({ id: 1, audio: "ipfs://bafy123" })).toEqual(["https://ipfs.io/ipfs/bafy123", "https://dweb.link/ipfs/bafy123", "https://cloudflare-ipfs.com/ipfs/bafy123"]);
     expect(audioURLs({ id: 1, audio: "ar://abc" })).toEqual(["https://arweave.net/abc"]);
     expect(audioURLs({ id: 1, audio: "audius:x5dg3" })).toEqual(["https://api.audius.co/v1/tracks/x5dg3/stream?app_name=GnoRadio"]);
-    expect(audioURLs({ id: 205, audio: "jamendo:1886257" })).toEqual(["/api/stream/205"]); // by track id: the function reads the ref on chain
-    expect(audioURLs({ id: 0, audio: "jamendo:1886257" })).toEqual([]);
+    expect(audioURLs({ id: 205, audio: "jamendo:1886257" })).toEqual([]); // its stream comes with the bucket meta (lib/refs.ts)
     expect(audioURLs({ id: 1, audio: "https://archive.org/download/a/b.mp3" })).toEqual(["https://archive.org/download/a/b.mp3"]);
   });
 });

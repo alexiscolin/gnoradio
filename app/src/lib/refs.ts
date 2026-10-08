@@ -1,11 +1,11 @@
 // Tracks GnoRadio points to on Audius or Jamendo keep only a pointer on chain
 // (audius:<id>, jamendo:<id>, no title): both platforms' API terms allow
-// session caching only (the CDN keeps them an hour). Their title, artist and cover come from /api/meta
+// session caching only (the CDN keeps them three hours). Their title, artist and cover come from /api/meta
 // (netlify/functions/meta.mts) when a screen shows them, a bucket of on-chain
 // ids at a time, and stay in memory for the session: never in the stored
 // catalog (lib/cache.ts keeps the chain's records only).
 import { useEffect, useMemo, useSyncExternalStore } from "react";
-import { safeHttps } from "./safe";
+import { safeHttps, setStream } from "./safe";
 import type { Artist, Catalog, Track } from "./types";
 
 /** RefMeta mirrors netlify/refs.ts. */
@@ -16,6 +16,8 @@ export interface RefMeta {
   readonly artwork: string;
   readonly permalink: string;
   readonly streamable: boolean;
+  /** A Jamendo pointer's stream URL, played as is (kept in lib/safe.ts, in memory). */
+  readonly stream?: string;
 }
 
 const REF = /^(audius|jamendo):[A-Za-z0-9]{1,32}$/;
@@ -40,11 +42,23 @@ const listeners = new Set<() => void>();
 const touch = (k: string, v: RefMeta | null) => {
   kept.delete(k);
   kept.set(k, v);
-  for (const old of kept.keys()) { if (kept.size <= MAX_KEPT) break; kept.delete(old); }
+  setStream(k, v?.stream);
+  for (const old of kept.keys()) { if (kept.size <= MAX_KEPT) break; kept.delete(old); setStream(old); }
 };
 
+/** dropBucket forgets a bucket's meta once (a Jamendo stream failed, maybe its signed URL expired): the next want()
+ * fetches it again. Nothing is dropped when the stream is not in memory, so a second failure does not loop. */
+export function dropBucket(trackId: number): void {
+  const audio = pointers.get(trackId);
+  if (audio === undefined || !kept.get(audio)?.stream) return;
+  const b = Math.floor(trackId / CHUNK);
+  for (const [id, a] of pointers) if (Math.floor(id / CHUNK) === b && kept.delete(a)) setStream(a);
+  version++;
+  listeners.forEach((f) => { f(); });
+}
+
 /** clearRefs empties the session cache (tests). */
-export const clearRefs = (): void => { retrying.forEach(clearTimeout); retrying.clear(); kept.clear(); asked.clear(); failed.clear(); pointers = new Map(); };
+export const clearRefs = (): void => { retrying.forEach(clearTimeout); retrying.clear(); kept.forEach((_, k) => { setStream(k); }); kept.clear(); asked.clear(); failed.clear(); pointers = new Map(); };
 
 const retrying = new Map<number, ReturnType<typeof setTimeout>>(); // bucket → its pending retry
 

@@ -35,7 +35,7 @@ function record(id: number, s: Status) {
 
 /** status is what is known of a track's audio: "dead" with no source at all, undefined until probed. */
 export function status(t: Media): Status | undefined {
-  if (mediaURLs(t.audio, t.id).length === 0) return "dead";
+  if (mediaURLs(t.audio).length === 0) return "dead";
   const k = known.get(t.id);
   return k && Date.now() - k.at < TTL[k.s] ? k.s : undefined;
 }
@@ -69,7 +69,7 @@ function probeURL(url: string): Promise<boolean | undefined> {
 /** probe tries every source of a track in order (IPFS has several gateways): true if one loads, false if every one errors, undefined if none loaded and one only timed out. */
 export async function probe(t: Media): Promise<boolean | undefined> {
   let slow = false;
-  for (const url of mediaURLs(t.audio, t.id)) {
+  for (const url of mediaURLs(t.audio)) {
     const r = await probeURL(url);
     if (r) return true;
     if (r === undefined) slow = true;
