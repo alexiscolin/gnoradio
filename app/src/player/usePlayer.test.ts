@@ -150,6 +150,15 @@ describe("usePlayer live, player fixes", () => {
     act(() => { result.current.goLive(0); });
     expect(result.current.audio.volume).toBe(1);
   });
+  it("a jingle that stalls never keeps the music silent", async () => {
+    fake();
+    const { result } = renderHook(() => usePlayer(cat));
+    await act(() => vi.advanceTimersByTimeAsync(100));
+    act(() => { result.current.goLive(0); });
+    expect(result.current.audio.volume).toBe(0); // under the jingle, which never plays to its end here
+    await act(() => vi.advanceTimersByTimeAsync(20_000));
+    expect(result.current.audio.volume).toBe(1);
+  });
   it("the next gateway starts at the chain's place, not the failed element's", async () => {
     fake();
     const alt = { ...cat, byId: new Map([[1, { id: 1, audio: "https://media.example/1.mp3", alt: "https://alt.example/1.mp3", duration: 300 }], [2, cat.byId.get(2)]] as never) } as unknown as Catalog;

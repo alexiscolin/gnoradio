@@ -28,6 +28,9 @@ const NOT_RESPONDING_AFTER_MS = 6000;
 const RESYNC_MS = 5 * 60_000; // the schedule covers an hour; resync also at each entry's end
 const DRIFT_S = 4;
 const FADE_S = 1.2;
+// The longest jingle is 12.3 s: past this, a jingle that stalled (a slow archive.org, a tune-in that
+// never finished) lets the music back in, never leaving it silent under a clock that runs.
+const IDENT_MAX_MS = 16_000;
 const IDENT_AGAIN_MS = 10 * 60_000; // resuming the same station sooner skips its jingle
 const HOURLY_GAP_MS = 20 * 60_000; // no hourly jingle this soon after another one
 const HOURLY_DUCK = 0.25; // the music under the hourly jingle, as a share of the volume
@@ -338,6 +341,12 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
         lastIdent.current = { station: st, at: Date.now() };
         audio.volume = 0;
         void j.play().catch(() => { if (ident.current === j) { ident.current = null; audio.volume = userVolume.current; } });
+        window.setTimeout(() => {
+          if (ident.current !== j) return;
+          ident.current = null;
+          j.pause();
+          void fade(audio, userVolume.current, audioFade);
+        }, IDENT_MAX_MS);
       }
       // Sound within the click (see toggle): what plays, else the station's track on air from the
       // catalog, so the first Listen works before the schedule is read; syncLive then aligns it.
