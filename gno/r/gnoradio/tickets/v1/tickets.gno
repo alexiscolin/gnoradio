@@ -193,9 +193,7 @@ func BuyTicket(cur realm, eventID int) int {
 		noPayment()
 	} else {
 		if fee = serviceFee(); fee > 0 {
-			if to = catalog.Treasury(); !to.IsValid() {
-				panic("tickets: the GnoRadio treasury is not set")
-			}
+			to = catalog.Treasury() // serviceFee is 0 while none is set
 		}
 		if paid() != e.Price+fee {
 			panic("tickets: attach exactly " + text.GNOT(e.Price+fee))
@@ -503,8 +501,9 @@ func paid() int64 {
 	return sent[0].Amount
 }
 
+// serviceFee is the stored fee, 0 while no treasury is set: the fee has nowhere to go, so buyers never pay it.
 func serviceFee() int64 {
-	if v := get(cConfig, "fee"); v != "" {
+	if v := get(cConfig, "fee"); v != "" && catalog.Treasury().IsValid() {
 		return text.MustAtoi64(v)
 	}
 	return 0

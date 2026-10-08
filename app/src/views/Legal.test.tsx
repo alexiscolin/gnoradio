@@ -1,6 +1,8 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it } from "vitest";
-import { FeesContext } from "../lib/fees";
+import { FeesContext, type Fees } from "../lib/fees";
+
+const ALL: Fees = { support: true, ticketFee: true };
 import { Legal } from "./Legal";
 
 afterEach(cleanup);
@@ -17,6 +19,6 @@ it("says no fee, or names the treasury once fees are on", () => {
   expect(screen.getByText(/GnoRadio takes no fee: tips and ticket prices go 100% to the artist\./)).toBeTruthy();
   expect(document.body.textContent).not.toMatch(/service fees/);
   cleanup();
-  render(<FeesContext.Provider value><Legal /></FeesContext.Provider>);
+  render(<FeesContext.Provider value={ALL}><Legal /></FeesContext.Provider>);
   expect(screen.getByText(/Support and service fees go to the treasury/)).toBeTruthy();
 });

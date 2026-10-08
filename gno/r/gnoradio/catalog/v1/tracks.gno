@@ -130,10 +130,11 @@ func addTrack(t *tx, publisher address, artistID int, tr *Track) int {
 
 // setInfo sets a track's text and timing. An Audius or Jamendo pointer stores
 // no title or credits unless named: its claimed artist's owner fills them in.
+// Without that, an edit may keep or clear the stored text (a legacy import), never set new text.
 func setInfo(tr *Track, title string, genre int, duration, credits string, named bool) {
 	title, credits = strings.TrimSpace(title), strings.TrimSpace(credits)
 	switch {
-	case isRef(tr.Origin) && title == "" && credits == "":
+	case isRef(tr.Origin) && (title == "" || title == tr.Title) && (credits == "" || credits == tr.Credits): // cleared or unchanged
 	case isRef(tr.Origin) && !named:
 		panic("catalog: a pointer stores no title or credits (the app reads them from the platform)")
 	default:

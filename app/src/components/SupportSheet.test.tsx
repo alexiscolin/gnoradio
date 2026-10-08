@@ -2,10 +2,12 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Artist, Track } from "../lib/types";
-import { FeesContext } from "../lib/fees";
+import { FeesContext, type Fees } from "../lib/fees";
+
+const ALL: Fees = { support: true, ticketFee: true };
 import { SupportSheet } from "./SupportSheet";
 
-const withFees = (ui: ReactNode) => <FeesContext.Provider value>{ui}</FeesContext.Provider>;
+const withFees = (ui: ReactNode) => <FeesContext.Provider value={ALL}>{ui}</FeesContext.Provider>;
 
 afterEach(cleanup);
 

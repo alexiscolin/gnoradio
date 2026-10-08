@@ -98,7 +98,7 @@ func TestTransferUpperCase(cur realm, t *testing.T) {
 	uassert.AbortsContains(t, cur, "not an address", func() { OfferAdmin(cross(cur), address(strings.ToUpper(dave.String()))) })
 }
 
-// L35: sales close at the start; a fee with no treasury refuses the sale;
+// L35: sales close at the start; a fee with no treasury is not charged;
 // hiding an unknown concert fails.
 func TestSaleGuards(cur realm, t *testing.T) {
 	alice, aid := artist(cur, "Guard Alice")
@@ -112,8 +112,14 @@ func TestSaleGuards(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewCodeRealm("gno.land/r/gnoradio/catalog/v1"))
 	data.Set(cross(cur), "catalog/config", "treasury", "")
 	testing.SetRealm(testing.NewUserRealm(who("carol")))
+	uassert.Equal(t, int64(0), ServiceFee()) // nowhere to go: not asked
 	testing.SetOriginSend(ugnots(1_100_000))
-	uassert.AbortsContains(t, cur, "treasury is not set", func() { BuyTicket(cross(cur), paid) })
+	uassert.AbortsContains(t, cur, "attach exactly 1 GNOT", func() { BuyTicket(cross(cur), paid) })
+	a0 := balance(alice)
+	testing.IssueCoins(realmAddr, ugnots(1_000_000))
+	testing.SetOriginSend(ugnots(1_000_000))
+	BuyTicket(cross(cur), paid)
+	uassert.Equal(t, a0+1_000_000, balance(alice))
 	testing.SetOriginSend(nil)
 	testing.SetRealm(testing.NewCodeRealm("gno.land/r/gnoradio/catalog/v1"))
 	data.Set(cross(cur), "catalog/config", "treasury", old.String())

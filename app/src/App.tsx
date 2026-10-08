@@ -12,7 +12,7 @@ import { SupportSheet, type SupportTarget } from "./components/SupportSheet";
 import { loadCatalog, type Touched, touchedBy, viewName } from "./lib/catalog";
 import { useNamedRefs } from "./lib/refs";
 import { EMPTY_SUPPORT, loadActivity, loadFees, loadSupport } from "./lib/community";
-import { FeesContext } from "./lib/fees";
+import { changesFees, FeesContext, NO_FEES } from "./lib/fees";
 import { errorMessage } from "./lib/format";
 import type { Call } from "./lib/gno";
 import { sessionRef } from "./lib/incentives";
@@ -59,7 +59,7 @@ export default function App() {
   const closeSheet = useCallback(() => { setSheet(false); }, []);
   const [activity, setActivity] = useState<readonly Activity[]>([]);
   const [support, setSupport] = useState<SupportInfo>(EMPTY_SUPPORT);
-  const [fees, setFees] = useState(false); // no fee until the realm says so
+  const [fees, setFees] = useState(NO_FEES); // no fee until the realm says so
   const [now, setNow] = useState(() => Date.now() / 1000);
   const [splash, setSplash] = useState<"on" | "leaving" | "done">("on");
   const [intro, setIntro] = useState(false); // panels rise in once, under the lifting poster
@@ -73,9 +73,14 @@ export default function App() {
   const refreshPulse = useCallback(() => {
     void loadActivity().then(setActivity);
     void loadSupport().then(setSupport);
-    void loadFees().then(setFees);
     setNow(Date.now() / 1000);
   }, []);
+
+  // Read on mount and after the admin's own fee or treasury transaction; an RPC error keeps the last value.
+  const readFees = useCallback(() => {
+    void loadFees().then((f) => { setFees((prev) => (prev.support === f.support && prev.ticketFee === f.ticketFee ? prev : f)); }, () => undefined);
+  }, []);
+  useEffect(() => { readFees(); }, [readFees]);
 
   const loadSeq = useRef(0);
   const booting = useRef(true); // the first full catalog load is still running
@@ -142,7 +147,7 @@ export default function App() {
     return () => { window.removeEventListener("keydown", onKey); };
   }, [toggle, toggleMute, nudge]);
   const { resync } = player;
-  const afterTx = useCallback((c?: Call) => { refresh(touchedBy(c)); resync(); }, [refresh, resync]);
+  const afterTx = useCallback((c?: Call) => { refresh(touchedBy(c)); resync(); if (changesFees(c)) readFees(); }, [refresh, resync, readFees]);
   const actions = useActions(afterTx);
   useEffect(() => { register({ wallet: actions.wallet.state.status }); }, [actions.wallet.state.status]);
   // Whether a shared link brought this browser (the sharer is never sent): the share loop, measured.

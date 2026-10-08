@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { REALMS, gnoAddress, qeval, unquote, qjson } from "./gno";
 import { type Infer, arr, num, obj, oneOf, str } from "./guard";
-import { feesOn } from "./fees";
+import { feesOf, type Fees } from "./fees";
 import { isActivities, isEvent, isFees, isSupport, isTickets, isUser } from "./schemas";
 import type { Activity, Catalog, ConcertEvent, OwnedTicket, SupportInfo, UserInfo } from "./types";
 
@@ -25,8 +25,8 @@ export const loadPicks = (): Promise<RadioPick[]> => qjson(REALMS.radio, "Activi
 
 export const loadSupport = (): Promise<SupportInfo> => qjson(REALMS.catalog, "SupportJSON()", isSupport).catch(() => EMPTY_SUPPORT);
 
-/** loadFees reads whether the operator takes any fee (treasury set, or a ticket service fee); false when unknown. */
-export const loadFees = (): Promise<boolean> => qjson(REALMS.tickets, "FeesJSON()", isFees).then((f) => feesOn(f.treasury, f.serviceFee)).catch(() => false);
+/** loadFees reads which fees the operator takes; it rejects when unknown, so the caller keeps its last answer. */
+export const loadFees = (): Promise<Fees> => qjson(REALMS.tickets, "FeesJSON()", isFees).then((f) => feesOf(f.treasury, f.serviceFee));
 
 export const loadUser = (address: string): Promise<UserInfo> => qjson(REALMS.catalog, `UserJSON(${gnoAddress(address)})`, isUser);
 

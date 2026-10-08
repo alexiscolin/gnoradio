@@ -371,3 +371,25 @@ func TestClaimedPointerNamed(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(carol))
 	uassert.AbortsContains(t, cur, "only the artist", func() { EditTrack(cross(cur), tr, "Stolen", 2, "3:42", "", "audius:cp1t", "", "", "") })
 }
+
+// A legacy pointer on an unclaimed profile keeps its stored title: the admin may
+// fix its genre or duration (text unchanged) or clear the text, never set new text.
+func TestLegacyPointerEdit(cur realm, t *testing.T) {
+	testing.SetRealm(testing.NewUserRealm(boss))
+	au := CreateArtist(cross(cur), OriginAudius, "", "", "audius-user:lg1")
+	tr := ImportTrack(cross(cur), au, "", 1, "3:41", "", "", "audius:lg1t", "", "", "", "", "")
+	tx := rd()
+	rec := getTrack(tx, tr)
+	rec.Title, rec.Credits = "Legacy", "Old credits"
+	tx.setRec(cTracks, tr, fits(trackRecord(rec)))
+	testing.SetRealm(testing.NewCodeRealm("gno.land/r/gnoradio/catalog/v1"))
+	save(cur, tx)
+
+	testing.SetRealm(testing.NewUserRealm(boss))
+	EditTrack(cross(cur), tr, "Legacy", 2, "3:42", "Old credits", "audius:lg1t", "", "", "")
+	uassert.Equal(t, "Legacy", getTrack(rd(), tr).Title)
+	uassert.Equal(t, 2, getTrack(rd(), tr).Genre)
+	uassert.AbortsContains(t, cur, "no title or credits", func() { EditTrack(cross(cur), tr, "New text", 2, "3:42", "Old credits", "audius:lg1t", "", "", "") })
+	EditTrack(cross(cur), tr, "", 2, "3:42", "", "audius:lg1t", "", "", "")
+	uassert.Equal(t, "", getTrack(rd(), tr).Title)
+}

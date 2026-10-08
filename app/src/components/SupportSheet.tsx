@@ -34,7 +34,7 @@ interface Props {
 
 /** SupportSheet picks an amount and shows exactly where every GNOT goes. */
 export function SupportSheet({ target, codeURL, me = "", referrer = "", onClose, onTip, onSupport }: Props) {
-  const fees = useFees(); // no "+10%" while GnoRadio takes no fee
+  const fees = useFees().support; // no "+10%" while GnoRadio takes no fee
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;

@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CHUNK, clearRefs, isRef, loadMeta, nameRefs, type RefMeta, want } from "./refs";
+import { renderHook } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { CHUNK, clearRefs, isRef, loadMeta, nameRefs, type RefMeta, useWant, want } from "./refs";
 import type { Artist, Catalog, Track } from "./types";
 
 const meta = (title: string, artist = "Night Tapes", streamable = true): RefMeta =>
@@ -29,12 +30,13 @@ function api(table: Record<string, RefMeta | null>, ok = true) {
 }
 
 beforeEach(clearRefs);
+afterEach(() => { vi.useRealTimers(); });
 
 describe("isRef", () => {
-  it("is a pointer only while the chain stores no title (a claimed artist may name it)", () => {
+  it("is a pointer by its audio, whether or not a claimed artist named it", () => {
     expect(isRef(track(1, "audius:Ab1"))).toBe(true);
     expect(isRef(track(1, "jamendo:42"))).toBe(true);
-    expect(isRef(track(1, "audius:Ab1", "Named by its artist"))).toBe(false);
+    expect(isRef(track(1, "audius:Ab1", "Named by its artist"))).toBe(true);
     expect(isRef(track(1, "ipfs://bafy"))).toBe(false);
   });
 });
@@ -49,8 +51,10 @@ describe("loadMeta", () => {
     expect(asked).toHaveLength(2);
   });
 
-  it("keeps nothing from a failed call, so the next screen asks again", async () => {
+  it("keeps nothing from a failed call, so the screen asks again once the pause is over", async () => {
+    vi.useFakeTimers();
     await loadMeta([track(1, "audius:a")], api({}, false).f);
+    vi.advanceTimersByTime(61_000);
     const up = api({ "audius:a": meta("A") });
     await loadMeta([track(1, "audius:a")], up.f);
     expect(up.asked).toHaveLength(1);
@@ -78,5 +82,61 @@ describe("nameRefs and want", () => {
   it("leaves a catalog without pointers as it is", () => {
     const cat = catalogOf([track(4, "ipfs://bafy", "Own song")]);
     expect(nameRefs(cat)).toBe(cat);
+  });
+});
+
+describe("a named pointer", () => {
+  it("shows the owner's title with the live artwork, link and streamable check", async () => {
+    const cat = catalogOf([track(1, "audius:a", "Owner's title"), track(2, "audius:b", "Taken down")]);
+    nameRefs(cat);
+    await want([{ id: 1 }], api({ "audius:a": meta("Platform title"), "audius:b": null }).f);
+    const out = nameRefs(cat);
+    expect(out.byId.get(1)).toMatchObject({ title: "Owner's title", cover: "https://creatornode.audius.co/a.jpg", source: "https://audius.co/nt/x" });
+    expect(out.byId.has(2)).toBe(false); // not streamable any more
+  });
+});
+
+describe("failures", () => {
+  it("are left alone for a minute, then two, never cached as missing", async () => {
+    vi.useFakeTimers();
+    nameRefs(catalogOf([track(1, "audius:a")]));
+    const bad = api({}, false);
+    await want([{ id: 1 }], bad.f);
+    expect(bad.asked).toHaveLength(1);
+    await want([{ id: 1 }], bad.f);
+    vi.advanceTimersByTime(59_000);
+    await want([{ id: 1 }], bad.f);
+    expect(bad.asked).toHaveLength(1); // still backing off
+    vi.advanceTimersByTime(2_000);
+    await want([{ id: 1 }], bad.f);
+    expect(bad.asked).toHaveLength(2);
+    vi.advanceTimersByTime(61_000);
+    await want([{ id: 1 }], bad.f);
+    expect(bad.asked).toHaveLength(2); // the pause doubled: 2 minutes
+    vi.advanceTimersByTime(60_000);
+    const up = api({ "audius:a": meta("A") });
+    await want([{ id: 1 }], up.f);
+    expect(up.asked).toHaveLength(1);
+  });
+
+  it("notify listeners only when answers were cached", async () => {
+    nameRefs(catalogOf([track(1, "audius:a")]));
+    expect(await loadMeta([track(1, "audius:a")], api({}, false).f)).toBe(false);
+    clearRefs();
+    nameRefs(catalogOf([track(1, "audius:a")]));
+    expect(await loadMeta([track(1, "audius:a")], api({ "audius:a": meta("A") }).f)).toBe(true);
+  });
+});
+
+describe("useWant", () => {
+  it("does not ask again when a render hands it a new array of the same ids", () => {
+    nameRefs(catalogOf([track(1, "audius:a")]));
+    const f = vi.fn(() => new Promise<Response>(() => undefined));
+    vi.stubGlobal("fetch", f);
+    const { rerender } = renderHook(({ ids }) => { useWant(ids.map((id) => ({ id }))); }, { initialProps: { ids: [1] } });
+    rerender({ ids: [1] });
+    rerender({ ids: [1] });
+    expect(f).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
   });
 });

@@ -1186,15 +1186,14 @@ func renderJoin() string {
 		"Genres: " + genreList() + "\n"
 }
 
-// aboutFees names the operator's income, only when there is any.
+// aboutFees names the operator's income, only when there is any: the ticket
+// service fee is 0 while no treasury is set.
 func aboutFees() string {
 	switch {
 	case hasTreasury() && tickets.ServiceFee() > 0:
 		return " An optional extra and a ticket service fee fund GnoRadio."
 	case hasTreasury():
 		return " An optional extra funds GnoRadio."
-	case tickets.ServiceFee() > 0:
-		return " A ticket service fee funds GnoRadio."
 	}
 	return ""
 }

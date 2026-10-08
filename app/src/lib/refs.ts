@@ -26,11 +26,13 @@ const PARALLEL = 3;
 /** LRU bound: a catalog's pointers, with room; least recently used out first. */
 const MAX_KEPT = 10_000;
 
-/** isRef: a pointer as the chain stores it (no title; an artist who claimed it may store one). */
-export const isRef = (t: Pick<Track, "title" | "audio">): boolean => t.title === "" && REF.test(t.audio);
+/** isRef: a pointer, by its audio (an artist who claimed it may also store a title). */
+export const isRef = (t: Pick<Track, "audio">): boolean => REF.test(t.audio);
 
 const kept = new Map<string, RefMeta | null>(); // insertion order = least recently used first
 const asked = new Set<string>(); // in flight
+const failed = new Map<number, { at: number; wait: number }>(); // bucket → last failure, and how long to leave it alone
+const RETRY_MIN = 60_000, RETRY_MAX = 600_000;
 let pointers = new Map<number, string>(); // the last named catalog's pointers: track id → audio
 let version = 0;
 const listeners = new Set<() => void>();
@@ -42,23 +44,33 @@ const touch = (k: string, v: RefMeta | null) => {
 };
 
 /** clearRefs empties the session cache (tests). */
-export const clearRefs = (): void => { kept.clear(); asked.clear(); pointers = new Map(); };
+export const clearRefs = (): void => { kept.clear(); asked.clear(); failed.clear(); pointers = new Map(); };
 
-/** loadMeta fetches the buckets holding these pointers, CHUNK ids a request, PARALLEL at a time. */
-export async function loadMeta(tracks: readonly Pick<Track, "id" | "audio">[], fetcher: typeof fetch = fetch): Promise<void> {
+/** loadMeta fetches the buckets holding these pointers, CHUNK ids a request, PARALLEL at a time; a failed
+ * bucket is left alone for a minute, doubling up to ten. True when it cached new answers. */
+export async function loadMeta(tracks: readonly Pick<Track, "id" | "audio">[], fetcher: typeof fetch = fetch): Promise<boolean> {
   const buckets = new Map<number, Set<string>>();
   for (const t of tracks) if (REF.test(t.audio)) buckets.set(Math.floor(t.id / CHUNK), (buckets.get(Math.floor(t.id / CHUNK)) ?? new Set()).add(t.audio));
-  const asks = [...buckets.values()].map((ids) => [...ids].sort()).filter((ids) => ids.some((r) => !kept.has(r) && !asked.has(r)));
+  const asks = [...buckets].filter(([b, ids]) => {
+    const f = failed.get(b);
+    return !(f && Date.now() < f.at + f.wait) && [...ids].some((r) => !kept.has(r) && !asked.has(r));
+  }).map(([b, ids]) => [b, [...ids].sort()] as const);
+  let fresh = false;
   for (let i = 0; i < asks.length; i += PARALLEL) {
-    await Promise.all(asks.slice(i, i + PARALLEL).map(async (ids) => {
+    await Promise.all(asks.slice(i, i + PARALLEL).map(async ([b, ids]) => {
       ids.forEach((r) => asked.add(r));
       const r = await fetcher(`/api/meta?ids=${ids.join(",")}`).catch(() => null);
       ids.forEach((id) => asked.delete(id));
-      if (!r?.ok) return; // unknown for now: asked again by the next screen, never cached as missing
+      if (!r?.ok) { // unknown for now: asked again after a pause, never cached as missing
+        failed.set(b, { at: Date.now(), wait: Math.min((failed.get(b)?.wait ?? RETRY_MIN / 2) * 2, RETRY_MAX) });
+        return;
+      }
+      failed.delete(b);
       const body = (await r.json()) as Record<string, RefMeta | null>;
-      for (const id of ids) if (id in body) touch(id, body[id] ?? null);
+      for (const id of ids) if (id in body) { touch(id, body[id] ?? null); fresh = true; }
     }));
   }
+  return fresh;
 }
 
 /** want asks for the meta of the pointers among tracks a screen shows; screens re-render once it arrives. */
@@ -71,12 +83,14 @@ export function want(tracks: readonly Pick<Track, "id">[], fetcher: typeof fetch
   // The whole bucket of each wanted pointer: the same URL for every visitor (CDN), a screen nearby is ready too.
   const buckets = new Set(mine.map((t) => Math.floor(t.id / CHUNK)));
   const all = [...pointers].filter(([id]) => buckets.has(Math.floor(id / CHUNK))).map(([id, audio]) => ({ id, audio }));
-  return loadMeta(all, fetcher).then(() => { version++; listeners.forEach((f) => { f(); }); });
+  return loadMeta(all, fetcher).then((fresh) => { if (fresh) { version++; listeners.forEach((f) => { f(); }); } });
 }
 
-/** useWant asks for the pointers among tracks once a screen shows them. */
+/** useWant asks for the pointers among tracks once a screen shows them; a new array of the same ids asks nothing. */
 export function useWant(tracks: readonly Pick<Track, "id">[]): void {
-  useEffect(() => { void want(tracks); }, [tracks]);
+  const key = tracks.map((t) => t.id).join(",");
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- key: the ids are all want reads
+  useEffect(() => { void want(tracks); }, [key]);
 }
 
 const label = (audio: string, what: string) => `${audio.startsWith("jamendo:") ? "Jamendo" : "Audius"} ${what}`;
@@ -95,10 +109,10 @@ export function nameRefs(cat: Catalog): Catalog {
   const named = (t: Track): Track => {
     if (!isRef(t)) return t;
     const m = kept.get(t.audio);
-    if (m === undefined) return { ...t, title: label(t.audio, "track"), artistName: t.artistName || label(t.audio, "artist") };
+    if (m === undefined) return { ...t, title: t.title || label(t.audio, "track"), artistName: t.artistName || label(t.audio, "artist") };
     if (!m?.streamable) { gone.add(t.id); return t; }
     if (m.artist) names.set(t.artist, m.artist);
-    return { ...t, title: m.title || label(t.audio, "track"), artistName: m.artist || label(t.audio, "artist"), cover: safeHttps(m.artwork), source: safeHttps(m.permalink) };
+    return { ...t, title: t.title || m.title || label(t.audio, "track"), artistName: m.artist || label(t.audio, "artist"), cover: safeHttps(m.artwork), source: safeHttps(m.permalink) };
   };
   const tracks = cat.tracks.map(named).filter((t) => !gone.has(t.id));
   const artists = new Map([...cat.artists].map(([id, a]) => [id, a.name !== "" ? a : { ...a, name: names.get(id) ?? (a.kind === "jamendo" ? "Jamendo artist" : "Audius artist") }]));

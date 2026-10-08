@@ -44,8 +44,10 @@ func TestFeaturesFollowTreasuryAndFee(cur realm, t *testing.T) {
 	tickets.SetServiceFee(cross(cur), 500_000)
 	check(true)
 
-	tickets.SetServiceFee(cross(cur), 0)
+	// A stored fee with no treasury is not charged nor announced.
 	testing.SetRealm(testing.NewUserRealm(catalog.Admin()))
 	catalog.SetTreasury(cross(cur), "")
 	check(false)
+	testing.SetRealm(testing.NewUserRealm(tickets.Admin()))
+	tickets.SetServiceFee(cross(cur), 0)
 }

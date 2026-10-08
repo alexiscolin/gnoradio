@@ -2,6 +2,7 @@
 // dist/features/index.html: crawlers that run no script read the same copy the
 // app shows (features.ts), with the page's own title, canonical and JSON-LD.
 // main.tsx removes it before React takes over the splash. Live counts are left out.
+import { NO_FEES } from "./fees";
 import { AUDIENCES, CANNOT, EXAMPLE, HERO, moneyRows, TRUST, VIDEO, hrefOf } from "./features";
 import { esc, licenseLabel, licenseURL } from "./format";
 import { INDEPENDENT } from "./legal";
@@ -23,7 +24,7 @@ export function featuresBody(): string {
     + `<p>${a("/live", "Tune in")} · ${a("/contribute/artist", "Make music")}</p>`
     + `<figure><video controls preload="none" poster="${VIDEO.poster}" src="${VIDEO.src}" aria-label="${esc(VIDEO.caption)}"></video><figcaption>${esc(VIDEO.caption)} Music: “${esc(VIDEO.music.title)}” by ${a(VIDEO.music.site, VIDEO.music.artist)}, edited, licensed under ${a(licenseURL(VIDEO.music.license), licenseLabel(VIDEO.music.license))}.</figcaption></figure>`
     + sections
-    + `<section><h2>Where every GNOT goes</h2><p>${esc(EXAMPLE)}</p><dl>${moneyRows(false).map(([w, to, note]) => `<dt>${esc(w)}: ${esc(to)}</dt><dd>${esc(note)}</dd>`).join("")}</dl></section>`
+    + `<section><h2>Where every GNOT goes</h2><p>${esc(EXAMPLE)}</p><dl>${moneyRows(NO_FEES).map(([w, to, note]) => `<dt>${esc(w)}: ${esc(to)}</dt><dd>${esc(note)}</dd>`).join("")}</dl></section>`
     + `<section><h2>Check it, don't trust it</h2>${TRUST.map(([t, x]) => `<h3>${esc(t)}</h3><p>${esc(x)}</p>`).join("")}<h3>Nobody can</h3><p>${esc(CANNOT)}</p><p>${a("/about", "How it works, in detail")}</p></section>`
     + `<footer><p>${esc(INDEPENDENT)}</p></footer></main>`;
 }

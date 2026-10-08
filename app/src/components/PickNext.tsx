@@ -234,7 +234,7 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
   const matches = s ? eligible.filter((t) => `${t.title} ${t.artistName}`.toLowerCase().includes(s)) : eligible;
   const first = suggest === undefined ? undefined : matches.find((t) => t.id === suggest);
   const list = (first ? [first, ...matches.filter((t) => t !== first)] : matches).slice(0, 40);
-  useWant(s ? eligible : list); // a search reads every pointer's title
+  useWant(s ? eligible : list); // (keyed by the ids) a search reads every pointer's title
   const chosen = cat.byId.get(selected);
   const booked = sched?.booked ?? [];
   // Counted from when the new pick would air: its booked time, else after what waits (airsAt).

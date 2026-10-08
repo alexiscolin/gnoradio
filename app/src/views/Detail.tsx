@@ -251,7 +251,7 @@ export function CancelConcert({ e, actions }: { readonly e: ConcertEvent; readon
 }
 
 export function Concerts({ cat, go, player, actions }: { readonly cat: Catalog; readonly go: Navigate; readonly player: Player; readonly actions: Actions }) {
-  const fees = useFees();
+  const fees = useFees().ticketFee;
   const [f, setF] = useState<ConcertFilter>(NO_FILTER);
   const s = actions.wallet.state;
   const address = s.status === "connected" || s.status === "wrong-network" ? s.address : "";

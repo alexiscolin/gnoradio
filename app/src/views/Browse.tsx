@@ -37,7 +37,7 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
   readonly now: number;
   readonly openSupport: (t: SupportTarget) => void;
 }) {
-  const fees = useFees();
+  const fees = useFees().support;
   const main = cat.stations[0];
   const goal = support.goal > 0 ? support.goal : DEFAULT_GOAL;
   const onAir = main ? cat.byId.get(main.now.track) : undefined;

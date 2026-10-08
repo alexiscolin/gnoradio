@@ -39,7 +39,7 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
   readonly onSupport: () => void;
   readonly openPick: (station: number) => void;
 }) {
-  const fees = useFees();
+  const fees = useFees().support;
   const [picks, setPicks] = useState<readonly RadioPick[]>([]);
   const [curators, setCurators] = useState<TopCurators["top"]>([]);
   useEffect(() => { // now ticks with the app's pulse

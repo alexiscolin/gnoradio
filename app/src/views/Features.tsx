@@ -98,7 +98,7 @@ export function Features({ cat, support, go, openPick, me }: { readonly cat: Cat
         </button>
       </section>
 
-      {audiences(fees).map((a) => (
+      {audiences(fees.ticketFee).map((a) => (
         <section key={a.id} className="about-sec" id={a.id}>
           <h2 className="feat-h2">{a.title} <span>{a.lead}</span></h2>
           <ol className="about-steps feat-grid">

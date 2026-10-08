@@ -61,7 +61,7 @@ func PresentedAt(ticketID int, code string) int64 {
 	return text.Atoi64(store.Field(rec, 1))
 }
 
-// ServiceFee returns the per-ticket service fee in ugnot.
+// ServiceFee returns the per-ticket service fee in ugnot (0 while no treasury is set).
 func ServiceFee() int64 { return serviceFee() }
 
 // Admin is the moderator ("" once renounced).

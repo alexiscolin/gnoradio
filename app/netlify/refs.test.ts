@@ -47,10 +47,19 @@ describe("metaOf", () => {
     expect(m["jamendo:66"]?.streamable).toBe(false); // an audio URL off jamendo.com is never followed
   });
 
-  it("reads no Jamendo without a client id", async () => {
+  it("fails, rather than answering null, when Jamendo has no client id or Audius answers badly", async () => {
     vi.stubEnv("JAMENDO_CLIENT_ID", "");
-    expect((await metaOf(["jamendo:42"]))["jamendo:42"]).toBeNull();
+    await expect(metaOf(["jamendo:42"])).rejects.toThrow(/JAMENDO_CLIENT_ID/);
     expect(net).not.toHaveBeenCalled();
+    net.mockResolvedValueOnce(Response.json({ error: "x" }));
+    await expect(metaOf(["audius:Ab1"])).rejects.toThrow(/audius/);
+  });
+
+  it("drops one malformed artwork URL without failing the batch", async () => {
+    net.mockResolvedValueOnce(Response.json({ data: [{ id: "Ab1", title: "A", artwork: { "480x480": "https://[bad" } }, { id: "Cd2", title: "B" }] }));
+    const m = await metaOf(["audius:Ab1", "audius:Cd2"]);
+    expect(m["audius:Ab1"]).toMatchObject({ title: "A", artwork: "" });
+    expect(m["audius:Cd2"]?.title).toBe("B");
   });
 });
 
@@ -75,6 +84,17 @@ describe("/api/meta and /api/jamendo", () => {
     const down = await get("/api/meta?ids=audius:Ab1");
     expect(down.status).toBe(502);
     expect(down.headers.get("cache-control")).toBe("no-store");
+  });
+});
+
+describe("a missing Jamendo key", () => {
+  it("is an uncached 502 on both endpoints, never a cached 404 or null", async () => {
+    vi.stubEnv("JAMENDO_CLIENT_ID", "");
+    for (const path of ["/api/jamendo/42", "/api/meta?ids=jamendo:42"]) {
+      const r = await get(path);
+      expect(r.status).toBe(502);
+      expect(r.headers.get("cache-control")).toBe("no-store");
+    }
   });
 });
 

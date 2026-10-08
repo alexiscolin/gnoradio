@@ -17,7 +17,9 @@ export interface RefMeta {
 
 export const MAX_IDS = 100;
 export const REF = /^(audius|jamendo):([A-Za-z0-9]{1,32})$/;
-const httpsOn = (u: unknown, host: RegExp): string => (typeof u === "string" && /^https:\/\/[^/?#]+/.test(u) && host.test(new URL(u).hostname) ? u : "");
+const httpsOn = (u: unknown, host: RegExp): string => {
+  try { return typeof u === "string" && /^https:\/\/[^/?#]+/.test(u) && host.test(new URL(u).hostname) ? u : ""; } catch { return ""; } // a malformed URL is no URL
+};
 
 interface AudiusTrack { id: string; title?: string; permalink?: string; is_streamable?: boolean; artwork?: Record<string, string>; user?: { id?: string; name?: string } }
 interface JamendoTrack { id: string | number; name?: string; artist_name?: string; artist_id?: string | number; image?: string; album_image?: string; shareurl?: string; audio?: string }
@@ -33,7 +35,8 @@ async function audius(ids: string[]): Promise<Map<string, RefMeta>> {
   const key = runtimeEnv("AUDIUS_API_KEY");
   const q = ids.map((id) => `id=${encodeURIComponent(id)}`).join("&");
   const j = await getJSON<{ data?: AudiusTrack[] }>(`https://api.audius.co/v1/tracks?${q}&app_name=GnoRadio`, key ? { "x-api-key": key } : {});
-  return new Map((j.data ?? []).map((t) => [t.id, {
+  if (!Array.isArray(j.data)) throw new Error("upstream audius failed"); // an error, not "unknown tracks"
+  return new Map(j.data.map((t) => [t.id, {
     title: t.title ?? "", artist: t.user?.name ?? "", artistId: t.user?.id ?? "",
     artwork: httpsOn(t.artwork?.["480x480"], /./), permalink: t.permalink ? `https://audius.co${t.permalink}` : "",
     streamable: t.is_streamable !== false,
@@ -46,7 +49,7 @@ const JAMENDO_IDS = 50;
 /** jamendo reads the tracks 50 ids a call (id=1+2+3); its audio URL is for /api/jamendo only. */
 export async function jamendo(ids: string[]): Promise<Map<string, RefMeta & { audio: string }>> {
   const client = runtimeEnv("JAMENDO_CLIENT_ID");
-  if (!client) return new Map();
+  if (!client) throw new Error("JAMENDO_CLIENT_ID is not set"); // an error (never cached), not "unknown tracks"
   const chunks = Array.from({ length: Math.ceil(ids.length / JAMENDO_IDS) }, (_, i) => ids.slice(i * JAMENDO_IDS, (i + 1) * JAMENDO_IDS));
   const pages = await Promise.all(chunks.map((c) => getJSON<{ headers?: { status?: string }; results?: JamendoTrack[] }>(
     `https://api.jamendo.com/v3.0/tracks/?client_id=${encodeURIComponent(client)}&format=json&limit=${String(JAMENDO_IDS)}&audioformat=mp32&id=${c.join("+")}`)));

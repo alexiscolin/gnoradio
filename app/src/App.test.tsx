@@ -4,9 +4,10 @@ import App from "./App";
 
 // A first visit whose full catalog load never finishes in this test.
 const loadCatalog = vi.fn(() => new Promise<never>(() => undefined));
+const loadFees = vi.hoisted(() => vi.fn(() => Promise.reject(new Error("rpc down")))); // an RPC error must keep the last value
 let onMissing: ((id: number) => void) | undefined;
 vi.mock("./lib/catalog", async (orig) => ({ ...(await orig<object>()), loadCatalog: () => loadCatalog() }));
-vi.mock("./lib/community", async (orig) => ({ ...(await orig<object>()), loadActivity: () => Promise.resolve([]), loadSupport: () => new Promise(() => undefined), loadFees: () => new Promise(() => undefined) }));
+vi.mock("./lib/community", async (orig) => ({ ...(await orig<object>()), loadActivity: () => Promise.resolve([]), loadSupport: () => new Promise(() => undefined), loadFees: () => loadFees() }));
 vi.mock("./player/usePlayer", () => ({
   usePlayer: (_cat: unknown, m: (id: number) => void) => {
     onMissing = m;
@@ -20,5 +21,15 @@ describe("App", () => {
     expect(loadCatalog).toHaveBeenCalledTimes(1);
     onMissing?.(7);
     expect(loadCatalog).toHaveBeenCalledTimes(1);
+  });
+
+  it("reads the fees on mount, not on every pulse, and survives an RPC error", () => {
+    vi.useFakeTimers();
+    loadFees.mockClear();
+    render(<App />);
+    expect(loadFees).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(130_000);
+    expect(loadFees).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
   });
 });
