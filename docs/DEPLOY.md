@@ -173,6 +173,10 @@ Checked on 2026-10-08 (block 642,481):
   mainnet. `MsgRun` is allowlisted on both, so setup goes through calls, never `maketx run`.
 - **gnomcp is read-only on mainnet**: no session. The setup calls go through gnokey (or Adena).
 
+0. **Merge the branch `mainnet-pick-30min` into `main` first** (`git merge mainnet-pick-30min`):
+   picks every 30 minutes and the About page's 12 h releases. It stays off `main` until then
+   because onyx's deployed realms keep 1 h and 72 h, and gnoradio.xyz (onyx) must say so.
+   Once merged, gnoradio.xyz moves to mainnet and onyx gets its own `onyx.gnoradio.xyz` site.
 1. Fund the address, register the name.
 2. `tools/deploy/deploy.sh --dry-run mainnet <key> nym-alexiscolin000`, then without it. The
    script waits (polls every 30 s) and prints how to check a package
