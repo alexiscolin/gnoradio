@@ -22,7 +22,9 @@ const gapped = (): Schedule => ({
 });
 let next = schedule;
 const loadSchedule = vi.fn(() => Promise.resolve(next()));
+let onAir: { track: number; offset: number; queued: boolean } | undefined;
 vi.mock("../lib/catalog", () => ({
+  loadOnAir: () => Promise.resolve(onAir),
   loadSchedule: () => loadSchedule(),
   audioURLs: (t: { audio: string; alt?: string }) => (t.alt ? [t.audio, t.alt] : [t.audio]),
 }));
@@ -158,6 +160,20 @@ describe("usePlayer live, player fixes", () => {
     expect(result.current.audio.volume).toBe(0); // under the jingle, which never plays to its end here
     await act(() => vi.advanceTimersByTimeAsync(20_000));
     expect(result.current.audio.volume).toBe(1);
+  });
+  it("plays what the station has on air when the schedule leaves it out (onyx's pointers)", async () => {
+    fake();
+    next = () => ({ station: 0, now: Math.floor(Date.now() / 1000), entries: [] });
+    onAir = { track: 2, offset: 30, queued: false };
+    const { result } = renderHook(() => usePlayer(cat));
+    await act(() => vi.advanceTimersByTimeAsync(100));
+    act(() => { result.current.toggle(); });
+    await act(() => vi.advanceTimersByTimeAsync(10));
+    expect(result.current.current).toBe(2);
+    expect(result.current.audio.src).toContain("/2.mp3");
+    act(() => { result.current.audio.dispatchEvent(new Event("loadedmetadata")); });
+    expect(result.current.audio.currentTime).toBeGreaterThan(25); // at the station's place in the track
+    onAir = undefined;
   });
   it("the next gateway starts at the chain's place, not the failed element's", async () => {
     fake();

@@ -1,6 +1,6 @@
 import { track } from "../lib/analytics";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { audioURLs, loadSchedule } from "../lib/catalog";
+import { audioURLs, loadOnAir, loadSchedule } from "../lib/catalog";
 import { isDead, markDead } from "../lib/playable";
 import { dropBucket, want } from "../lib/refs";
 import { errorMessage } from "../lib/format";
@@ -253,9 +253,22 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
         const fresh = s.now - Date.now() / 1000;
         skewSamples.current = nextSkew(skewSamples.current, fresh);
         skew.current = Math.max(...skewSamples.current);
-        setEntries(s.entries);
         const now = chainNow();
-        const e = s.entries.find((x) => now >= x.start && now < x.end);
+        let e = s.entries.find((x) => now >= x.start && now < x.end);
+        // ponytail: onyx's catalog/v1 leaves Audius and Jamendo pointers out of ScheduleJSON (they store no
+        // title; fixed in catalog PlayableTitle for the next release). A hole now is filled from StationsJSON,
+        // which has them; drop this once the deployed realms carry the fix.
+        if (!e) {
+          const on = await loadOnAir(st).catch(() => undefined);
+          if (seq !== syncSeq.current) return;
+          const d = on && on.track > 0 ? catalog.current?.byId.get(on.track)?.duration ?? 0 : 0;
+          if (on && d > on.offset) {
+            const start = now - on.offset;
+            const next = s.entries.find((x) => x.start > now)?.start ?? Infinity;
+            e = { track: on.track, title: "", start, end: Math.min(start + d, next), offset: 0, queued: on.queued, by: "", note: "" };
+          }
+        }
+        setEntries(e && !s.entries.includes(e) ? [e, ...s.entries] : s.entries);
         // Sync again when this entry ends (or the next one starts, in a gap): a pick that cut
         // the track on air switches every listener on time, not only the one who picked.
         const switchAt = e?.end ?? s.entries.find((x) => x.start > now)?.start;

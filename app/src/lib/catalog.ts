@@ -269,6 +269,10 @@ export async function loadCatalog(opts: LoadOptions = {}): Promise<Catalog> {
 export const loadSchedule = (station: number, horizon = 3600): Promise<Schedule> =>
   qjson(REALMS.radio, `ScheduleJSON(${String(station)}, ${String(horizon)})`, isSchedule);
 
+/** loadOnAir reads what a station plays now (StationsJSON), pointers included. */
+export const loadOnAir = async (station: number): Promise<{ track: number; offset: number; queued: boolean } | undefined> =>
+  (await qjson(REALMS.radio, "StationsJSON()", isStations)).stations.find((x) => x.id === station)?.now;
+
 /** audioURLs resolves an on-chain audio reference to URLs an <audio> element plays, best first. */
 export const audioURLs = (t: Pick<Track, "id" | "audio">): string[] => mediaURLs(t.audio);
 
