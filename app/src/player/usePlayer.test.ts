@@ -127,6 +127,19 @@ describe("usePlayer live, player fixes", () => {
     act(() => { result.current.goLive(0); });
     expect(result.current.audio.src).toContain("/2.mp3");
   });
+  it("resuming the track on air after a pause seeks to the live place first", async () => {
+    fake();
+    const { result } = renderHook(() => usePlayer(cat));
+    await act(() => vi.advanceTimersByTimeAsync(100));
+    act(() => { result.current.toggle(); });
+    expect(result.current.audio.src).toContain("/1.mp3");
+    act(() => { result.current.toggle(); }); // paused, at the place it stopped
+    result.current.audio.currentTime = 1;
+    await act(() => vi.advanceTimersByTimeAsync(2000));
+    act(() => { result.current.goLive(0); });
+    expect(result.current.audio.src).toContain("/1.mp3");
+    expect(result.current.audio.currentTime).toBeGreaterThan(95); // T0 - 100 start, about 102 s in
+  });
   it("a tune-in jingle replaced without a new one gives the volume back", async () => {
     fake();
     const { result } = renderHook(() => usePlayer(cat));

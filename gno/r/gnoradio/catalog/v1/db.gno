@@ -122,7 +122,9 @@ func (t *tx) del(c, k string) {
 	}
 }
 
-// save writes what t changed: one data.Set or data.Remove, or one Batch.
+// save writes what t changed: one data.Set or data.Remove, or Batches of
+// 64 ops (a bulk ResolveReports may change more keys than one Batch takes;
+// the transaction keeps them atomic, as in radio).
 func save(cur realm, t *tx) {
 	var ops store.Ops
 	for _, e := range t.es {
@@ -134,6 +136,10 @@ func save(cur realm, t *tx) {
 		} else {
 			ops = ops.Del(e.c, e.k)
 		}
+	}
+	for len(ops) > 4*64 {
+		data.Batch(cross(cur), ops[:4*64])
+		ops = ops[4*64:]
 	}
 	switch {
 	case len(ops) == 0:

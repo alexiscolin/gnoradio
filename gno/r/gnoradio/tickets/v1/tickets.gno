@@ -340,10 +340,10 @@ func HideEvent(cur realm, eventID int, hidden bool, reason string) {
 	}
 	e.Hidden, e.Removed = hidden, reason
 	ops := store.Ops{}.Set(cEvents, store.Pad(e.ID), record(e))
-	if hidden || e.Cancelled {
-		ops = ops.Del(cUpcoming, upKey(e))
-	} else {
+	if visible(e) && !e.Cancelled && e.Start > now() {
 		ops = ops.Set(cUpcoming, upKey(e), "")
+	} else {
+		ops = ops.Del(cUpcoming, upKey(e))
 	}
 	save(cur, ops)
 	chain.Emit("Moderated", "kind", "event", "target", text.Itoa(eventID), "hidden", strconv.FormatBool(hidden), "reason", reason, "by", "moderator")

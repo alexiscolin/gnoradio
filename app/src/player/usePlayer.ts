@@ -347,7 +347,10 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
       // Only a file the station has on air now is kept: coming from the library or another station,
       // the old file (loadedId) is the wrong music, never resumed.
       const onAir = read?.track ?? (same ? latest.current.current : on?.now.track);
-      if (audio.src && loadedId.current === onAir) void audio.play().catch(() => undefined);
+      if (audio.src && loadedId.current === onAir) {
+        if (read) audio.currentTime = now - read.start; // not the old place the pause left: syncLive would jump there later
+        void audio.play().catch(() => undefined);
+      }
       else if (read) load(read.track, now - read.start, true, true);
       else if (on?.now.track) load(on.now.track, on.now.offset);
       else { audio.pause(); loadedId.current = 0; } // nothing known on air yet: syncLive loads it, the old file stays silent

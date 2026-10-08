@@ -15,7 +15,9 @@ class FakeAudio {
     if (a === "hang") return;
     setTimeout(() => { (a === "meta" ? this.onloadedmetadata : this.onerror)?.(); }, 1);
   }
+  static loads = 0;
   removeAttribute() { /* nothing loaded */ }
+  load() { FakeAudio.loads++; }
 }
 
 const ipfs = (id: number) => ({ id, audio: "ipfs://bafyexample" });
@@ -24,6 +26,7 @@ const https = (id: number) => ({ id, audio: `https://media.example/${String(id)}
 beforeEach(() => {
   vi.stubGlobal("Audio", FakeAudio);
   resetPlayable();
+  FakeAudio.loads = 0;
 });
 afterEach(() => {
   cleanup();
@@ -48,7 +51,19 @@ describe("probe", () => {
     answer = () => "hang";
     const p = probe(https(1));
     await vi.advanceTimersByTimeAsync(PROBE_MS);
-    expect(await p).toBe(false);
+    expect(await p).toBeUndefined();
+    expect(FakeAudio.loads).toBe(1);
+  });
+  it("is dead only when every source errors, not when one just times out", async () => {
+    vi.useFakeTimers();
+    answer = (u) => (u.includes("ipfs.io") ? "hang" : "error");
+    const p = probe(ipfs(1));
+    await vi.advanceTimersByTimeAsync(PROBE_MS + 10);
+    expect(await p).toBeUndefined();
+    answer = () => "hang";
+    check(https(8));
+    await vi.advanceTimersByTimeAsync(PROBE_MS + 10);
+    expect(status(https(8))).toBeUndefined();
   });
 });
 

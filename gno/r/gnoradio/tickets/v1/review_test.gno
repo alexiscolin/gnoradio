@@ -249,3 +249,34 @@ func TestConcertCap(cur realm, t *testing.T) {
 		CreateEvent(cross(cur), "One More", "Club", "", inHours(40), "0", 10)
 	})
 }
+
+// Restoring a concert puts it back in Upcoming only while it is visible,
+// not cancelled and still to come.
+func TestHideEventRestoreChecks(cur realm, t *testing.T) {
+	w, aid := artist(cur, "Restore Artist")
+	listed := func(id int) bool {
+		for _, e := range Upcoming(50) {
+			if e.ID == id {
+				return true
+			}
+		}
+		return false
+	}
+	testing.SetRealm(testing.NewUserRealm(w))
+	soon := CreateEvent(cross(cur), "Soon", "Club", "", inHours(1), "0", 5)
+	later := CreateEvent(cross(cur), "Later", "Club", "", inHours(48), "0", 5)
+	testing.SetRealm(testing.NewUserRealm(boss))
+	HideEvent(cross(cur), later, true, "test hide")
+	hideArtist(cur, aid, true)
+	testing.SetRealm(testing.NewUserRealm(boss))
+	HideEvent(cross(cur), later, false, "")
+	uassert.False(t, listed(later)) // its artist is hidden
+	hideArtist(cur, aid, false)
+	testing.SetRealm(testing.NewUserRealm(boss))
+	HideEvent(cross(cur), later, false, "")
+	uassert.True(t, listed(later))
+	HideEvent(cross(cur), soon, true, "test hide")
+	testing.SkipHeights(2 * 720) // the concert is over
+	HideEvent(cross(cur), soon, false, "")
+	uassert.False(t, listed(soon))
+}

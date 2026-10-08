@@ -288,7 +288,7 @@ func main(cur realm) {
 }
 
 // Gas:
-// 3419703880
+// 3419717576
 
 // Storage:
 // gno.land/r/gnoradio/catalog/v1: 0

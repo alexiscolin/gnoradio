@@ -95,3 +95,19 @@ func TestPerArtistCaps(cur realm, t *testing.T) {
 		CreateAlbum(cross(cur), aid, "One More", "", "", 2024, text.Itoa(tr))
 	})
 }
+
+// A bulk resolve of 50 reports from distinct wallets writes over 64 keys
+// (the reports, the reporters, the meta record): save splits the Batches.
+func TestBulkResolveManyReporters(cur realm, t *testing.T) {
+	alice, _ := artist(cur, "alice")
+	id := publish(cur, alice, "Reported many")
+	open := ReportCount()
+	for i := 0; i < 50; i++ {
+		testing.SetRealm(testing.NewUserRealm(who("many")))
+		Report(cross(cur), "track", id, "spam spam")
+	}
+	first := ReportPage(0, 1)[0] - 49
+	testing.SetRealm(testing.NewUserRealm(boss))
+	ResolveReports(cross(cur), first, 50)
+	uassert.Equal(t, open, ReportCount())
+}

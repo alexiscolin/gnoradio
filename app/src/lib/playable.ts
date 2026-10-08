@@ -47,28 +47,34 @@ export function markDead(id: number) {
   if (typeof navigator === "undefined" || navigator.onLine) record(id, "dead");
 }
 
-/** probeURL resolves true once url's metadata loads, false on an error or after PROBE_MS. */
-function probeURL(url: string): Promise<boolean> {
+/** probeURL resolves true once url's metadata loads, false on an error, undefined after PROBE_MS (slow, not missing). */
+function probeURL(url: string): Promise<boolean | undefined> {
   return new Promise((resolve) => {
     const a = new Audio();
     a.preload = "metadata";
-    const done = (ok: boolean) => {
+    const done = (ok: boolean | undefined) => {
       window.clearTimeout(timer);
       a.onloadedmetadata = a.onerror = null;
       a.removeAttribute("src");
+      a.load(); // stop the abandoned fetch
       resolve(ok);
     };
-    const timer = window.setTimeout(() => { done(false); }, PROBE_MS);
+    const timer = window.setTimeout(() => { done(undefined); }, PROBE_MS);
     a.onloadedmetadata = () => { done(true); };
     a.onerror = () => { done(false); };
     a.src = url;
   });
 }
 
-/** probe tries every source of a track in order (IPFS has several gateways). */
-export async function probe(t: Media): Promise<boolean> {
-  for (const url of mediaURLs(t.audio)) if (await probeURL(url)) return true;
-  return false;
+/** probe tries every source of a track in order (IPFS has several gateways): true if one loads, false if every one errors, undefined if none loaded and one only timed out. */
+export async function probe(t: Media): Promise<boolean | undefined> {
+  let slow = false;
+  for (const url of mediaURLs(t.audio)) {
+    const r = await probeURL(url);
+    if (r) return true;
+    if (r === undefined) slow = true;
+  }
+  return slow ? undefined : false;
 }
 
 const waiting: Media[] = [];
@@ -82,7 +88,7 @@ function pump() {
     running++;
     void probe(t).then((ok) => {
       if (ok) record(t.id, "ok");
-      else markDead(t.id);
+      else if (ok === false) markDead(t.id); // a timeout leaves it unknown
     }).finally(() => { running--; queued.delete(t.id); pump(); });
   }
 }
