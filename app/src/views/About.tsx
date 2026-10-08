@@ -49,7 +49,7 @@ const CAN = [
 ];
 
 // The owner of the data realm (data.gno) and its guardian, apart from the admin.
-const UPGRADE = "Every record lives in one permanent data realm. Its owner can propose new rules realms, which take over only 72 hours after they are all on chain, and can pause writes. A separate guardian can only pause and cancel a pending release; the owner can replace the guardian only 144 hours after announcing it. Neither can edit a record or touch a promo budget. A funder can withdraw a budget even while GnoRadio is paused, and a pause pushes back every refund still to collect by its length.";
+const UPGRADE = "Every record lives in one permanent data realm. Its owner can propose new rules realms, which take over only 12 hours after they are all on chain, and can pause writes. A separate guardian can only pause and cancel a pending release; the owner can replace the guardian only 24 hours after announcing it. Neither can edit a record or touch a promo budget. A funder can withdraw a budget even while GnoRadio is paused, and a pause pushes back every refund still to collect by its length.";
 
 
 /** liveFacts: what GnoRadio holds now, as number and label pairs; a zero says nothing, so it is left out. */
