@@ -29,7 +29,11 @@ export async function settle<T>(jobs: readonly Promise<T>[]): Promise<T[]> {
 
 // Every URL from the chain is scheme-checked once, here, before any href or src.
 const cleanTrack = (t: Track): Track => ({ ...t, audio: safeMedia(t.audio), cover: safeMedia(t.cover), source: safeHttps(t.source) });
-const cleanArtist = (a: Infer<typeof isArtist>): Artist => ({ ...a, source: safeHttps(a.source), promo: a.promo ?? 0 });
+/** cleanArtist: a proof host is a bare host name of a verified artist, else "". */
+export const cleanArtist = (a: Infer<typeof isArtist>): Artist => ({
+  ...a, source: safeHttps(a.source), promo: a.promo ?? 0,
+  proofHost: a.verified && /^[a-z0-9.-]{1,253}$/i.test(a.proofHost ?? "") ? (a.proofHost ?? "").toLowerCase() : "",
+});
 const cleanAlbum = (a: Album): Album => ({ ...a, cover: safeMedia(a.cover) });
 const cleanEvent = (e: ConcertEvent): ConcertEvent => ({ ...e, link: safeHttps(e.link) });
 
@@ -75,12 +79,22 @@ let browserStore: Store | undefined;
 /** Touched is what a transaction can have changed: these tracks and artists, or anything ("all"). */
 export type Touched = "all" | { readonly tracks: readonly number[]; readonly artists: readonly number[] };
 
+
 /** touchedBy maps a signed call to what it can change in the catalog (no call: anything). */
 export function touchedBy(c?: Pick<Call, "pkg" | "func" | "args">): Touched {
   if (!c) return "all";
   const id = (i: number) => [Number(c.args[i])].filter((n) => Number.isInteger(n) && n > 0);
-  // Stations and events are re-read on every load: radio and tickets calls need nothing more.
-  if (c.pkg !== REALMS.catalog) return c.pkg === REALMS.radio && c.func === "TipOnAir" ? { tracks: id(1), artists: [] } : { tracks: [], artists: [] };
+  // Stations and events are re-read on every load: radio and tickets calls need nothing more, but for
+  // the track calls the radio makes through the catalog. An edit changes its one track; a new track
+  // (an id not known yet, in its artist's list) needs everything.
+  if (c.pkg === REALMS.radio) {
+    switch (c.func) {
+      case "EditTrack": return { tracks: id(0), artists: [] };
+      case "TipOnAir": return { tracks: id(1), artists: [] };
+      case "PublishTrack": case "ImportTrack": return "all";
+    }
+  }
+  if (c.pkg !== REALMS.catalog) return { tracks: [], artists: [] };
   switch (c.func) {
     case "Like": case "Unlike": case "TipWithSupport": case "HideTrack":
       return { tracks: id(0), artists: [] };
@@ -100,6 +114,8 @@ export interface LoadOptions {
   readonly touched?: Touched | undefined;
   /** store: where the catalog is kept (IndexedDB by default). */
   readonly store?: Store | undefined;
+  /** current: false once a newer load started; an older read then never overwrites the stored catalog. */
+  readonly current?: (() => boolean) | undefined;
 }
 
 type RawArtist = Infer<typeof isArtist>;
@@ -136,14 +152,27 @@ const patch = <T extends { readonly id: number }>(xs: readonly T[], fresh: Reado
     return f === undefined ? [x] : f === null ? [] : [f];
   });
 
+/** upcomingEvents reads the upcoming concerts, soonest first, page after page (ponytail: 4 pages of 50; an indexer beyond). */
+async function upcomingEvents() {
+  const out = [];
+  let offset = 0;
+  for (let i = 0; i < 4; i++) {
+    const r = await qjson(REALMS.tickets, `EventsJSON(${String(offset)}, 50, true)`, isEvents);
+    out.push(...r.events);
+    if (!r.next) break;
+    offset = r.next;
+  }
+  return out;
+}
+
 /**
  * loadCatalog reads everything the app shows, in parallel. A catalog stored by
  * an earlier visit is shown at once (cached), then revalidated: stations,
  * genres, events and Info() every time, only the newest track pages, and
- * artists, albums and playlists only when their counts moved or META_TTL has
- * passed; everything after FULL_TTL. Without a stored catalog, early receives
+ * of artists, albums and playlists only the ones added since (all of them
+ * after META_TTL); everything after FULL_TTL. Without a stored catalog, early receives
  * the newest tracks first. Right for a launch catalog of a few thousand tracks;
- * beyond that, an indexer takes over (SPEC §4).
+ * beyond that it needs an indexer or per-view loading (a known limit: docs/FEATURES.md).
  */
 export async function loadCatalog(opts: LoadOptions = {}): Promise<Catalog> {
   const store = opts.store ?? (browserStore ??= idbStore());
@@ -152,7 +181,7 @@ export async function loadCatalog(opts: LoadOptions = {}): Promise<Catalog> {
   if (snap) opts.cached?.(build(snap));
   const now = Date.now();
 
-  const events = qjson(REALMS.tickets, "EventsJSON(0, 20, true)", isEvents).then((r) => r.events).catch((): never[] => []);
+  const events = upcomingEvents().catch((): never[] => []);
   const [info, genres, radio] = await Promise.all([
     qjson(REALMS.catalog, "Info()", isInfo),
     qjson(REALMS.catalog, "GenresJSON()", isGenres),
@@ -161,16 +190,24 @@ export async function loadCatalog(opts: LoadOptions = {}): Promise<Catalog> {
   const touched = opts.touched ?? { tracks: [], artists: [] };
   // A catalog that shrank is another chain (a reset devnet): start over.
   const full = !snap || now - snap.fullAt >= FULL_TTL || info.tracks < snap.info.tracks;
-  const counts = (i: typeof info) => [i.artists, i.albums, i.playlists].join();
-  const meta = full || touched === "all" || now - snap.metaAt >= META_TTL || counts(info) !== counts(snap.info);
+  // Artists, albums and playlists are re-read in full after a transaction that can change any
+  // of them, after META_TTL, or when a count went down (another chain). New ones alone (ids are
+  // dense and append-only) are read on their own: one registration by anyone costs every
+  // returning visitor its records, not the whole lists.
+  const shrank = !full && (info.artists < snap.info.artists || info.albums < snap.info.albums || info.playlists < snap.info.playlists);
+  const meta = full || touched === "all" || now - snap.metaAt >= META_TTL || shrank;
+  /** fresh reads ids 1..n in full, or with meta off only those above the cached count, added to the cached list. */
+  const grow = <T,>(n: number, had: number, cached: readonly T[], many: (offset: number) => Promise<T[]>, one: (id: number) => Promise<T>): Promise<T[]> =>
+    meta ? batched(n, many, one) : n === had ? Promise.resolve([...cached]) : batched(n - had, (o) => many(had + o), (id) => one(had + id)).then((add) => [...cached, ...add]);
 
   // Track pages are newest first: page i holds ids n-i*PAGE down to n-(i+1)*PAGE+1. A page with a bad
   // record is re-read track by track, so only that record is lost.
+  let top = info.tracks; // the count the newest page was cut from: a track published after Info() shifts the pages
   const page = (i: number) =>
-    qjson(REALMS.catalog, `TracksJSON(${String(i * PAGE)}, ${String(PAGE)})`, isTrackPage).then((r) => r.tracks, (e: unknown) => {
+    qjson(REALMS.catalog, `TracksJSON(${String(i * PAGE)}, ${String(PAGE)})`, isTrackPage).then((r) => { if (i === 0 && r.total !== undefined) top = r.total; return r.tracks; }, (e: unknown) => {
       if (!(e instanceof DataError)) throw e;
-      const top = info.tracks - i * PAGE;
-      const ids = Array.from({ length: Math.min(PAGE, top) }, (_, j) => top - j);
+      const left = top - i * PAGE;
+      const ids = Array.from({ length: Math.min(PAGE, left) }, (_, j) => left - j);
       return settle(ids.map((id) => qjson(REALMS.catalog, `TrackJSON(${String(id)})`, isTrack)));
     });
   const total = Math.ceil(info.tracks / PAGE);
@@ -190,11 +227,11 @@ export async function loadCatalog(opts: LoadOptions = {}): Promise<Catalog> {
   const oneArtist = (id: number) => qjson(REALMS.catalog, `ArtistJSON(${String(id)})`, isArtist);
   const [trackPages, artists, albums, playlists, evs, tracksNow] = await Promise.all([
     settle([...head, ...pages.slice(FIRST_PAGES).map(page)]),
-    meta ? batched(info.artists, (o) => qjson(REALMS.catalog, `ArtistsJSON(${String(o)}, ${String(BATCH)})`, isArtistPage).then((r) => r.artists), oneArtist) : snap.artists,
-    meta ? batched(info.albums, (o) => qjson(REALMS.catalog, `AlbumsJSON(${String(o)}, ${String(BATCH)})`, isAlbumPage).then((r) => r.albums),
-      (id) => qjson(REALMS.catalog, `AlbumJSON(${String(id)})`, isAlbum)) : snap.albums,
-    meta ? batched(info.playlists, (o) => qjson(REALMS.catalog, `PlaylistsJSON(${String(o)}, ${String(BATCH)})`, isPlaylistPage).then((r) => r.playlists),
-      (id) => qjson(REALMS.catalog, `PlaylistJSON(${String(id)})`, isPlaylist)) : snap.playlists,
+    grow(info.artists, snap?.info.artists ?? 0, snap?.artists ?? [], (o) => qjson(REALMS.catalog, `ArtistsJSON(${String(o)}, ${String(BATCH)})`, isArtistPage).then((r) => r.artists), oneArtist),
+    grow(info.albums, snap?.info.albums ?? 0, snap?.albums ?? [], (o) => qjson(REALMS.catalog, `AlbumsJSON(${String(o)}, ${String(BATCH)})`, isAlbumPage).then((r) => r.albums),
+      (id) => qjson(REALMS.catalog, `AlbumJSON(${String(id)})`, isAlbum)),
+    grow(info.playlists, snap?.info.playlists ?? 0, snap?.playlists ?? [], (o) => qjson(REALMS.catalog, `PlaylistsJSON(${String(o)}, ${String(BATCH)})`, isPlaylistPage).then((r) => r.playlists),
+      (id) => qjson(REALMS.catalog, `PlaylistJSON(${String(id)})`, isPlaylist)),
     events,
     touched === "all" || full ? new Map<number, Track | null>() : refetch(touched.tracks, oneTrack),
   ]);
@@ -202,8 +239,9 @@ export async function loadCatalog(opts: LoadOptions = {}): Promise<Catalog> {
   let tracks = trackPages.flat();
   let fresh: RawArtist[] = artists;
   if (!full) {
-    // Ids at or above lo were just re-read: a cached one missing there is hidden now.
-    const lo = info.tracks - count * PAGE + 1;
+    // Ids at or above lo were just re-read: a cached one missing there is hidden now. lo is the
+    // lowest id the pages asked for, not the lowest they returned (a hidden track is absent from them).
+    const lo = top - count * PAGE + 1;
     const kept = patch([...tracks, ...snap.tracks.filter((t) => t.id < lo)], tracksNow);
     // A track restored by the moderator comes back; newest first, as the realm pages them.
     const have = new Set(kept.map((t) => t.id));
@@ -223,7 +261,7 @@ export async function loadCatalog(opts: LoadOptions = {}): Promise<Catalog> {
     key, fullAt: full ? now : snap.fullAt, metaAt: meta ? now : snap.metaAt,
     info, radio, genres, events: evs, tracks, artists: fresh, albums, playlists,
   };
-  void writeCache(store, next);
+  if (opts.current?.() !== false) void writeCache(store, next);
   return build(next);
 }
 

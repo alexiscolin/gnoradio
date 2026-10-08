@@ -2,37 +2,63 @@
   command = "VITE_SITE_URL=$URL npm run build"
   publish = "dist"
 
-# Production reads onyx through the same-origin /rpc path. Override with
-# VITE_RPC / VITE_CHAIN_ID / VITE_WALLET_RPC / VITE_GNOWEB for another chain.
-[build.environment]
-  VITE_CHAIN_ID = "onyx-1"
-  VITE_WALLET_RPC = "https://rpc.onyx.testnets.gno.land:443"
-  VITE_GNOWEB = "https://onyx.testnets.gno.land"
+# The chain comes from the site's VITE_NETWORK (onyx or mainnet; onyx when
+# unset), set in the Netlify UI with scope All (docs/DEPLOY.md), not here:
+# netlify.toml values would override the UI and pin every site to one chain.
+# The page reads the chain's public RPC directly (src/lib/network.ts).
 
-# Optional per-page link previews (netlify/edge-functions/meta.ts): preview
-# bots get the artist or track name in the title. Off by default; uncomment to
-# enable (it counts toward the edge function quota, 1M a month on the free plan).
-# [[edge_functions]]
-#   function = "meta"
-#   path = "/artist/*"
-# [[edge_functions]]
-#   function = "meta"
-#   path = "/track/*"
-# [[edge_functions]]
-#   function = "meta"
-#   path = "/album/*"
-# [[edge_functions]]
-#   function = "meta"
-#   path = "/playlist/*"
+# Per-page link previews (netlify/edge-functions/meta.ts): preview bots get the
+# page's title, description and image (netlify/functions/og.mts, at /og/*) read
+# on-chain. People are not slowed down: the edge function hands their page on
+# untouched (it counts toward the edge quota, 1M a month on the free plan).
+[[edge_functions]]
+  function = "meta"
+  path = "/track/*"
+[[edge_functions]]
+  function = "meta"
+  path = "/artist/*"
+[[edge_functions]]
+  function = "meta"
+  path = "/album/*"
+[[edge_functions]]
+  function = "meta"
+  path = "/playlist/*"
+[[edge_functions]]
+  function = "meta"
+  path = "/live"
+[[edge_functions]]
+  function = "meta"
+  path = "/live/*"
+[[edge_functions]]
+  function = "meta"
+  path = "/listener/*"
+[[edge_functions]]
+  function = "meta"
+  path = "/concerts/*"
+[[edge_functions]]
+  function = "meta"
+  path = "/door/*"
+[[edge_functions]]
+  function = "meta"
+  path = "/features"
 
-[[redirects]]
-  from = "/rpc"
-  to = "https://rpc.onyx.testnets.gno.land:443"
-  status = 200
-  force = true
+# The link-preview images (og.mts) draw with resvg's wasm and Geist, read at run time.
+[functions.og]
+  included_files = [
+    "node_modules/@resvg/resvg-wasm/index_bg.wasm",
+    "node_modules/@fontsource/geist/files/geist-latin-400-normal.woff",
+    "node_modules/@fontsource/geist/files/geist-latin-ext-400-normal.woff",
+    "node_modules/@fontsource/geist/files/geist-latin-600-normal.woff",
+    "node_modules/@fontsource/geist/files/geist-latin-ext-600-normal.woff",
+  ]
+
 
 # PostHog EU behind the site's own path (lib/analytics.ts api_host), its
 # extensions under /e/static: a blocker sees no third party, the CSP needs none.
+# Only what posthog-js uses with our options goes through: the library's own
+# static files, event capture (/e/, /i/v0/e/, /batch/) and the remote config
+# as JSON. Not the rest of eu.i.posthog.com: site apps and config.js are
+# JavaScript any PostHog project can write, which would run as 'self'.
 [[redirects]]
   from = "/e/static/*"
   to = "https://eu-assets.i.posthog.com/static/:splat"
@@ -40,9 +66,33 @@
   force = true
 
 [[redirects]]
-  from = "/e/*"
-  to = "https://eu.i.posthog.com/:splat"
+  from = "/e/e/*"
+  to = "https://eu.i.posthog.com/e/:splat"
   status = 200
+  force = true
+
+[[redirects]]
+  from = "/e/i/v0/e/*"
+  to = "https://eu.i.posthog.com/i/v0/e/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/e/batch/*"
+  to = "https://eu.i.posthog.com/batch/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/e/array/:token/config"
+  to = "https://eu-assets.i.posthog.com/array/:token/config"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/e/*"
+  to = "/404.html"
+  status = 404
   force = true
 
 [[redirects]]
@@ -53,7 +103,7 @@
 [[headers]]
   for = "/*"
   [headers.values]
-    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://rpc.onyx.testnets.gno.land https://rpc.gno.land https://indexer.onyx.testnets.gno.land https://api.audius.co https://*.audius.co https://archive.org https://*.archive.org https://ipfs.io https://dweb.link https://cloudflare-ipfs.com https://arweave.net; media-src 'self' https: blob:; img-src 'self' https: data:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; connect-src 'self' https://rpc.onyx.testnets.gno.land https://rpc.gno.land https://api.audius.co https://*.audius.co https://archive.org https://*.archive.org https://ipfs.io https://dweb.link https://cloudflare-ipfs.com https://arweave.net; media-src 'self' https: blob:; img-src 'self' https: data:; frame-ancestors 'none'; base-uri 'self'; form-action 'none'; object-src 'none'"
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Content-Type-Options = "nosniff"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
@@ -63,8 +113,12 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Jingles are fixed files, not hashed: a week, then revalidated.
+# Jingles and the promo video are fixed files, not hashed: a week, then revalidated.
 [[headers]]
   for = "/jingles/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800"
+[[headers]]
+  for = "/promo*"
   [headers.values]
     Cache-Control = "public, max-age=604800"

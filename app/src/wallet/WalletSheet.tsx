@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
 import { Icon } from "../components/Icons";
+import { track } from "../lib/analytics";
+import { isPhone } from "../lib/gno";
 import type { Wallet } from "./useWallet";
-
-const isPhone = (): boolean => /Android|iPhone|iPad/i.test(navigator.userAgent);
 
 // Adena has no phone app yet (adena.app lists iOS and Android as "coming soon", no deep link
 // to open a page in it): phones get the site, computers the Chrome extension.
@@ -17,7 +17,7 @@ export function WalletSheet({ wallet }: { readonly wallet: Wallet }) {
     if (d && !d.open && typeof d.showModal === "function") d.showModal();
     return () => { d?.close(); };
   }, []);
-  const close = wallet.closeAsk;
+  const close = () => { track("wallet_sheet", { choice: "close" }); wallet.closeAsk(); };
   const phone = isPhone();
   return (
     <dialog ref={ref} className="sheet walletsheet" aria-labelledby="walletsheet-title" onCancel={(e) => { e.preventDefault(); close(); }} onClick={(e) => { if (e.target === e.currentTarget) close(); }}>
@@ -33,13 +33,13 @@ export function WalletSheet({ wallet }: { readonly wallet: Wallet }) {
         </p>
         <div className="walletsheet-go">
           {phone
-            ? <a className="cta" href={ADENA_SITE} target="_blank" rel="noreferrer">Get Adena <Icon name="external" size={14} /></a>
+            ? <a className="cta" href={ADENA_SITE} target="_blank" rel="noreferrer" onClick={() => { track("wallet_sheet", { choice: "install" }); }}>Get Adena <Icon name="external" size={14} /></a>
             : <>
-              <a className="cta" href={ADENA_STORE} target="_blank" rel="noreferrer">Install Adena (2 min) <Icon name="external" size={14} /></a>
-              <button className="cta ghost" onClick={close}>Later</button>
+              <a className="cta" href={ADENA_STORE} target="_blank" rel="noreferrer" onClick={() => { track("wallet_sheet", { choice: "install" }); }}>Install Adena <Icon name="external" size={14} /></a>
+              <button className="cta ghost" onClick={() => { track("wallet_sheet", { choice: "later" }); wallet.closeAsk(); }}>Later</button>
             </>}
         </div>
-        <button className="link small muted walletsheet-alt" onClick={() => { wallet.setSigner("gnokey"); close(); }}>Use gnokey instead</button>
+        <button className="link small muted walletsheet-alt" onClick={() => { track("wallet_sheet", { choice: "gnokey" }); wallet.setSigner("gnokey"); wallet.closeAsk(); }}>Use gnokey instead</button>
       </div>
     </dialog>
   );

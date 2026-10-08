@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { daypart, favouriteMin, inMinutes, nextSet, pickNote, setName, shortBio, stationLine, why } from "./onair";
+import { daypart, favouriteMin, inMinutes, nextSet, pickNote, pickerOf, setName, shortBio, stationLine, why } from "./onair";
 import type { ScheduleEntry } from "./types";
 
 const H = 3600;
@@ -60,5 +60,11 @@ describe("onair", () => {
     expect(long.endsWith("…")).toBe(true);
     expect(stationLine("Ambient")).toContain("Ambient");
     expect(stationLine("Polka", 30)).toBe("Polka, all day and all night");
+  });
+  it("shares a tip on air with the listener who picked, not on a sponsored pick or the admin's", () => {
+    expect(pickerOf(e(1, 0, true, "g1lea"), "g1admin")).toBe("g1lea");
+    expect(pickerOf({ ...e(1, 0, true, "g1lea"), sponsored: 30_000 }, "g1admin")).toBeUndefined();
+    expect(pickerOf(e(1, 0, true, "g1admin"), "g1admin")).toBeUndefined();
+    expect(pickerOf(e(1, 0, false, ""), "g1admin")).toBeUndefined();
   });
 });

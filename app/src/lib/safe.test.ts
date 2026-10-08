@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { mediaURLs, safeHttps, safeMedia } from "./safe";
+import { coverHost, mediaURLs, safeHttps, safeMedia } from "./safe";
 
 describe("safe URLs", () => {
   it("only lets https through to links", () => {
@@ -18,5 +18,21 @@ describe("safe URLs", () => {
   });
   it("resolves nothing for an unsafe reference", () => {
     expect(mediaURLs("javascript:alert(1)")).toEqual([]);
+  });
+});
+
+describe("coverHost", () => {
+  it("only lets a server fetch covers from the media hosts", () => {
+    expect(coverHost("https://ipfs.io/ipfs/bafy")).toBe(true);
+    expect(coverHost("https://ia800.us.archive.org/x.jpg")).toBe(true);
+    expect(coverHost("https://arweave.net/abc")).toBe(true);
+    expect(coverHost("http://ipfs.io/ipfs/bafy")).toBe(false);
+    expect(coverHost("https://ipfs.io:8443/ipfs/bafy")).toBe(false);
+    expect(coverHost("https://user@ipfs.io/ipfs/bafy")).toBe(false);
+    expect(coverHost("https://evilipfs.io/x")).toBe(false);
+    expect(coverHost("https://ipfs.io.evil.com/x")).toBe(false);
+    expect(coverHost("https://169.254.169.254/latest/meta-data")).toBe(false);
+    expect(coverHost("https://localhost/x")).toBe(false);
+    expect(coverHost("file:///etc/passwd")).toBe(false);
   });
 });

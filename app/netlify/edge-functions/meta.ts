@@ -1,56 +1,37 @@
-// Optional link previews per page (off by default: see netlify.toml). Preview
-// bots (WhatsApp, X, Discord…) do not run JavaScript, so for a shared artist,
-// track, album or playlist this reads its name on-chain and writes it into the
-// page's title and Open Graph tags. Everyone else gets the page untouched.
-import { unquote } from "../../src/lib/proof";
-import { REALMS } from "../../src/lib/realms";
+// Per-page link previews (paths in netlify.toml). Preview bots (WhatsApp, X,
+// Discord…) do not run JavaScript, so for a shared track, artist, album,
+// playlist, station, listener or concert this reads it on-chain (cards.ts) and
+// writes it into the page's title and Open Graph tags, with its own image
+// (functions/og.mts). Everyone else gets the page untouched.
+import { cardOf, version } from "../cards";
+import { serverRPC } from "../../src/lib/network";
+import { esc } from "../../src/lib/format";
 
-const BOTS = /bot|crawler|spider|facebookexternalhit|whatsapp|telegram|slack|discord|linkedin|embedly|pinterest|skype|vkshare/i;
-const READ: Readonly<Record<string, string>> = { artist: "ArtistJSON", track: "TrackJSON", album: "AlbumJSON", playlist: "PlaylistJSON" };
+const BOTS = /bot|crawler|spider|facebookexternalhit|whatsapp|telegram|slack|discord|linkedin|embedly|pinterest|skype|vkshare|mastodon|bluesky|iframely/i;
 
-interface Named { name?: string; title?: string; artistName?: string; bio?: string }
 
-async function named(kind: string, id: string): Promise<Named | null> {
-  const fn = READ[kind];
-  if (!fn) return null;
-  const rpc = Netlify.env.get("VITE_WALLET_RPC") ?? "https://rpc.onyx.testnets.gno.land:443";
-  const r = await fetch(rpc, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "abci_query", params: { path: "vm/qeval", data: btoa(`${REALMS.catalog}.${fn}(${id})`) } }),
-    signal: AbortSignal.timeout(3000),
-  });
-  const data = ((await r.json()) as { result?: { response?: { ResponseBase?: { Data?: string } } } }).result?.response?.ResponseBase?.Data;
-  return data ? (JSON.parse(unquote(new TextDecoder().decode(Uint8Array.from(atob(data), (c) => c.charCodeAt(0))))) as Named) : null;
-}
-
-const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${String(c.charCodeAt(0))};`);
-
-// Replacer functions, not strings: a chain name holding $1 or $` must stay text.
-function setMeta(html: string, title: string, description: string, url: string): string {
-  return html
-    .replace(/<title>[^<]*<\/title>/, () => `<title>${esc(title)}</title>`)
-    .replace(/(<meta (?:name|property)="(?:og:title|twitter:title)" content=")[^"]*"/g, (_m, p1: string) => `${p1}${esc(title)}"`)
-    .replace(/(<meta (?:name|property)="(?:description|og:description|twitter:description)" content=")[^"]*"/g, (_m, p1: string) => `${p1}${esc(description)}"`)
-    .replace(/(<meta property="og:url" content=")[^"]*"/, (_m, p1: string) => `${p1}${esc(url)}"`);
-}
+/** setTag writes content into the meta tags named; replacer functions, not strings: a chain name holding $1 or $` stays text. */
+const setTag = (html: string, names: string, content: string) =>
+  html.replace(new RegExp(`(<meta (?:name|property)="(?:${names})" content=")[^"]*"`, "g"), (_m, p1: string) => `${p1}${esc(content)}"`);
 
 export default async (req: Request, context: { next: () => Promise<Response> }): Promise<Response> => {
   const page = await context.next();
   if (!BOTS.test(req.headers.get("user-agent") ?? "")) return page;
-  const [, kind = "", arg = ""] = new URL(req.url).pathname.split("/");
-  const id = /(\d+)$/.exec(arg)?.[1];
+  const url = new URL(req.url);
   try {
-    const n = id === undefined ? null : await named(kind, id);
-    const name = n?.title ?? n?.name;
-    if (!name) return page;
-    const by = n?.artistName ? ` · ${n.artistName}` : "";
-    const bio = n?.bio ?? "";
-    const description = bio !== "" ? bio : `Listen to ${name}${by} on GnoRadio, the community radio on gno.land. Tips go straight to the artist's wallet.`;
+    const c = await cardOf(serverRPC(), url.pathname);
+    if (!c?.title) return page;
+    const image = `${url.origin}/og${c.path}.png?v=${version(c)}`;
+    let html = (await page.text()).replace(/<title>[^<]*<\/title>/, () => `<title>${esc(c.page)}</title>`);
+    html = setTag(html, "og:title|twitter:title", c.page);
+    html = setTag(html, "description|og:description|twitter:description", c.description.slice(0, 200));
+    html = setTag(html, "og:url", req.url);
+    html = setTag(html, "og:image|twitter:image", image);
+    html = setTag(html, "og:image:alt|twitter:image:alt", c.alt);
     // The body changed: drop the original length and validators.
     const headers = new Headers(page.headers);
     for (const h of ["content-length", "etag", "last-modified"]) headers.delete(h);
-    return new Response(setMeta(await page.text(), `${name}${by} · GnoRadio`, description.slice(0, 200), req.url), { status: page.status, headers });
+    return new Response(html, { status: page.status, headers });
   } catch {
     return page;
   }

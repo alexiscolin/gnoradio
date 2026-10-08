@@ -1,7 +1,7 @@
 // On-air info: what the player says about the moment, one quiet line at a time.
 import type { ScheduleEntry, Track } from "./types";
 
-/** The 3-hour UTC blocks of the main station's flow (radio/v0 flow.gno dayparts). */
+/** The 3-hour UTC blocks of the main station's flow (radio/v1 flow.gno dayparts). */
 const DAYPARTS = ["Night", "Early morning", "Morning", "Midday", "Afternoon", "Drive time", "Evening", "Late night"] as const;
 
 /** daypart names the UTC 3-hour block of a chain timestamp (seconds). */
@@ -111,3 +111,11 @@ const STATION_LINES: Readonly<Record<string, string>> = {
 /** stationLine is a station's one-line identity, with a fallback for names not written yet. */
 export const stationLine = (name: string, genre = 0): string =>
   STATION_LINES[name] ?? (genre > 0 ? `${name}, all day and all night` : "Live for everyone, the same second");
+
+/**
+ * pickerOf is who a tip on air shares the artist's promo share with (radio.TipOnAir):
+ * the listener whose pick is playing. Not the admin's picks, and not a sponsored pick,
+ * whose picker the realm never pays from tips. undefined: nobody.
+ */
+export const pickerOf = (onAir: Pick<ScheduleEntry, "queued" | "by" | "sponsored"> | undefined, admin: string): string | undefined =>
+  onAir?.queued && !onAir.sponsored && onAir.by !== admin ? onAir.by : undefined;

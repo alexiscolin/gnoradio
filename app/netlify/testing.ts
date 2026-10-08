@@ -27,3 +27,14 @@ export const post = (body: unknown): Request =>
 
 /** WALLET is a well-formed g1 address. */
 export const WALLET = `g1${"q".repeat(38)}`;
+
+/**
+ * chain fakes the node's abci_query for fetch: answer gets the queried "realm.expr" and returns
+ * the value the realm's string holds (objects as JSON), or undefined for a realm error.
+ */
+export const chain = (answer: (q: string) => unknown) => (_url: string, init?: RequestInit): Promise<Response> => {
+  const q = Buffer.from((JSON.parse(init?.body as string) as { params: { data: string } }).params.data, "base64").toString();
+  const v = answer(q);
+  const data = v === undefined ? undefined : Buffer.from(str(typeof v === "string" ? v : JSON.stringify(v))).toString("base64");
+  return Promise.resolve(Response.json({ result: { response: { ResponseBase: data === undefined ? { Error: { msg: "panic" } } : { Data: data } } } }));
+};

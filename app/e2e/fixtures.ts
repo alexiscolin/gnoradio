@@ -1,11 +1,12 @@
 import { test as base, expect, type Locator, type Page } from "@playwright/test";
+import type { Schedule, Station, Track } from "../src/lib/schemas";
 
 /** The gnodev test1 account: seeded picks and playlists belong to it. */
 export const TEST1 = "g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5";
 const RPC = "http://127.0.0.1:27157";
 const ORIGIN = "http://127.0.0.1:5173";
-const CATALOG = "gno.land/r/gnoradio/catalog/v0";
-const RADIO = "gno.land/r/gnoradio/radio/v0";
+const CATALOG = "gno.land/r/gnoradio/catalog/v1";
+const RADIO = "gno.land/r/gnoradio/radio/v1";
 
 // ---- RPC: what the chain says, so tests never hard-code titles that move with time ----
 
@@ -28,10 +29,6 @@ const unjson = (raw: string): unknown => {
   return JSON.parse(JSON.parse(quoted) as string);
 };
 
-export interface Track { id: number; title: string; artist: number; artistName: string; genre: number; duration: number }
-export interface Station { id: number; name: string; genre: number; tracks: number; now: { track: number } }
-export interface Entry { track: number; title: string; start: number; end: number; note: string; by: string; queued: boolean }
-export interface Schedule { station: number; now: number; entries: Entry[] }
 
 export const rpc = {
   track: async (id: number) => (unjson(await qeval(CATALOG, `TrackJSON(${String(id)})`)) as Track),
@@ -39,14 +36,15 @@ export const rpc = {
   genres: async () => (unjson(await qeval(CATALOG, "GenresJSON()")) as { id: number; name: string }[]),
   stations: async () => (unjson(await qeval(RADIO, "StationsJSON()")) as { stations: Station[] }).stations,
   schedule: async (station: number, horizon = 7200) => (unjson(await qeval(RADIO, `ScheduleJSON(${String(station)}, ${String(horizon)})`)) as Schedule),
-  /** tracks pages through TracksJSON (100 a page) and keeps those matching keep. */
+  /** tracks pages through TracksJSON (100 ids a page, hidden ones left out) and keeps those matching keep. */
   tracks: async (keep: (t: Track) => boolean) => {
     const out: Track[] = [];
-    for (let o = 0; ; o += 100) {
-      const page = (unjson(await qeval(CATALOG, `TracksJSON(${String(o)}, 100)`)) as { tracks: Track[] }).tracks;
-      out.push(...page.filter(keep));
-      if (page.length < 100) return out;
+    for (let o = 0, total = 1; o < total; o += 100) {
+      const page = unjson(await qeval(CATALOG, `TracksJSON(${String(o)}, 100)`)) as { total: number; tracks: Track[] };
+      total = page.total;
+      out.push(...page.tracks.filter(keep));
     }
+    return out;
   },
 };
 

@@ -10,7 +10,9 @@ const isName = (n: string) => /^[a-z0-9._-]{1,64}$/i.test(n);
 /** nameShape is what a new name may look like before the registrar's own checks. */
 export const nameShape = (n: string): boolean => /^[a-z0-9_-]{1,64}$/.test(n);
 
-const isTrue = (raw: string) => raw.startsWith("(true");
+// A query's bool answer, alone or among other results: IsCanonicalTaken
+// returns ("…" string) then (true bool), so the bool is not always first.
+export const isTrue = (raw: string) => raw.includes("(true bool)");
 
 // In-memory cache, shared by every screen; listeners re-render on new names.
 const names = new Map<string, string>();

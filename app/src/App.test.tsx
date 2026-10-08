@@ -1,0 +1,24 @@
+import { render } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
+import App from "./App";
+
+// A first visit whose full catalog load never finishes in this test.
+const loadCatalog = vi.fn(() => new Promise<never>(() => undefined));
+let onMissing: ((id: number) => void) | undefined;
+vi.mock("./lib/catalog", async (orig) => ({ ...(await orig<object>()), loadCatalog: () => loadCatalog() }));
+vi.mock("./lib/community", async (orig) => ({ ...(await orig<object>()), loadActivity: () => Promise.resolve([]), loadSupport: () => new Promise(() => undefined) }));
+vi.mock("./player/usePlayer", () => ({
+  usePlayer: (_cat: unknown, m: (id: number) => void) => {
+    onMissing = m;
+    return { toggle: () => undefined, toggleMute: () => undefined, nudge: () => undefined, resync: () => undefined, audio: new Audio(), mode: "live", station: 0, current: 0, entries: [], queue: [], playing: false, error: "", synced: false };
+  },
+}));
+
+describe("App", () => {
+  it("a track the radio names does not restart the first catalog load", () => {
+    render(<App />);
+    expect(loadCatalog).toHaveBeenCalledTimes(1);
+    onMissing?.(7);
+    expect(loadCatalog).toHaveBeenCalledTimes(1);
+  });
+});

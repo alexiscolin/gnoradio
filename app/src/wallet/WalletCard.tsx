@@ -7,6 +7,7 @@ import { Icon } from "../components/Icons";
 import { Composition } from "../components/Shapes";
 import { Help } from "../components/Help";
 import { DAILY_UGNOT, DAYS } from "../lib/session";
+import { shortAddr } from "../lib/format";
 
 const REVOKE = "To fully revoke access, remove GnoRadio in Adena › Settings › Connected sites.";
 
@@ -21,7 +22,7 @@ function SignOptions({ wallet }: { readonly wallet: Wallet }) {
     return (
       <div className="signwith">
         <label><input type="checkbox" role="switch" checked={wallet.quick} onChange={(e) => void wallet.setQuick(e.target.checked)} /> Quick actions</label>
-        <Help text={`Approve once in Adena: likes, follows, picks and other GnoRadio actions without coins then go through without a prompt for ${String(DAYS)} days, spending at most ${String(DAILY_UGNOT / 1e6)} GNOT a day (fees and deposits). The key stays in this browser; turning it off revokes it. Tips and tickets always ask Adena.`} />
+        <Help text={`Approve once in Adena: likes, follows, picks and other GnoRadio actions without coins then go through without a prompt for ${String(DAYS)} days, spending at most ${String(DAILY_UGNOT / 1e6)} GNOT a day (fees and deposits). The key stays in this browser: anything reading it there could act as you on GnoRadio (never send coins) until it expires or you turn it off, which revokes it. Use it on a browser you trust. Tips and tickets always ask Adena; GnoRadio's admin addresses cannot use it.`} />
       </div>
     );
   }
@@ -35,6 +36,18 @@ function SignOptions({ wallet }: { readonly wallet: Wallet }) {
 /** WalletCard is the sidebar wallet block (one card, same footprint in every state) and how actions get signed. */
 export function WalletCard(props: { readonly wallet: Wallet; readonly onRegister: (name: string) => void }) {
   return <><Card {...props} /><SignOptions wallet={props.wallet} /></>;
+}
+
+/** AddrCopy shows the wallet's own address under its name (g1abcde…wxyz) and copies it whole on a click. */
+function AddrCopy({ address }: { readonly address: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    void navigator.clipboard.writeText(address).then(() => {
+      setCopied(true);
+      setTimeout(() => { setCopied(false); }, 1500);
+    }, () => undefined);
+  };
+  return <button className="wc-g1 mono" title={`${address} · copy`} onClick={copy}>{copied ? "Copied" : shortAddr(address)}</button>;
 }
 
 /** NameLink offers a gno.land name to a wallet that has none, where the chain has a registrar. */
@@ -61,6 +74,7 @@ function Card({ wallet, onRegister }: { readonly wallet: Wallet; readonly onRegi
         <i className="wc-shape" aria-hidden="true" />
         <span className="wc-label"><i className="status" aria-hidden="true" />Connected</span>
         <span className="wc-addr mono" title={s.address}>{show(s.address)}</span>
+        <AddrCopy address={s.address} />
         <NameLink address={s.address} onRegister={onRegister} />
         <button className="wc-out" onClick={wallet.disconnect} title={REVOKE}>Disconnect</button>
       </div>
@@ -108,6 +122,7 @@ export function WalletPill({ wallet, onRegister }: { readonly wallet: Wallet; re
         {menu && (
           <span className="pill-menu">
             <span className="mono"><i className="status" aria-hidden="true" />{show(s.address)}</span>
+            <AddrCopy address={s.address} />
             <NameLink address={s.address} onRegister={onRegister} />
             <button className="btn-out" onClick={() => { wallet.disconnect(); setMenu(false); }}>Disconnect</button>
             <small>{REVOKE}</small>

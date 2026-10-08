@@ -74,6 +74,12 @@ beforeEach(() => {
 });
 
 describe("catalog cache", () => {
+  it("never stores a read that a newer load superseded", async () => {
+    const store = memory();
+    await loadCatalog({ store, current: () => false });
+    await flush();
+    expect(store.value).toBeUndefined();
+  });
   it("shows the stored catalog before any network read", async () => {
     const store = await warm();
     let first: Catalog | undefined;
@@ -97,14 +103,15 @@ describe("catalog cache", () => {
     expect(pages()).toHaveLength(10);
   });
 
-  it("drops a track hidden since, and re-reads artists when Info() counts change", async () => {
+  it("drops a track hidden since, and reads only the artists added since", async () => {
     const store = await warm();
     chain.hidden.add(240);
     chain.nArtists = 4;
     const c = await loadCatalog({ store });
     expect(c.byId.has(240)).toBe(false);
-    expect(calls).toContain("ArtistsJSON(0, 100)");
-    expect(c.artists.size).toBe(4);
+    expect(calls).toContain("ArtistsJSON(3, 100)");
+    expect(calls).not.toContain("ArtistsJSON(0, 100)");
+    expect([...c.artists.keys()]).toEqual([1, 2, 3, 4]);
   });
 
   it("re-reads artists after META_TTL and everything after FULL_TTL", async () => {
@@ -143,6 +150,9 @@ describe("catalog cache", () => {
     expect(c.tracks.map((t) => t.id).slice(-9)).toEqual([9, 8, 7, 6, 5, 4, 3, 2, 1]);
     expect(touchedBy({ pkg: REALMS.catalog, func: "RegisterArtist", args: ["x", ""] })).toBe("all");
     expect(touchedBy({ pkg: REALMS.radio, func: "TipOnAir", args: ["1", "12", "0", ""] })).toEqual({ tracks: [12], artists: [] });
+    // The radio publishes tracks through the catalog (everything is re-read) and edits one.
+    for (const func of ["PublishTrack", "ImportTrack"]) expect(touchedBy({ pkg: REALMS.radio, func, args: [] })).toBe("all");
+    expect(touchedBy({ pkg: REALMS.radio, func: "EditTrack", args: ["12", "New title"] })).toEqual({ tracks: [12], artists: [] }); // one track
   });
 
   it("ignores a corrupt or other-format cache, and works when storage is refused", async () => {

@@ -3,6 +3,7 @@ import { Icon } from "./Icons";
 import { useEffect, useRef, useState } from "react";
 import { UGNOT, gnot, shortAddr } from "../lib/format";
 import { CHAIN_ID } from "../lib/gno";
+import { COSTS, TREASURY_USE } from "../lib/legal";
 import { promoSplit } from "../lib/incentives";
 import { useNames } from "../lib/names";
 import type { Artist, Track } from "../lib/types";
@@ -71,11 +72,11 @@ export function SupportSheet({ target, codeURL, me = "", referrer = "", onClose,
       <div className="sheet-body">
         <div className="sheet-head">
           <Shape g="square" size={18} />
-          <span>{isTip ? <>Support <b>{target.artist.name}</b></> : <>Keep <b>GnoRadio</b> on air</>}</span>
+          <span>{isTip ? <>Support <b>{target.artist.name}</b></> : <>Support <b>GnoRadio</b></>}</span>
           <button className="x" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
         </div>
         {isTip && <p className="muted small">For “{target.track.title}”. Sent in one transaction, straight to their wallet.</p>}
-        {!isTip && <p className="muted small">Optional: GnoRadio pays nothing to run. It funds the project's work and goes to the public GnoRadio treasury.</p>}
+        {!isTip && <p className="muted small">Optional: it goes to the public GnoRadio treasury. {TREASURY_USE} {COSTS}</p>}
 
         <div className="amounts" role="radiogroup" aria-label="Amount">
           {AMOUNTS.map((a, i) => (
@@ -92,8 +93,8 @@ export function SupportSheet({ target, codeURL, me = "", referrer = "", onClose,
         {isTip && (
           <label className="toggle">
             <input type="checkbox" checked={pct > 0} onChange={(e) => { setPct(e.target.checked ? DEFAULT_SUPPORT_PCT : 0); }} />
-            <span>Add {DEFAULT_SUPPORT_PCT}% to keep GnoRadio running</span>
-            <Help text="Your tip goes to the artist in the same transaction; GnoRadio takes nothing from it. The optional 10% is added on top and goes to the GnoRadio treasury, which funds the project's work." />
+            <span>Add {DEFAULT_SUPPORT_PCT}% for the GnoRadio treasury</span>
+            <Help text={`Your tip goes to the artist in the same transaction; GnoRadio takes nothing from it. The optional 10% is added on top and goes to the GnoRadio treasury. ${TREASURY_USE}`} />
           </label>
         )}
 

@@ -5,10 +5,11 @@
 // and the listener sends it with radio.QueueWithNote, paying their own gas. The realm refuses a
 // dedication without one, so GnoRadio pays nothing and nothing waits on air.
 // The OpenAI key never leaves the server: no logs, generic errors.
-import { provider, readBody, refuse, reply, signCertificate } from "../bot";
+import { certificate, chain, chainRaw, readBody, refuse, reply, signCertificate } from "../bot";
 import { DOWN, MAX_NOTE, verdict } from "../../src/lib/moderation";
-import { isAddress, unquote } from "../../src/lib/proof";
+import { isAddress } from "../../src/lib/proof";
 import { REALMS, SAFE } from "../../src/lib/realms";
+import { rateLimit } from "../limit";
 
 const CERT_LIFE = 600; // seconds; the realm accepts at most 15 minutes
 const REPHRASE = "Please rephrase your dedication.";
@@ -31,10 +32,13 @@ export default async (req: Request): Promise<Response> => {
   if (!key && process.env["NETLIFY_DEV"] !== "true") return reply(503, { error: DOWN });
 
   try {
-    const p = await provider();
     // The realm's own filter first: free, and its reason is the most precise.
-    const why = unquote(await p.evaluateExpression(SAFE, `Note(${JSON.stringify(note)}, ${String(MAX_NOTE)})`));
+    const why = await chain(SAFE, `Note(${JSON.stringify(note)}, ${String(MAX_NOTE)})`);
     if (why) return reply(422, { error: `Dedication: ${why}.` });
+    // A muted author would be refused on chain anyway: say why before asking OpenAI.
+    const until = Number(/^\((\d+) int64\)$/.exec((await chainRaw(REALMS.radio, `MutedUntil(${JSON.stringify(author)})`)).trim())?.[1] ?? "x");
+    if (!Number.isInteger(until)) return reply(503, { error: DOWN });
+    if (until > 0) return reply(422, { error: `Your dedications are paused after reports until ${new Date(until * 1000).toUTCString()}. Pick without one.` });
     if (key) {
       const r = await fetch("https://api.openai.com/v1/moderations", {
         method: "POST",
@@ -49,8 +53,9 @@ export default async (req: Request): Promise<Response> => {
     }
 
     const expires = Math.floor(Date.now() / 1000) + CERT_LIFE;
-    const message = unquote(await p.evaluateExpression(REALMS.radio, `NoteMessage(${JSON.stringify(author)}, ${String(station)}, ${JSON.stringify(note)}, ${String(expires)})`));
-    const sig = message ? await signCertificate(message) : "";
+    const message = await chain(REALMS.radio, `NoteMessage(${JSON.stringify(author)}, ${String(station)}, ${JSON.stringify(note)}, ${String(expires)})`);
+    // Signed only when the realm's text is exactly this listener, station, note and expiry on this chain and deployment.
+    const sig = message === certificate("note", author, station, note, expires) ? await signCertificate(message) : "";
     if (!sig) return reply(503, { error: DOWN });
     return reply(200, { expires, sig });
   } catch {
@@ -58,4 +63,4 @@ export default async (req: Request): Promise<Response> => {
   }
 };
 
-export const config = { path: "/api/dedication" };
+export const config = { path: "/api/dedication", rateLimit: rateLimit(12) };

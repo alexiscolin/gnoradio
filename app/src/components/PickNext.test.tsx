@@ -1,8 +1,9 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Catalog, Schedule, Track } from "../lib/types";
-import { PickNext, hhmm } from "./PickNext";
+import { PickNext, hhmm, replayedAt } from "./PickNext";
+import { UNAVAILABLE, markDead, resetPlayable } from "../lib/playable";
 
 const NOW = 1_800_000_000;
 let schedule: Schedule = {
@@ -13,16 +14,17 @@ let schedule: Schedule = {
     { track: 2, title: "Their Pick", start: NOW + 120, end: NOW + 300, offset: 0, queued: true, by: "g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5", note: "" },
   ],
 };
-vi.mock("../lib/catalog", () => ({ loadSchedule: () => Promise.resolve(schedule) }));
+let hold = false; // the schedule read never answers
+vi.mock("../lib/catalog", () => ({ loadSchedule: () => (hold ? new Promise(() => undefined) : Promise.resolve(schedule)) }));
 let picks: { kind: "queue"; by: string; track: number; station: number; start: number; at: number }[] = [];
 vi.mock("../lib/community", () => ({ loadPicks: () => Promise.resolve(picks) }));
 const noteProblem = vi.fn<(n: string) => Promise<string>>(() => Promise.resolve(""));
 vi.mock("../lib/gno", async (orig) => ({ ...(await orig<object>()), noteProblem: (n: string) => noteProblem(n) }));
 const ME = "g1u7y667z64x2h7vc6fmpcprgey4ck233jaww9zq";
 
-afterEach(cleanup);
+afterEach(() => { cleanup(); hold = false; });
 
-const t = (id: number, title: string, genre: number, artist = 1) => ({ id, title, genre, artist, artistName: "A", duration: 180, audio: "", cover: "" }) as unknown as Track;
+const t = (id: number, title: string, genre: number, artist = 1) => ({ id, title, genre, artist, artistName: "A", duration: 180, audio: `https://media.example/${String(id)}.mp3`, cover: "" }) as unknown as Track;
 const tracks = [t(1, "On Air", 11), t(2, "Their Pick", 11), t(3, "Fresh Ambient", 11, 7), t(4, "Loud Rock", 2), t(5, "Old Ambient", 11)];
 const cat = {
   stations: [{ id: 1, name: "Ambient", genre: 11 }],
@@ -32,6 +34,32 @@ const cat = {
 } as unknown as Catalog;
 
 describe("PickNext", () => {
+  it("tells a phone without a wallet up front that picking needs a computer, and sends the link there", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)");
+    render(<PickNext cat={cat} station={1} onPick={() => undefined} onClose={() => undefined} />);
+    expect(await screen.findByText(/Picking needs Adena on a computer/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Send to my computer/ })).toBeTruthy();
+  });
+  it("says nothing of it on a computer", async () => {
+    render(<PickNext cat={cat} station={1} onPick={() => undefined} onClose={() => undefined} />);
+    await screen.findByText("Fresh Ambient");
+    expect(screen.queryByText(/Picking needs Adena on a computer/)).toBeNull();
+  });
+  it("never lets a listener pick a track whose audio does not load", async () => {
+    markDead(5);
+    render(<PickNext cat={cat} station={1} onPick={() => undefined} onClose={() => undefined} />);
+    const row = (await screen.findByText("Old Ambient")).closest("button");
+    expect(row?.disabled).toBe(true);
+    expect(screen.getByText(UNAVAILABLE)).toBeTruthy();
+    resetPlayable();
+  });
+  it("cannot pick before the schedule is read, so no rule goes unchecked", async () => {
+    hold = true;
+    render(<PickNext cat={cat} station={1} onPick={() => undefined} onClose={() => undefined} />);
+    fireEvent.click(await screen.findByText("Fresh Ambient"));
+    expect(screen.getByText("Next · Fresh Ambient").closest("button")?.disabled).toBe(true);
+    expect(screen.getByText(/Reading the schedule/)).toBeTruthy();
+  });
   it("lists only tracks this station can play, minus what is already on", async () => {
     render(<PickNext cat={cat} station={1} onPick={() => undefined} onClose={() => undefined} />);
     expect(await screen.findByText("Fresh Ambient")).toBeTruthy();
@@ -51,7 +79,7 @@ describe("PickNext", () => {
     expect(screen.getByText("Choose a track")).toBeTruthy();
     fireEvent.click(screen.getByText("Fresh Ambient"));
     fireEvent.click(screen.getByText("Next · Fresh Ambient"));
-    expect(screen.getByText("You earn up to 10% of the tips A gets on the radio while it plays.")).toBeTruthy();
+    expect(screen.getByText("You receive up to 10% of the tips A gets on the radio while it plays.")).toBeTruthy();
     fireEvent.click(screen.getByText("Push on air"));
     expect(onPick).toHaveBeenCalledWith(cat.tracks[2], 1, "", false, 0);
   });
@@ -86,6 +114,19 @@ describe("PickNext", () => {
     expect(row?.disabled).toBe(true);
     picks = [];
   });
+  it("counts the 3 hours from when a pick aired, not when it was queued", async () => {
+    // Queued 3 h 20 min ago, but it waited and aired 2 h 50 min ago: radio.Queue still refuses it.
+    picks = [{ kind: "queue", by: ME, track: 5, station: 1, start: NOW - 10_200, at: NOW - 12_000 }];
+    render(<PickNext cat={cat} station={1} onPick={() => undefined} onClose={() => undefined} />);
+    expect((await screen.findByText(/^Picked here at/)).closest("button")?.disabled).toBe(true);
+    cleanup();
+    // Aired 3 h 1 min before the new pick would air (after what waits, NOW + 300): pickable.
+    picks = [{ kind: "queue", by: ME, track: 5, station: 1, start: NOW + 300 - 10_860, at: NOW - 11_000 }];
+    render(<PickNext cat={cat} station={1} onPick={() => undefined} onClose={() => undefined} />);
+    expect(await screen.findByText("Old Ambient")).toBeTruthy();
+    expect(screen.queryByText(/^Picked here at/)).toBeNull();
+    picks = [];
+  });
   it("waits for Adena, then reads the schedule back and offers to share the pick", async () => {
     // Like useActions: picking marks the action pending in the same click; the test settles it.
     function Harness() {
@@ -109,6 +150,21 @@ describe("PickNext", () => {
     expect(screen.getByText("Share")).toBeTruthy();
     schedule = before;
   });
+  it("on Main, a pick airs right away over the simulcast, and the genre station's picks are not Main's queue", async () => {
+    const before = schedule;
+    schedule = { station: 0, now: NOW, entries: [
+      { track: 1, title: "On Air", start: NOW - 60, end: NOW + 120, offset: 40, queued: false, by: "", note: "", relay: true },
+      { track: 2, title: "Their Pick", start: NOW + 120, end: NOW + 300, offset: 0, queued: true, by: ME, note: "", relay: true },
+    ] };
+    const main = { ...cat, stations: [{ id: 0, name: "Main", genre: 0 }] } as unknown as Catalog;
+    render(<PickNext cat={main} station={0} me={ME} onPick={() => undefined} onClose={() => undefined} />);
+    try {
+      fireEvent.click(await screen.findByText("Fresh Ambient"));
+      fireEvent.click(screen.getByText("Next · Fresh Ambient"));
+      expect(screen.getByText(/right away/)).toBeTruthy();
+      expect(screen.queryByText(/already waiting/)).toBeNull();
+    } finally { schedule = before; }
+  });
   it("disables an artist's tracks once 2 of them are waiting", async () => {
     const before = schedule;
     schedule = { ...before, entries: [...before.entries, { track: 4, title: "Loud Rock", start: NOW + 300, end: NOW + 480, offset: 0, queued: true, by: "g1other", note: "" }] };
@@ -126,6 +182,7 @@ describe("PickNext", () => {
     const at = NOW + 2 * 3600; // a quarter hour (NOW is one)
     fireEvent.change(screen.getByLabelText("Time, in your time zone"), { target: { value: hhmm(at) } });
     expect(screen.getByText("Would air at", { exact: false }).textContent).toBe(`Would air at ${hhmm(at)}`);
+    expect(screen.getByText("At a time: up to 4 picks per hour and 15 of the 30 waiting on a station.")).toBeTruthy(); // radio.PickRules
     expect(screen.queryByText(/booked/i)).toBeNull(); // only once the transaction went through
     fireEvent.click(screen.getByText("Push on air"));
     expect(onPick).toHaveBeenCalledWith(cat.tracks[2], 1, "", false, at);
@@ -145,6 +202,7 @@ describe("PickNext", () => {
     const on = screen.getByLabelText<HTMLSelectElement>("On:");
     expect([...on.options].map((o) => o.text)).toEqual(["Main", "Ambient"]); // not Rock: it cannot play this track
     fireEvent.change(on, { target: { value: "1" } });
+    await waitFor(() => { expect(screen.queryByText(/Reading the schedule/)).toBeNull(); }); // the new station's rules are read first
     fireEvent.click(screen.getByText("Push on air"));
     expect(onPick).toHaveBeenCalledWith(cat.tracks[2], 1, "", false, 0);
   });
@@ -164,5 +222,24 @@ describe("PickNext", () => {
     expect(screen.getByText(/^Public and permanent/)).toBeTruthy();
     fireEvent.click(screen.getByText("Push on air"));
     expect(onPick).toHaveBeenCalledWith(cat.tracks[2], 1, "Je t’aime Léa", false, 0);
+  });
+});
+
+describe("replayedAt", () => {
+  const T = 1_800_000_000;
+  const pick = (start: number) => ({ station: 1, track: 9, start });
+  it("counts a pick within 3 hours either side of when the new one airs, not one booked hours later", () => {
+    expect(replayedAt([pick(T - 2 * 3600)], 1, T).has(9)).toBe(true);
+    expect(replayedAt([pick(T + 2 * 3600)], 1, T).has(9)).toBe(true);
+    expect(replayedAt([pick(T + 5 * 3600)], 1, T).has(9)).toBe(false);
+    expect(replayedAt([pick(T - 4 * 3600)], 1, T).has(9)).toBe(false);
+    expect(replayedAt([pick(T)], 2, T).has(9)).toBe(false);
+  });
+  it("adds radio's 20 minute margin around a booked pick", () => {
+    const near = T + 3 * 3600 + 600; // 3 h 10 min apart
+    expect(replayedAt([pick(near)], 1, T).has(9)).toBe(false);
+    expect(replayedAt([pick(near)], 1, T, [], true).has(9)).toBe(true);
+    expect(replayedAt([], 1, T, [{ track: 9, start: near }]).has(9)).toBe(true);
+    expect(replayedAt([], 1, T, [{ track: 9, start: T + 3 * 3600 + 1300 }]).has(9)).toBe(false);
   });
 });

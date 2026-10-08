@@ -15,9 +15,19 @@ export const LICENSES = [
   ["ALL-RIGHTS-RESERVED", "All rights reserved"],
 ] as const;
 
-const MAX_SPLITS = 4;
+export const MAX_SPLITS = 4;
+/** Open reports a wallet may have at once (catalog maxUserReports). */
+export const MAX_OPEN_REPORTS = 5;
+/** A pick booked for a time (radio.QueueAt bookMin, bookMax): 15 minutes to 24 hours ahead, in seconds. */
+export const BOOK_MIN = 15 * 60;
+export const BOOK_MAX = 24 * 3600;
 const MAX_SPLIT_PCT = 90;
 const MAX_LIST_TRACKS = 200;
+// catalog/v1 maxTitle, maxBio, maxCredits, maxReason: the realm's named limits, mirrored.
+const MAX_TITLE = 64;
+const MAX_BIO = 280;
+const MAX_CREDITS = 160;
+const MAX_REASON = 200;
 const MIN_DURATION = 10;
 const MAX_DURATION = 1200;
 const NUM_GENRES = 20; // catalog NumGenres
@@ -31,6 +41,9 @@ export function validText(s: string, min: number, max: number): boolean {
   let n = 0;
   for (const ch of s) {
     n++;
+    // As text.Valid: fullwidth and mathematical letters (they dodge word filters) and the blank Hangul fillers are refused.
+    const c = ch.codePointAt(0) ?? 0;
+    if ((c >= 0xff01 && c <= 0xff5e) || (c >= 0x1d400 && c <= 0x1d7ff) || c === 0x115f || c === 0x1160 || c === 0x3164 || c === 0xffa0) return false;
     if (/^[\p{L}\p{Nd}]$/u.test(ch) || TEXT_EXTRA.has(ch)) continue;
     return false;
   }
@@ -44,15 +57,17 @@ const textRule = (field: string, min: number, max: number) =>
 export function validName(s: string): boolean {
   if (s.trim() !== s || s.includes("  ")) return false;
   let n = 0;
+  let alnum = 0; // as catalog validName: at least one letter or digit
   for (const ch of s) {
     n++;
     const c = ch.codePointAt(0) ?? 0;
     const latin = (c >= 0x61 && c <= 0x7a) || (c >= 0x41 && c <= 0x5a) || (c >= 0x30 && c <= 0x39);
     const latin1 = c >= 0xc0 && c <= 0xff && c !== 0xd7 && c !== 0xf7;
-    if (latin || latin1 || NAME_EXTRA.has(ch)) continue;
+    if (latin || latin1) { alnum++; continue; }
+    if (NAME_EXTRA.has(ch)) continue;
     return false;
   }
-  return n >= 2 && n <= 40;
+  return n >= 2 && n <= 40 && alnum > 0;
 }
 
 /** parseClock reads "m:ss" (or plain seconds) like the realm; undefined when malformed. */
@@ -67,7 +82,8 @@ export function parseClock(s: string): number | undefined {
 
 const isSHA256 = (s: string): boolean => /^[0-9a-f]{64}$/.test(s);
 const validHTTPS = (s: string): boolean => s.startsWith("https://") && s.length > 10 && s.length <= 300 && URL_CHARS.test(s);
-export const hostOf = (url: string): string => (url.replace(/^https:\/\//, "").split("/")[0] ?? "").toLowerCase();
+/** allowHost is the host of an https link, as the realm checks it against its allowlist. */
+export const allowHost = (url: string): string => (url.replace(/^https:\/\//, "").split(/[/?#]/)[0] ?? "").toLowerCase();
 
 /**
  * mediaProblem checks an audio or cover reference (mustMedia). Hosts of https
@@ -130,38 +146,57 @@ export interface TrackDraft {
   readonly rights: boolean;
 }
 
-/** trackProblems lists every reason PublishTrack would refuse the draft. */
-export function trackProblems(d: TrackDraft, self: string, hosts: { readonly audio?: boolean | undefined; readonly cover?: boolean | undefined } = {}): string[] {
+/** The fields EditTrack can change: info and media (catalog setInfo, setMedia). */
+export type TrackEdit = Pick<TrackDraft, "title" | "genre" | "duration" | "credits" | "audio" | "audioSha" | "cover" | "coverSha">;
+interface Hosts { readonly audio?: boolean | undefined; readonly cover?: boolean | undefined }
+
+/** editProblems lists every reason EditTrack would refuse the fields. */
+export function editProblems(d: TrackEdit, hosts: Hosts = {}): string[] {
   const out: string[] = [];
-  if (!validText(d.title.trim(), 1, 64)) out.push(textRule("Title", 1, 64));
+  if (!validText(d.title.trim(), 1, MAX_TITLE)) out.push(textRule("Title", 1, MAX_TITLE));
   if (!Number.isInteger(d.genre) || d.genre < 1 || d.genre > NUM_GENRES) out.push("Pick a genre");
   const secs = parseClock(d.duration);
   if (secs === undefined || secs < MIN_DURATION || secs > MAX_DURATION) out.push("Duration as m:ss, between 0:10 and 20:00");
-  if (!LICENSES.some(([id]) => id === d.license)) out.push("Pick a license");
-  if (d.cmo === "sacem-nc" && !d.license.includes("-NC")) out.push("SACEM members may only publish works under a CC NC license");
-  if (!validText(d.credits.trim(), 0, 160)) out.push(textRule("Credits", 0, 160));
+  if (!validText(d.credits.trim(), 0, MAX_CREDITS)) out.push(textRule("Credits", 0, MAX_CREDITS));
   const audio = mediaProblem("Audio", d.audio.trim(), d.audioSha.trim().toLowerCase(), true, hosts.audio);
   if (audio) out.push(audio);
   if (d.cover.trim() !== "") {
     const cover = mediaProblem("Cover", d.cover.trim(), d.coverSha.trim().toLowerCase(), false, hosts.cover);
     if (cover) out.push(cover);
   }
+  return out;
+}
+
+/** trackProblems lists every reason PublishTrack would refuse the draft. */
+export function trackProblems(d: TrackDraft, self: string, hosts: Hosts = {}): string[] {
+  const out = editProblems(d, hosts);
+  if (!LICENSES.some(([id]) => id === d.license)) out.push("Pick a license");
+  if (d.cmo === "sacem-nc" && !d.license.includes("-NC")) out.push("SACEM members may only publish works under a CC NC license");
   const splits = splitsProblem(d.splits, self);
   if (splits) out.push(`Collaborators: ${splits}`);
   if (!d.rights) out.push("Accept the rights declaration");
   return out;
 }
 
+/** giftProblem says why TransferTicket would refuse this recipient, "" when it would not. */
+export function giftProblem(to: string, me: string): string {
+  if (to === "") return "Enter the recipient's g1 address";
+  if (to !== to.toLowerCase()) return "Write the address in lower case, as the chain does";
+  if (!isAddress(to)) return "Not a g1 address";
+  if (to === me) return "This ticket is already yours";
+  return "";
+}
+
 export function artistProblems(name: string, bio: string): string[] {
   const out: string[] = [];
   if (!validName(name.trim())) out.push("Name: 2-40 Latin letters, digits, spaces and . ' - &, no double spaces");
-  if (!validText(bio.trim(), 0, 280)) out.push(textRule("Bio", 0, 280));
+  if (!validText(bio.trim(), 0, MAX_BIO)) out.push(textRule("Bio", 0, MAX_BIO));
   return out;
 }
 
 export function playlistProblems(title: string, ids: readonly number[]): string[] {
   const out: string[] = [];
-  if (!validText(title.trim(), 1, 64)) out.push(textRule("Title", 1, 64));
+  if (!validText(title.trim(), 1, MAX_TITLE)) out.push(textRule("Title", 1, MAX_TITLE));
   if (ids.length === 0) out.push("Add at least one track");
   if (ids.length > MAX_LIST_TRACKS) out.push("At most 200 tracks");
   if (new Set(ids).size !== ids.length) out.push("Each track once");
@@ -169,7 +204,7 @@ export function playlistProblems(title: string, ids: readonly number[]): string[
 }
 
 export function reportProblems(reason: string): string[] {
-  return validText(reason.trim(), 4, 200) ? [] : [`${textRule("Reason", 4, 200)}. Links with _ = % ~ are refused, use a plain one`];
+  return validText(reason.trim(), 4, MAX_REASON) ? [] : [`${textRule("Reason", 4, MAX_REASON)}. Links with _ = % ~ are refused, use a plain one`];
 }
 
 /** sha256Hex hashes bytes with WebCrypto. */

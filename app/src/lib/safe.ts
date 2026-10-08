@@ -29,3 +29,14 @@ export function mediaURLs(ref: string): string[] {
   if (u.startsWith("audius:")) return [`https://api.audius.co/v1/tracks/${encodeURIComponent(u.slice(7))}/stream?app_name=GnoRadio`];
   return u ? [u] : [];
 }
+
+// The hosts a server may fetch a cover from (the link-preview image): the
+// gateways mediaURLs uses, the realm's default https hosts, and Audius.
+const COVER_HOSTS = ["ipfs.io", "dweb.link", "cloudflare-ipfs.com", "arweave.net", "archive.org", "wikimedia.org", "audius.co"];
+
+/** coverHost accepts an https URL on an allowed media host (or a subdomain): no port, no credentials. */
+export function coverHost(u: string): boolean {
+  if (!safeHttps(u)) return false;
+  const { hostname: h, port, username, password } = new URL(u);
+  return !port && !username && !password && COVER_HOSTS.some((s) => h === s || h.endsWith(`.${s}`));
+}

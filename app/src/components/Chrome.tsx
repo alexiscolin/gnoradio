@@ -11,6 +11,7 @@ import { ShareButton } from "./common";
 import { Shape } from "./Shapes";
 import { openSearch } from "../lib/search";
 import { type Section, sectionOf, sectionView } from "../lib/router";
+import { FEATURES_NAME } from "../lib/seo";
 
 
 const TABS: readonly (readonly [Section, string])[] = [
@@ -22,6 +23,9 @@ const TABS: readonly (readonly [Section, string])[] = [
   ["contribute", "Contribute"],
   ["me", "Me"],
 ];
+
+/** SIDE_TABS: the sidebar adds Get started just above Contribute (the phone's tab bar does not). */
+const SIDE_TABS: readonly (readonly [Section, string])[] = TABS.flatMap((t) => (t[0] === "contribute" ? [["features", FEATURES_NAME] as const, t] : [t]));
 
 
 /** Net is the small "which chain" badge; nothing on mainnet. */
@@ -44,7 +48,7 @@ export function Sidebar({ view, go, actions, isAdmin }: { readonly view: View; r
         <Icon name="search" size={16} /><span>Search</span><kbd>⌘K</kbd>
       </button>
       <nav aria-label="Main">
-        {TABS.map(([k, label], i) => (
+        {SIDE_TABS.map(([k, label], i) => (
           <button key={k} className={sectionOf(view) === k ? "on" : ""} aria-current={sectionOf(view) === k ? "page" : undefined} onClick={() => { go(sectionView(k)); }}>
             <span className="nav-glyph" aria-hidden="true"><Shape {...(NAV_GLYPHS[i % NAV_GLYPHS.length] ?? NAV_GLYPHS[0])} size={9} /></span>{label}
           </button>
@@ -95,10 +99,12 @@ export function TabBar({ view, go }: { readonly view: View; readonly go: Navigat
 }
 
 /** MobileTop shows the brand and the wallet on small screens. */
-export function MobileTop({ actions }: { readonly actions: Actions }) {
+export function MobileTop({ actions, isAdmin = false, go }: { readonly actions: Actions; readonly isAdmin?: boolean; readonly go?: Navigate }) {
   return (
     <header className="mtop">
       <span className="brand">GnoRadio<i className="dot" /> <Net /></span>
+      {/* The admin's Studio, which the phone's tab bar has no room for. */}
+      {isAdmin && go && <button className="link small mtop-studio" onClick={() => { go({ k: "studio" }); }}>Studio</button>}
       <WalletPill wallet={actions.wallet} onRegister={actions.registerName} />
     </header>
   );

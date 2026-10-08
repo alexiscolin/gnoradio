@@ -32,6 +32,8 @@ export function viewToPath(v: View, name = ""): string {
       return `/library/${v.list}`;
     case "door": // /door/7-g1…: the ticket and the holder its QR was made for
       return `/door/${String(v.ticket)}-${v.holder}`;
+    case "notfound": // the address bar keeps what was typed
+      return v.path;
     case "stations":
       return v.live === undefined ? "/stations" : v.live === 0 ? "/live" : `/live/${withName(v.live, name)}`;
     default:
@@ -41,7 +43,9 @@ export function viewToPath(v: View, name = ""): string {
 
 /** pathToView reads a path, or a legacy "#/kind/id" hash link. */
 export function pathToView(path: string): View {
-  const [k = "", arg = ""] = path.replace(/^#?\/*/, "").split(/[/?#]/);
+  const clean = path.replace(/^#?\/*/, "");
+  const [k = "", arg = ""] = clean.split(/[/?#]/);
+  const missing: View = { k: "notfound", path: `/${clean}` };
   const tail = /(?:^|-)(\d+)$/.exec(arg)?.[1];
   const n = tail === undefined ? 0 : Number(tail);
   switch (k) {
@@ -61,6 +65,7 @@ export function pathToView(path: string): View {
     case "me":
     case "studio":
     case "about":
+    case "features":
     case "legal":
       return { k };
     case "library":
@@ -69,22 +74,24 @@ export function pathToView(path: string): View {
     case "artist":
     case "album":
     case "playlist":
-      return n > 0 ? { k, id: n } : { k: "listen" };
+      return n > 0 ? { k, id: n } : missing;
     case "listener": {
       const a = arg.slice(-40);
-      return isAddress(a) && (arg.length === 40 || arg.at(-41) === "-") ? { k, address: a } : { k: "listen" };
+      return isAddress(a) && (arg.length === 40 || arg.at(-41) === "-") ? { k, address: a } : missing;
     }
     case "door": {
       const [t = "", holder = ""] = arg.split("-");
       return Number(t) > 0 && isAddress(holder) ? { k, ticket: Number(t), holder } : { k: "concerts" };
     }
-    default:
+    case "":
       return { k: "listen" };
+    default:
+      return missing;
   }
 }
 
 /** A top-level screen, one per navigation entry. Detail pages live under one. */
-export type Section = Exclude<View["k"], "artist" | "album" | "playlist" | "track" | "listener" | "door" | "collection">;
+export type Section = Exclude<View["k"], "artist" | "album" | "playlist" | "track" | "listener" | "door" | "collection" | "notfound">;
 
 /** sectionOf is the navigation entry a screen belongs to, so the menu always shows where you are. */
 export function sectionOf(v: View): Section {
@@ -100,6 +107,8 @@ export function sectionOf(v: View): Section {
       return "library";
     case "door":
       return "concerts";
+    case "notfound":
+      return "listen";
     default:
       return v.k;
   }

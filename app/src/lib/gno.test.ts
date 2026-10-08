@@ -119,6 +119,27 @@ describe("qjson", () => {
   });
 });
 
+describe("batch failures", () => {
+  it.each([
+    ["a network error", () => Promise.reject(new TypeError("Failed to fetch"))],
+    ["a 503", () => Promise.resolve({ ok: false, status: 503, json: () => Promise.resolve({}) })],
+    ["a 429", () => Promise.resolve({ ok: false, status: 429, json: () => Promise.resolve({}) })],
+  ])("turns batching off after %s and retries those queries one by one", async (_, failed) => {
+    const good = { result: { response: { ResponseBase: { Error: null, Data: b64(`(${JSON.stringify('"ok"')} string)`), Log: "" } } } };
+    const f = vi.fn((_u: string, init: RequestInit) => (init.body as string).startsWith("[")
+      ? failed()
+      : Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(good) }));
+    vi.stubGlobal("fetch", f);
+    vi.resetModules(); // a fresh client, batching on
+    const fresh = await import("./gno");
+    const all = () => Promise.all(Array.from({ length: 4 }, () => fresh.qjson(REALMS.catalog, "Info()", str)));
+    await expect(all()).resolves.toHaveLength(4);
+    expect(f).toHaveBeenCalledTimes(1 + 4); // the failed batch, then each query alone, no backoff
+    await all();
+    expect(f).toHaveBeenCalledTimes(5 + 4); // and no more batches this visit
+  });
+});
+
 describe("guards", () => {
   it("rejects data that does not match the schema", async () => {
     const inner = JSON.stringify({ title: 42 });

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useState } from "react";
 import { CHAIN_ID, account, connect, hasAdena, isCancel, onWalletChange, switchNetwork } from "../lib/gno";
 import { errorMessage } from "../lib/format";
-import { endSession, savedSession, startSession } from "../lib/session";
+import { endSession, savedSession, startSession, usableSession } from "../lib/session";
 
 export type WalletState =
   | { readonly status: "missing" }
@@ -111,6 +111,12 @@ export function useWallet(onError: (msg: string) => void) {
   // Quick actions: the account session this browser holds for the connected address (lib/session).
   const [, recheck] = useReducer((n: number) => n + 1, 0);
   const quick = state.status === "connected" && savedSession(state.address) !== undefined;
+  // A session held by an address that has (or got) a GnoRadio role is refused here, never revoked
+  // without a click (an Adena prompt on every load): the revoke runs on an action or "Turn off".
+  const connected = state.status === "connected" ? state.address : "";
+  useEffect(() => {
+    if (connected && savedSession(connected)) void usableSession(connected, false).then(() => { recheck(); });
+  }, [connected]);
   const setQuick = useCallback(async (on: boolean) => {
     try {
       const address = await ensure();

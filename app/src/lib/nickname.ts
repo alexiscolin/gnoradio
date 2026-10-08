@@ -18,3 +18,6 @@ export function nickname(addr: string): string {
   const word = WORDS[Math.floor(h / COLOURS.length) % WORDS.length] ?? "Listener";
   return `${colour} ${word} ${(h >>> 24).toString(16).toUpperCase().padStart(2, "0")}`;
 }
+
+/** NICKNAMES matches any nickname in a text ("Coral Vinyl 4F"): it maps back to a few addresses, so analytics scrubs it. */
+export const NICKNAMES = new RegExp(`\\b(?:${COLOURS.join("|")}) (?:${WORDS.join("|")}) [0-9A-F]{2}\\b`, "g");

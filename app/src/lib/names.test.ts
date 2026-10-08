@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { loadNames, nameOf, nameShape } from "./names";
+import { isTrue, loadNames, nameOf, nameShape } from "./names";
 
 const b64 = (s: string) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
 const A = "g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5";
@@ -45,5 +45,14 @@ describe("names", () => {
     expect(nameShape("lea_kosmos")).toBe(true);
     expect(nameShape("Lea")).toBe(false);
     expect(nameShape("")).toBe(false);
+  });
+});
+
+describe("isTrue", () => {
+  it("reads the bool wherever it comes in the answer", () => {
+    expect(isTrue("(true bool)")).toBe(true);
+    expect(isTrue('("alice" string)\n(true bool)')).toBe(true); // IsCanonicalTaken: the taken name, then the bool
+    expect(isTrue('("" string)\n(false bool)')).toBe(false);
+    expect(isTrue("(false bool)")).toBe(false);
   });
 });

@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readBody, refuse, signCertificate } from "./bot";
 import { keyPair, verifies } from "./testing";
 
@@ -11,6 +11,7 @@ const req = (init: { method?: string; origin?: string; length?: number; ip?: str
   return new Request("https://radio.example/api/x", { method: init.method ?? "POST", headers });
 };
 
+beforeEach(() => { vi.stubEnv("VITE_GNORADIO_NS", "gnoradio"); });
 afterEach(() => {
   vi.unstubAllEnvs();
 });
@@ -36,6 +37,22 @@ describe("refuse", () => {
     expect(refuse(req(), 5)?.status).toBe(403);
     vi.stubEnv("NETLIFY_DEV", "true");
     expect(refuse(req(), 5)).toBeNull();
+  });
+
+  it("accepts a deploy preview's own origin, and refuses to run without its namespace", () => {
+    vi.stubEnv("URL", "https://radio.example");
+    vi.stubEnv("DEPLOY_PRIME_URL", "https://deploy-preview-3--radio.netlify.app");
+    expect(refuse(req({ origin: "https://deploy-preview-3--radio.netlify.app" }), 5)).toBeNull();
+    vi.stubEnv("VITE_GNORADIO_NS", "");
+    vi.stubEnv("NETLIFY_DEV", "");
+    expect(refuse(req({ origin: "https://radio.example" }), 5)?.status).toBe(503);
+  });
+
+  it("counts an IPv6 client by its /64", () => {
+    vi.stubEnv("URL", "https://radio.example");
+    const call = (ip: string) => refuse(req({ origin: "https://radio.example", ip }), 1)?.status;
+    expect(call("2001:db8:1:2::1")).toBeUndefined();
+    expect(call("2001:db8:1:2::ffff")).toBe(429);
   });
 
   it("caps the body at 4 KB", () => {

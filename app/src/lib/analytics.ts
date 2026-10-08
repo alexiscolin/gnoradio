@@ -8,6 +8,7 @@
 // visitor who objects (Legal page) is not measured again in this browser.
 // docs/ANALYTICS.md lists the events.
 import type { CaptureResult, PostHog } from "posthog-js";
+import { NICKNAMES } from "./nickname";
 
 const KEY = import.meta.env.VITE_POSTHOG_KEY ?? "";
 /** 13 months, the CNIL's longest for an audience id. */
@@ -33,6 +34,16 @@ export interface Events {
   search: { results: "0" | "1-9" | "10-99" | "100+" };
   /** How long the first catalog took to show, from page start. */
   load: { what: "catalog"; ms: number };
+  /** A call to action followed: on which page, where on it, and where it leads (a view kind, "pick" or "gnoweb"). */
+  cta: { page: "features" | "listener"; at: "hero" | "start" | "card" | "more" | "end" | "head"; to: string };
+  /** An on-chain action stopped because this browser has no wallet (useActions' label). */
+  wallet_needed: { label: string };
+  /** What the visitor did in the "you need a wallet" sheet. */
+  wallet_sheet: { choice: "install" | "later" | "gnokey" | "close" };
+  /** The artist stepper: the step shown (1 profile, 2 track info, 3 rights & publish). */
+  artist_step: { at: 1 | 2 | 3 };
+  /** The promo video on /features: started, half watched, watched to the end. */
+  video: { state: "play" | "half" | "end" };
 }
 
 /** A count in a coarse bucket, for events. */
@@ -93,7 +104,9 @@ export function scrub(v: string): string {
       v = u.href;
     } catch { /* not a URL after all */ }
   }
-  return v.replace(G1, "g1…").replace(/nym-[a-z0-9._-]+/gi, "nym-…").replace(/\b(?:0x)?[0-9a-f]{64,}\b/gi, "hex…");
+  // A listener page's path, its title (@name, a nickname) and gno.land names: r/sys/users maps a name back to its address.
+  return v.replace(/\/listener\/[^/?#\s]+/g, "/listener/…").replace(G1, "g1…").replace(/nym-[a-z0-9._-]+/gi, "nym-…")
+    .replace(/@[a-z0-9._-]+/gi, "@…").replace(NICKNAMES, "nickname…").replace(/\b(?:0x)?[0-9a-f]{64,}\b/gi, "hex…");
 }
 const deep = (v: unknown): unknown =>
   typeof v === "string" ? scrub(v)
@@ -109,7 +122,7 @@ export const clean = (e: CaptureResult | null): CaptureResult | null =>
 // ------------------------------------------------------------------- loading
 
 /** The init options (tested: what is on, what is off). */
-export const OPTIONS = {
+const OPTIONS = {
   api_host: import.meta.env.PROD ? "/e" : "https://eu.i.posthog.com", // the site's own path (netlify.toml): a blocker sees no PostHog
   ui_host: "https://eu.posthog.com",
   person_profiles: "identified_only", // and nobody is identified: anonymous events only

@@ -4,13 +4,17 @@ import { useEffect, useRef, useState } from "react";
 import { loadSchedule } from "../lib/catalog";
 import { loadPicks, type RadioPick } from "../lib/community";
 import { clock, errorMessage, gnot } from "../lib/format";
-import { PICK_DEPOSIT, PICK_DEPOSIT_FIRST, PICK_FEE, useSponsored } from "../lib/incentives";
-import { MAX_NOTE, noteProblem } from "../lib/gno";
-import type { Booked, Catalog, Schedule, Track } from "../lib/types";
+import { useSponsored } from "../lib/incentives";
+import { UNAVAILABLE, checkWhenSeen, isDead, usePlayable } from "../lib/playable";
+import { DEPOSIT, PICK_FEE } from "../player/useActions";
+import { MAX_NOTE, hasAdena, isPhone, noteProblem } from "../lib/gno";
+import { PHONE_SIGN } from "../lib/features";
+import { BOOK_MAX, BOOK_MIN } from "../lib/rules";
+import type { Booked, Catalog, Navigate, Schedule, Track } from "../lib/types";
 import { Cover } from "./Cover";
 import { Loader } from "./Loader";
 import { Shape } from "./Shapes";
-import { ShareButton } from "./common";
+import { MakeMusic, NO_TRACK, ShareButton } from "./common";
 import { tippable } from "./Verify";
 import type { Toast } from "../player/useActions";
 
@@ -28,6 +32,8 @@ interface Props {
   /** sponsored: the artist refunds the pick once it has aired (radio.QueueSponsored), no dedication; at: the unix time it is booked for (radio.QueueAt), 0 for now. */
   readonly onPick: (t: Track, station: number, note: string, sponsored: boolean, at: number) => void;
   readonly onClose: () => void;
+  /** go: where the empty catalog's Make music leads (the sheet closes first). */
+  readonly go?: Navigate | undefined;
 }
 
 /** hhmm is a unix time as a 24 h clock in the listener's time zone. */
@@ -43,13 +49,13 @@ export function gmt(unix: number): string {
 // The realm's limits on listener picks (radio.gno: queueCooldown, maxAheadAir, maxQueue, replayGap, maxPerArtistQ).
 const PICK_COOLDOWN = 3600;
 const REPLAY_GAP = 3 * 3600;
+const MAX_TRACK = 1200; // radio.maxTrack: a booked pick may move by up to a track, so the gap around one takes that much more
 const PICK_AHEAD = 7200;
 const PICK_MAX = 30;
 const PER_ARTIST = 2;
 // A pick booked for a time (radio.QueueAt: bookMin, bookMax, maxBookedHour): 15 min to 24 h ahead, 4 per station and UTC hour.
-const BOOK_MIN = 15 * 60;
-const BOOK_MAX = 24 * 3600;
 const BOOKED_PER_HOUR = 4;
+const BOOKED_MAX = 15; // radio.PickRules' booked: half the queue, so picks for now always find room
 const STEP = 15 * 60;
 
 /**
@@ -67,7 +73,7 @@ export function bookAt(clock: string, now: number): number {
   return t <= now + BOOK_MAX ? t : 0;
 }
 
-/** hourFull: BOOKED_PER_HOUR picks are already booked in at's UTC hour. */
+/** hourFull: BOOKED_PER_HOUR picks are already booked in at's UTC hour, aired ones included (as radio.QueueAt counts). */
 const hourFull = (booked: readonly Pick<Booked, "at">[], at: number): boolean =>
   booked.filter((b) => Math.floor(b.at / 3600) === Math.floor(at / 3600)).length >= BOOKED_PER_HOUR;
 // radio.StationName: New this week only takes tracks above Catalog.newFloor.
@@ -78,8 +84,8 @@ const NEW_STATION = "New this week";
  * would: its own pick waiting (booked ones included), its last pick (lastAt,
  * the time it was queued) less than an hour ago, a full queue; for now (at 0)
  * no room in the 2 h of listener airtime for a track of dur seconds (0: none
- * chosen yet), booked picks aside; for a time, 15 min to 24 h ahead and 4
- * booked per hour. "" when it can pick.
+ * chosen yet), booked picks aside; for a time, 15 min to 24 h ahead, 4
+ * booked per hour and 15 booked per station. "" when it can pick.
  */
 export function pickBlock(entries: readonly { start: number; end: number; queued: boolean; by: string; at?: number | undefined }[], now: number, me: string, lastAt = 0, dur = 0, at = 0, booked: readonly Booked[] = []): string {
   const later = booked.filter((b) => b.end > now);
@@ -89,7 +95,8 @@ export function pickBlock(entries: readonly { start: number; end: number; queued
   if (ahead.length + later.length >= PICK_MAX) return "Queue full for now. Try again later.";
   if (at > 0) {
     if (at < now + BOOK_MIN || at > now + BOOK_MAX) return "Choose a time 15 minutes to 24 hours ahead.";
-    return hourFull(later, at) ? `${String(BOOKED_PER_HOUR)} picks are already booked for that hour here. Choose another time.` : "";
+    if (later.length >= BOOKED_MAX) return `${String(BOOKED_MAX)} picks are already booked on this station. Pick right away, or later.`;
+    return hourFull(booked, at) ? `${String(BOOKED_PER_HOUR)} picks are already booked for that hour here. Choose another time.` : "";
   }
   const air = ahead.reduce((n, e) => n + (e.end - Math.max(e.start, now)), 0);
   if (air >= PICK_AHEAD) {
@@ -105,16 +112,18 @@ const lastPickAt = (picks: readonly Pick<RadioPick, "kind" | "by" | "station" | 
   Math.max(0, ...picks.filter((p) => (p.kind === "queue" || p.kind === "sponsored") && me !== "" && p.by === me && p.station === station).map((p) => p.at));
 
 /**
- * replayedAt maps the tracks picked on a station less than 3 hours ago (by
- * anyone, curator included) to when: radio.Queue refuses them until then.
+ * replayedAt maps the tracks picked on a station (by anyone, curator included)
+ * within the replay gap of airs, when the new pick would air, to when they air:
+ * radio.Queue refuses them. As in the realm, every pick counts from its airing
+ * (start), in both directions; around a booked pick (booking, or one already
+ * booked) the gap takes MAX_TRACK more.
  */
-function replayedAt(picks: readonly Pick<RadioPick, "station" | "track" | "at" | "start">[], station: number, now: number, booked: readonly Pick<Booked, "track" | "start">[] = []): Map<number, number> {
+export function replayedAt(picks: readonly Pick<RadioPick, "station" | "track" | "start">[], station: number, airs: number, booked: readonly Pick<Booked, "track" | "start">[] = [], booking = false): Map<number, number> {
   const out = new Map<number, number>();
   const mark = (track: number, t: number) => { out.set(track, Math.max(t, out.get(track) ?? 0)); };
-  // A pick for now counts from when it was queued; a booked one (aired later than any
-  // pick for now could) counts around its airing, as radio.Queue does.
-  for (const p of picks) if (p.station === station && p.start - p.at <= PICK_AHEAD && now - p.at < REPLAY_GAP) mark(p.track, p.at);
-  for (const b of booked) if (Math.abs(now - b.start) < REPLAY_GAP) mark(b.track, b.start);
+  const gap = REPLAY_GAP + (booking ? MAX_TRACK : 0);
+  for (const p of picks) if (p.station === station && Math.abs(airs - p.start) < gap) mark(p.track, p.start);
+  for (const b of booked) if (Math.abs(airs - b.start) < REPLAY_GAP + MAX_TRACK) mark(b.track, b.start);
   return out;
 }
 
@@ -123,7 +132,7 @@ function replayedAt(picks: readonly Pick<RadioPick, "station" | "track" | "at" |
  * with one signature, and it airs for everyone: at once over a suggested
  * track, else after the picks already waiting. The rules mirror radio.Queue.
  */
-export function PickNext({ cat, station: initial, suggest, me = "", pending = "", notice, onPick, onClose }: Props) {
+export function PickNext({ cat, station: initial, suggest, me = "", pending = "", notice, onPick, onClose, go }: Props) {
   const [station, setStation] = useState(initial);
   const ref = useRef<HTMLDialogElement>(null);
   // The sheet's funnel (lib/analytics.ts): opened, a track chosen, pushed, or closed before.
@@ -147,13 +156,15 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
   useEffect(() => {
     setNoteWhy("");
     if (!note) return;
+    let alive = true; // an older note's verdict, landing after a newer one, is dropped
     const id = window.setTimeout(() => {
       noteProblem(note.trim()).then((why) => {
-      setNoteWhy(why);
-      if (why) track("dedication_refused", { by: "filter" });
-    }, () => { setNoteWhy(""); });
+        if (!alive) return;
+        setNoteWhy(why);
+        if (why) track("dedication_refused", { by: "filter" });
+      }, () => { if (alive) setNoteWhy(""); });
     }, 350);
-    return () => { window.clearTimeout(id); };
+    return () => { alive = false; window.clearTimeout(id); };
   }, [note]);
   // selected is the track chosen in the list; sent the one pushed, waiting for Adena. Once that settles, the schedule is read again.
   // Opened from a track (suggest), the sheet starts on that track's step 2.
@@ -165,14 +176,23 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
     return () => { if (!pushed.current) track("pick_step", { step: "close", at: stepNow.current }); };
   }, []);
   useEffect(() => { if (step === 2) track("pick_step", { step: "track" }); }, [step]);
+  // The button that changed the step is gone: focus goes back to the sheet's title, not to <body>.
+  const firstStep = useRef(true);
+  useEffect(() => {
+    if (firstStep.current) { firstStep.current = false; return; }
+    ref.current?.querySelector<HTMLElement>(".pick-title")?.focus();
+  }, [step]);
   const [sent, setSent] = useState(0);
   const [asked, setAsked] = useState(false); // show the action's feedback once this sheet sent one
   const [reads, setReads] = useState(0);
   useEffect(() => {
     if (sent && pending === "") { setSent(0); setReads((n) => n + 1); }
   }, [sent, pending]);
+  // Another station: its schedule, not the last one's, decides what can be picked.
+  useEffect(() => { setSched(null); }, [station]);
   useEffect(() => {
     let alive = true;
+    setError("");
     // Listener picks fill up to 2 h ahead: read all of it to find yours.
     loadSchedule(station, PICK_AHEAD).then(
       (s) => { if (alive) setSched(s); },
@@ -187,21 +207,22 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
   const now = sched?.now ?? Date.now() / 1000;
   const ahead = (sched?.entries ?? []).filter((e) => e.end > now);
   const onAir = ahead.find((e) => e.start <= now);
-  const picks = ahead.filter((e) => e.queued && e.start > now);
-  // A new pick starts after the current track and every pick already waiting.
-  // Over Main's suggested (flow) track the pick airs at once, crossfading (radio.Queue);
-  // over a listener's pick or the rotation it waits for the end. ScheduleJSON gives a
-  // flow slot offset 0 and the rotation track on air its offset into it.
-  const takeover = onAir !== undefined && !onAir.queued && onAir.offset === 0 && st?.id === 0;
+  // Main's own slots: what it simulcasts from the hour's genre station (relay) is not its queue.
+  const own = ahead.filter((e) => !e.relay);
+  const picks = own.filter((e) => e.queued && e.start > now);
+  // A new pick starts after the current track and every pick already waiting. On Main,
+  // over the simulcast (the genre station, its picks included) it airs at once (radio.Queue);
+  // over one of Main's own picks, or on any other station, it waits for the end.
+  const takeover = onAir !== undefined && st?.id === 0 && onAir.relay === true;
   const airsAt = Math.max(takeover ? now : onAir?.end ?? now, ...picks.map((e) => e.end));
-  const taken = new Set(ahead.filter((e) => e.queued).map((e) => e.track));
+  const taken = new Set(own.filter((e) => e.queued).map((e) => e.track));
   if (onAir) taken.add(onAir.track);
 
   // Two tracks per artist may wait on a station (radio.Queue counts the one on air too).
   // Booked picks beyond the schedule read count too.
   const perArtist = new Map<number, number>();
   const later = (sched?.booked ?? []).filter((b) => b.end > now && !ahead.some((e) => e.start === b.start));
-  for (const e of [...ahead, ...later]) {
+  for (const e of [...own, ...later]) {
     const a = e.by !== "" ? cat.byId.get(e.track)?.artist : undefined;
     if (a !== undefined) perArtist.set(a, (perArtist.get(a) ?? 0) + 1);
   }
@@ -214,19 +235,24 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
   const list = (first ? [first, ...matches.filter((t) => t !== first)] : matches).slice(0, 40);
   const chosen = cat.byId.get(selected);
   const booked = sched?.booked ?? [];
-  const replayed = replayedAt(recent, station, now, booked);
-  // A booked pick also keeps 3 h from any pick of the same track (radio.Queue's replay gap, around its time).
-  const clash = chosen !== undefined && when > 0 && ((replayed.get(chosen.id) ?? -Infinity) > when - REPLAY_GAP ||
-    [...ahead.filter((e) => e.queued), ...booked].some((e) => e.track === chosen.id && Math.abs(e.start - when) < REPLAY_GAP));
+  // Counted from when the new pick would air: its booked time, else after what waits (airsAt).
+  const replayed = replayedAt(recent, station, when > 0 ? when : airsAt, booked, when > 0);
+  // A booked pick also keeps 3 h (and a track) from any pick of the same track (radio.Queue's replay gap, around its time).
+  const clash = chosen !== undefined && when > 0 &&
+    [...ahead.filter((e) => e.queued), ...booked].some((e) => e.track === chosen.id && Math.abs(e.start - when) < REPLAY_GAP + MAX_TRACK);
   // The suggested track may be on air, waiting or just played: step 2 says so.
   const gone = chosen !== undefined && (!eligible.some((t) => t.id === chosen.id) || replayed.has(chosen.id) || (perArtist.get(chosen.artist) ?? 0) >= PER_ARTIST);
-  const blocked = !sched ? "" : gone ? `This track can't be picked here right now.${step === 2 ? " Go back and choose another." : ""}` : pickBlock(sched.entries, now, me, lastPickAt(recent, station, me), chosen?.duration ?? 0, when, booked) ||
+  // A track whose audio does not load would air silence: the listener would pay for nothing.
+  usePlayable(chosen ? [chosen] : []);
+  const blocked = isDead(chosen) ? `${UNAVAILABLE}: this track can't be picked.${step === 2 ? " Go back and choose another." : ""}` : !sched ? (error ? "The schedule can't be read, so no rule can be checked." : "Reading the schedule…") : gone ? `This track can't be picked here right now.${step === 2 ? " Go back and choose another." : ""}` : pickBlock(sched.entries.filter((e) => !e.relay), now, me, lastPickAt(recent, station, me), chosen?.duration ?? 0, when, booked) ||
     (clash ? "This track plays here within 3 hours of that time. Choose another time." : "");
   const chosenArtist = chosen ? cat.artists.get(chosen.artist) : undefined;
   // A free (sponsored) pick: the artist refunds it once it has aired in full; the wallet needs some pick history.
   const sponsoredInfo = useSponsored(me, reads);
   const refund = chosenArtist?.sponsor ?? 0;
-  const freeBlock = sponsoredInfo?.block ?? "";
+  // One free pick per station waits to be collected before the next (radio.QueueSponsored refuses it).
+  const waiting = sponsoredInfo?.open.some((p) => p.station === station && p.status !== "lapsed") ?? false;
+  const freeBlock = (sponsoredInfo?.block ?? "") !== "" ? sponsoredInfo?.block ?? "" : waiting ? "collect your last free pick on this station first" : "";
   const sponsoredPick = free && refund > 0 && freeBlock === "";
   const push = () => {
     if (!chosen || blocked || sent || (noteWhy && !sponsoredPick)) return;
@@ -239,12 +265,12 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
     onPick(chosen, station, sponsoredPick ? "" : note.trim(), sponsoredPick, when);
   };
   const timing = picks.length === 0 ? (takeover ? "right away" : "plays next") : `after ${String(picks.length)} pick${picks.length > 1 ? "s" : ""}`;
-  const earn = !chosen ? `Picks earn the artist's promo share of tips made while they play (set by the artist).`
-    : tippable(chosenArtist) ? `You earn up to ${String(chosenArtist?.promo ?? 0)}% of the tips ${chosen.artistName} gets on the radio while it plays.`
+  const earn = !chosen ? `When the artist set a promo share, a pick receives it on tips made while it plays.`
+    : tippable(chosenArtist) && (chosenArtist?.promo ?? 0) > 0 ? `You receive up to ${String(chosenArtist?.promo ?? 0)}% of the tips ${chosen.artistName} gets on the radio while it plays.`
     : "";
   const name = st?.name ?? "Main";
   const mineBooked = me ? booked.find((b) => b.by === me && b.end > now) : undefined;
-  const mine = me ? ahead.find((e) => e.queued && e.by === me) ?? (mineBooked && { ...mineBooked, title: "", note: "" }) : undefined;
+  const mine = me ? own.find((e) => e.queued && e.by === me) ?? (mineBooked && { ...mineBooked, title: "", note: "" }) : undefined;
   const mineTitle = mine ? cat.byId.get(mine.track)?.title ?? mine.title : "";
   const mineAt = mine?.at ?? 0; // booked: say the time asked, in the listener's time zone
   // The first quarter hour that can still be booked, for "At a time".
@@ -263,7 +289,7 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
       <div className="sheet-body">
         <div className="sheet-head">
           {step === 2 && !mine && <button className="x back" onClick={() => { setStep(1); }} aria-label="Back to tracks"><Icon name="arrow-left" size={18} /></button>}
-          <h2 className="pick-title">{mine ? "On air" : "Pick next"}</h2>
+          <h2 className="pick-title" tabIndex={-1}>{mine ? "On air" : "Pick next"}</h2>
           {!mine && <span className="pick-step mono muted">{step}/2</span>}
           <button className="x" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
         </div>
@@ -276,12 +302,15 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
             <div className="pick-share">
               <ShareButton title={mineTitle} to={{ k: "stations", live: station }} refBy={me}
                 text={`I put "${mineTitle}" on air on GnoRadio ${name}${mine.note ? ` (${mine.note})` : ""}${mine.start <= now ? "" : mineAt ? `. On air at ${hhmm(mineAt)} (${gmt(mineAt)})` : ` at ${hhmm(mine.start)}`}. Tune in.`} />
-              <span className="small">Your link earns too: tips sent through it pay you a share.</span>
+              <span className="small">Tips sent through your link share the artist's promo share with you, when they set one.</span>
             </div>
             <button className="cta" onClick={onClose}>Done</button>
           </div>
         ) : step === 1 ? (<>
-          <p className="pick-perks"><i className="dot" aria-hidden="true" /> Your name and dedication on air, and a share of its tips{(chosen ? sponsors(chosen) : list.some(sponsors)) ? " · free when sponsored" : ""}.</p>
+          <p className="pick-perks"><i className="dot" aria-hidden="true" /> Your name and dedication on air, and a share of its tips when the artist set one{(chosen ? sponsors(chosen) : list.some(sponsors)) ? " · some picks refunded by the artist" : ""}.</p>
+          {isPhone() && !hasAdena() && (
+            <p className="pick-phone small">{PHONE_SIGN} <ShareButton title={cat.stations.find((x) => x.id === station)?.name ?? "Main"} to={{ k: "stations", live: station }} refBy={me} label="Send to my computer" /></p>
+          )}
           <div className="pick-filters">
             <label>
               <span className="sr">Station</span>
@@ -301,17 +330,19 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
               const again = replayed.get(t.id);
               const full = (perArtist.get(t.artist) ?? 0) >= PER_ARTIST;
               return (
-                <button key={t.id} className={`pick-row${t.id === selected ? " on" : t.id === suggest ? " suggested" : ""}`} aria-pressed={t.id === selected}
-                  disabled={again !== undefined || full}
+                <button key={t.id} ref={checkWhenSeen(t)} className={`pick-row${t.id === selected ? " on" : t.id === suggest ? " suggested" : ""}`} aria-pressed={t.id === selected}
+                  disabled={again !== undefined || full || isDead(t)}
                   onClick={() => { setSelected(t.id === selected ? 0 : t.id); }}
                   onKeyDown={(e) => { if (e.key === "Enter" && t.id === selected) { e.preventDefault(); setStep(2); } }}>
                   <Cover t={t} size="36px" />
-                  <span className="tt"><b>{t.title}</b><span className="muted">{again !== undefined ? `Picked here at ${hhmm(again)} · again at ${hhmm(again + REPLAY_GAP)}` : full ? `${t.artistName} · 2 tracks already waiting` : (cat.artists.get(t.artist)?.sponsor ?? 0) > 0 ? `${t.artistName} · free pick` : t.artistName}</span></span>
+                  <span className="tt"><b>{t.title}</b><span className="muted">{isDead(t) ? UNAVAILABLE : again !== undefined ? `Picked here at ${hhmm(again)} · again at ${hhmm(again + REPLAY_GAP)}` : full ? `${t.artistName} · 2 tracks already waiting` : (cat.artists.get(t.artist)?.sponsor ?? 0) > 0 ? `${t.artistName} · free pick` : t.artistName}</span></span>
                   <span className="mono muted">{clock(t.duration)}</span>
                 </button>
               );
             })}
-            {list.length === 0 && <p className="muted small">No track matches.</p>}
+            {list.length === 0 && (cat.tracks.length === 0
+              ? <div className="empty-state"><p className="muted small">{NO_TRACK}</p>{go && <MakeMusic go={(v) => { onClose(); go(v); }} />}</div>
+              : <p className="muted small">No track matches.</p>)}
           </div>
           <div className="pick-push">
             <button className="push" disabled={!chosen || blocked !== ""} onClick={() => { setStep(2); }}>
@@ -343,6 +374,7 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
               <div className="pick-clock">
                 <input type="time" step={STEP} className="time-input" aria-label="Time, in your time zone" value={hhmm(when)} onChange={(e) => { const t = bookAt(e.target.value, now); if (t) setWhen(t); }} />
                 <span className="muted small">{new Date(when * 1000).toDateString() === new Date(now * 1000).toDateString() ? "today" : "tomorrow"} · {gmt(when)}</span>
+                <span className="muted small">At a time: up to {BOOKED_PER_HOUR} picks per hour and {BOOKED_MAX} of the {PICK_MAX} waiting on a station.</span>
               </div>
             )}
           </div>
@@ -367,7 +399,7 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
             <button className="push" disabled={!chosen || blocked !== "" || sent !== 0 || (noteWhy !== "" && !sponsoredPick)} onClick={push}>
               {sent ? "Signing…" : <><Icon name="on-air" size={18} /> Push on air</>}
             </button>
-            <span className="fine pick-cost">Costs about {PICK_FEE} GNOT<br />+ about {PICK_DEPOSIT} GNOT locked for storage (up to {PICK_DEPOSIT_FIRST} the first time)</span>
+            <span className="fine pick-cost">Costs about {PICK_FEE} GNOT<br />+ about {DEPOSIT["Pick"]} GNOT locked for storage (up to {DEPOSIT["First pick"]} the first time)</span>
             {asked && notice && (
               // A sent pick comes back with its explorer link; without one, it is a failure to read.
               <span className={notice.pending ? "pick-notice" : notice.link ? "pick-notice ok" : "pick-notice bad"} role={notice.pending || notice.link ? "status" : "alert"}>

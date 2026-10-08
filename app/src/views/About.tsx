@@ -2,62 +2,70 @@ import { Icon } from "../components/Icons";
 import { type Glyph, Shape } from "../components/Shapes";
 import { gnot, shortAddr } from "../lib/format";
 import { CHAIN_ID } from "../lib/gno";
-import { CONTACT, NOTICE_DELAY, REPO } from "../lib/legal";
+import { CANNOT, MONEY, PICK_WINDOW, REPORTS, TIP_LINE } from "../lib/features";
+import { CONTACT, INDEPENDENT, NO_PERSONAL_DATA, NOTICE_DELAY, REPO } from "../lib/legal";
 import { realmPage, sourceURL } from "../lib/links";
 import type { Catalog, Navigate, SupportInfo } from "../lib/types";
+import { FEATURES_NAME } from "../lib/seo";
 
 const out = { target: "_blank", rel: "noreferrer" } as const;
 
 const STEPS: readonly { readonly g: Glyph; readonly title: string; readonly text: string }[] = [
   { g: "circle", title: "You listen", text: "Play any album or playlist, or tune into a live station. Everyone hears the same second, read from the chain. No wallet, no transaction." },
-  { g: "quarter", title: "Listeners program the radio", text: "Pick a track and it airs next for everyone. The schedule is a public realm: nobody edits it in secret." },
-  { g: "square", title: "You support artists in one transaction", text: "A tip goes straight to the artist's wallet, split with their collaborators as they declared it. GnoRadio keeps nothing from it." },
+  { g: "quarter", title: "Listeners program the radio", text: `Pick a track and it airs for everyone, next or at a time you choose, ${PICK_WINDOW}. The schedule is a public realm: nobody edits it in secret.` },
+  { g: "square", title: "You support artists in one transaction", text: TIP_LINE },
+  { g: "triangle", title: "Artists publish in one transaction", text: "A published track joins its genre station (which Main relays in its hours) and New in the artist's own transaction: no one has to approve or schedule it." },
 ];
 
 const VERIFY_STEPS: readonly { readonly g: Glyph; readonly title: string; readonly text: string }[] = [
   { g: "square", title: "A code on your own page", text: "The artist adds a short code to their Audius bio or to a file on their own website (/.well-known/gnoradio.txt): places only they control." },
-  { g: "circle", title: "A robot checks it", text: "No email, no human review. The robot reads the page and records the request publicly on gno.land." },
+  { g: "circle", title: "A robot checks it", text: "No email, no paperwork. The robot reads the page and the request is recorded publicly on gno.land. The moderator can also give a profile to the artist who proved it, which verifies it: imported curated profiles are verified only that way." },
   { g: "quarter", title: "72 hours, then tips open", text: "The request stays public for 72 hours, time to stop it if a page was hacked. Then the profile is verified and fans can tip it." },
 ];
 
 // What gnoweb shows of GnoRadio, to check it runs as it says.
 const VERIFY = [
-  ["The catalog: artists, tracks, tips", "catalog", "social.gno"],
+  ["Every record, and who may write it", "data", "data.gno"],
+  ["Promo budgets: who funds, who withdraws", "data", "vault.gno"],
+  ["Tips, likes and follows", "catalog", "social.gno"],
   ["How artists are verified", "catalog", "verify.gno"],
+  ["Refunded picks", "catalog", "sponsor.gno"],
   ["Where GnoRadio's support goes", "catalog", "support.gno"],
   ["Who may hide what", "catalog", "moderation.gno"],
-  ["The radio schedule", "radio", "radio.gno"],
+  ["Publishing to the stations", "radio", "publish.gno"],
+  ["Picks and the queue", "radio", "queue.gno"],
   ["Concert tickets", "tickets", "tickets.gno"],
+  ["The tickets as NFTs", "nft", "nft.gno"],
   ["The site as text", "home", "home.gno"],
 ] as const;
 
-// The admin's powers, as the realms define them (catalog/moderation.gno, radio.gno, tickets.gno, home/app.gno).
+// The admin's powers, as the realms define them (catalog artists, moderation, verify, support; radio admin, notes, queue, publish; tickets; home app).
 const CAN = [
-  "Import curated and Audius tracks; hide or restore tracks, albums, artists and playlists; cancel a pending artist verification or undo a wrong one; name the verification robot; resolve reports.",
-  "Program the stations and remove a slot from rotation; set the monthly goal, the treasury address and the ticket service fee (10 GNOT at most).",
-  "Pause every write for an upgrade, name a successor realm, set the app's link on gnoweb.",
+  "Import curated and Audius tracks (through the radio, so they join their stations); create curated profiles and assign one to the artist who proved it (verified by the moderator), or free a reserved name; verify or un-verify an artist, cancel a pending verification or undo a wrong one; name the verification robot; allow an audio host.",
+  "Hide or restore tracks, albums, artists, playlists and concerts, with a public reason; resolve reports; restore a dedication hidden by mistake or lift a dedication pause; name the dedication robot.",
+  "Remove a track from a station's rotation or put it back, take a pick off the queue, add a curator pick; set the monthly goal, the treasury address and the ticket service fee (10 GNOT at most).",
+  "Set the app's link and the contact line on gnoweb, and pass the admin role on (offered, then accepted) or give it up.",
 ];
-const CANNOT = "Take or redirect a tip: it reaches the artist in the same transaction. Touch an artist's promo budget. Change an artist's split, edit someone else's track or move anyone's ticket.";
 
-const MONEY = [
-  ["Tip to an artist", "0% to GnoRadio", "Split with collaborators as the artist declared it. The artist's promo share (5% by default, 0 to 20%) goes to the listener who picked it on air and whoever shared the link."],
-  ["Free pick", "Paid by the artist", "An artist may fund a promo budget that refunds a pick of their track (0.01 to 0.05 GNOT, about the pick's cost) once it has played in full; you collect it within 7 days. Wallets with some pick history only, a few a day. GnoRadio holds no key to it: the artist withdraws the rest at any time."],
-  ["Optional, on top of a tip", "+10% to the treasury", "Optional, off by default."],
-  ["Paid concert ticket", "Price to the artist", "A service fee on top goes to the treasury."],
-  ["Direct support", "To the treasury", "Funds the project's work; GnoRadio pays nothing to run."],
-  ["Storage deposit", "Locked by gno.land", "Returned to whoever's transaction frees the data, e.g. your own Unlike."],
-] as const;
+// The owner of the data realm (data.gno) and its guardian, apart from the admin.
+const UPGRADE = "Every record lives in one permanent data realm. Its owner can propose new rules realms, which take over only 72 hours after they are all on chain, and can pause writes. A separate guardian can only pause and cancel a pending release; the owner can replace the guardian only 144 hours after announcing it. Neither can edit a record or touch a promo budget. A funder can withdraw a budget even while GnoRadio is paused, and a pause pushes back every refund still to collect by its length.";
 
-/** About: how GnoRadio works, where the money goes, and how to check it. */
-export function About({ cat, support, go }: { readonly cat: Catalog; readonly support: SupportInfo; readonly go: Navigate }) {
-  const count = (n: number, word: string) => [String(n), n === 1 ? word : `${word}s`] as const;
-  const facts = [
+
+/** liveFacts: what GnoRadio holds now, as number and label pairs; a zero says nothing, so it is left out. */
+export function liveFacts(cat: Catalog, support: SupportInfo): readonly (readonly [string, string])[] {
+  const count = (n: number, word: string) => [n, String(n), n === 1 ? word : `${word}s`] as const;
+  return [
     count(cat.tracks.length, "track"),
     count(cat.artists.size, "artist"),
     count(cat.stations.filter((s) => s.tracks > 0).length, "live station"),
     count(cat.playlists.length, "playlist"),
-    [gnot(support.total), "given to keep it on air"],
-  ] as const;
+    [support.total, gnot(support.total), "given to support the project"] as const,
+  ].filter(([n]) => n > 0).map(([, shown, label]) => [shown, label] as const);
+}
+
+/** About: how GnoRadio works, where the money goes, and how to check it. */
+export function About({ cat, support, go }: { readonly cat: Catalog; readonly support: SupportInfo; readonly go: Navigate }) {
+  const facts = liveFacts(cat, support);
   const links = [
     ["GnoRadio on gnoweb", realmPage("home"), "The same radio, rendered by the chain"],
     ["gno.land", "https://gno.land", "The chain it runs on"],
@@ -89,7 +97,7 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
       <ul className="about-facts" aria-label="On GnoRadio now">
         {facts.map(([n, label]) => <li key={label}><b>{n}</b><span>{label}</span></li>)}
         <li className="about-more">
-          <button onClick={() => { go({ k: "contribute" }); }}>How to contribute <Icon name="arrow-right" size={16} className="nudge" /></button>
+          <button onClick={() => { go({ k: "features" }); }}>{FEATURES_NAME} <Icon name="arrow-right" size={16} className="nudge" /></button>
         </li>
       </ul>
 
@@ -118,7 +126,7 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
             </li>
           ))}
         </ol>
-        <p className="muted small">Why it is safe: GnoRadio never holds money, a tip goes straight to the artist in the same transaction. The robot can only propose a verification; it cannot move funds or change settings, and the admin can cancel one during the wait or revoke the robot key at once. Artist? <button className="link" onClick={() => { go({ k: "contribute", path: "claim" }); }}>Verify your profile</button>.</p>
+        <p className="muted small">Why it is safe: GnoRadio never holds money, a tip goes straight to the artist in the same transaction. The robot can only propose a verification; it cannot move funds or change settings, and the admin can cancel one during the wait or revoke the robot key at once. A ✓ shows the host the proof was found on, or says it was verified by the GnoRadio moderator. Artist? <button className="link" onClick={() => { go({ k: "contribute", path: "claim" }); }}>Verify your profile</button>.</p>
       </section>
 
       <section className="about-sec">
@@ -131,6 +139,7 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
           <div className="cannot">
             <span className="tag blue">Nobody can</span>
             <p>{CANNOT}</p>
+            <p className="muted small">{UPGRADE}</p>
             <p className="muted small">Admin today: <span className="mono">{cat.admin ? shortAddr(cat.admin) : "unknown"}</span>, a personal wallet, visible on-chain.</p>
           </div>
         </div>
@@ -138,6 +147,7 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
 
       <section className="about-sec">
         <h2 className="sub">Verify it yourself</h2>
+        <p className="muted">gnoweb renders every GnoRadio page straight from the chain: <a href={realmPage("home")} {...out}>GnoRadio on gno.land <Icon name="external" size={12} className="nudge-out" /></a>. The code that runs it:</p>
         <ul className="about-rows">
           {VERIFY.map(([name, realm, file]) => (
             <li key={name}>
@@ -168,14 +178,15 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
       <section className="about-sec legal">
         <h2 className="sub">Legal</h2>
         <p className="muted small">
-          GnoRadio is an independent project, not affiliated with or endorsed by Audius, the Open Audio Foundation, Adena or gno.land.
+          {INDEPENDENT}
           Music belongs to its artists and is streamed under the Audius Open Music License or the licence shown on each track.
           On-chain actions (likes, tips, picks, dedications, tickets, reports) are public and permanent; what your browser keeps and who sees what is in the <button className="link" onClick={() => { go({ k: "legal" }); }}>privacy notice</button>.
           Dedications are screened before they go on air: a word list on-chain, then an automated moderation service (OpenAI receives the dedication text only, never your address).
-          Listeners can report a track, album, artist or playlist on-chain: the moderator reads every report and hides the content while checking.
+          A dedication on air can be reported by listeners with some pick history, the same as for a free pick: a first pick at least 7 days old and 3 normal picks in the last two 15-day periods. Three reports hide it; a second hidden dedication within a week pauses its author's dedications for a week.
+          {REPORTS}
         </p>
         <p className="muted small">
-          Copyright or illegal content? Open an <a href={CONTACT} {...out}>issue on GitHub</a>, or report it on-chain from its page, with: the link, why it is illegal or which right it infringes, your name and a way to reach you, and a statement that you believe this in good faith. We hide reported content while we check, usually within {NOTICE_DELAY}, and tell the uploader why.
+          Copyright or illegal content? Open an <a href={CONTACT} {...out}>issue on GitHub</a> (public questions), or report it on-chain from its page, with: the link, why it is illegal or which right it infringes, and a statement that you believe this in good faith. We hide reported content while we check, usually within {NOTICE_DELAY}, and tell the uploader why. {NO_PERSONAL_DATA}
         </p>
         <p className="muted small">
           Accessibility: GnoRadio is built to work with a keyboard and a screen reader, but it has not been audited. Tell us what gets in your way in a <a href={CONTACT} {...out}>GitHub issue</a>.

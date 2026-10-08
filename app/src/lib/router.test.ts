@@ -7,7 +7,7 @@ const A = "g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5";
 describe("router", () => {
   const views: View[] = [
     { k: "listen" }, { k: "stations" }, { k: "stations", live: 0 }, { k: "stations", live: 3 }, { k: "library", genre: 0 }, { k: "library", genre: 4 }, { k: "community" },
-    { k: "me" }, { k: "studio" }, { k: "about" }, { k: "track", id: 12 }, { k: "artist", id: 2 }, { k: "album", id: 1 }, { k: "playlist", id: 9 },
+    { k: "me" }, { k: "studio" }, { k: "about" }, { k: "features" }, { k: "track", id: 12 }, { k: "artist", id: 2 }, { k: "album", id: 1 }, { k: "playlist", id: 9 },
     { k: "listener", address: A }, { k: "door", ticket: 7, holder: A }, { k: "collection", list: "saved" }, { k: "collection", list: "liked" },
   ];
   it.each(views)("round-trips %o, with or without a name", (v) => {
@@ -22,14 +22,16 @@ describe("router", () => {
     expect(slug("!!!")).toBe("");
     expect(viewToPath({ k: "track", id: 5 }, "!!!")).toBe("/track/5");
   });
-  it("reads legacy hash links and falls back to listen on garbage", () => {
+  it("reads legacy hash links and says when a path leads nowhere", () => {
     expect(pathToView("#/artist/2")).toEqual({ k: "artist", id: 2 });
     expect(pathToView("#/station/3")).toEqual({ k: "stations", live: 3 });
-    expect(pathToView("/track/abc")).toEqual({ k: "listen" });
-    expect(pathToView("/nope")).toEqual({ k: "listen" });
+    expect(pathToView("/track/abc")).toEqual({ k: "notfound", path: "/track/abc" });
+    expect(pathToView("/nope")).toEqual({ k: "notfound", path: "/nope" });
+    expect(viewToPath(pathToView("/nope/deeper"))).toBe("/nope/deeper");
+    expect(sectionOf({ k: "notfound", path: "/x" })).toBe("listen");
     expect(pathToView("/door/7-nope")).toEqual({ k: "concerts" });
     expect(pathToView("/")).toEqual({ k: "listen" });
-    expect(pathToView("/track/scott-buckley-x")).toEqual({ k: "listen" });
+    expect(pathToView("/track/scott-buckley-x")).toEqual({ k: "notfound", path: "/track/scott-buckley-x" });
   });
 });
 
@@ -39,8 +41,8 @@ describe("listener paths", () => {
     expect(viewToPath({ k: "listener", address: A })).toBe(`/listener/${A}`);
     expect(pathToView(`/listener/bob-${A}`)).toEqual({ k: "listener", address: A });
     expect(pathToView(`#/listener/${A}`)).toEqual({ k: "listener", address: A });
-    expect(pathToView("/listener/alice")).toEqual({ k: "listen" });
-    expect(pathToView(`/listener/x${A}`)).toEqual({ k: "listen" });
+    expect(pathToView("/listener/alice")).toEqual({ k: "notfound", path: "/listener/alice" });
+    expect(pathToView(`/listener/x${A}`)).toEqual({ k: "notfound", path: `/listener/x${A}` });
     expect(sectionOf({ k: "listener", address: A })).toBe("community");
   });
 });

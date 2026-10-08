@@ -3,10 +3,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { forgetName, nameReg } from "../lib/names";
 import { arr, num } from "../lib/guard";
 import { type Call, REALMS, call, explorerURL, gnoAddress, hasAdena, isCancel, qeval, qjson } from "../lib/gno";
-import { inSession, savedSession, sessionCall } from "../lib/session";
+import { inSession, sessionCall, usableSession } from "../lib/session";
 import { isFees } from "../lib/schemas";
 import { errorMessage } from "../lib/format";
-import { type TrackDraft, formatSplits } from "../lib/rules";
+import { type TrackDraft, type TrackEdit, formatSplits } from "../lib/rules";
 import { dedicationCertificate } from "../lib/moderation";
 import { gnokeyAddress } from "../lib/gnokey";
 import { isAddress } from "../lib/proof";
@@ -21,28 +21,37 @@ export interface Toast {
 }
 
 /**
- * Storage deposit (GNOT) each action locks, measured on a v1.5.0 devnet. Gno charges
- * 100 ugnot per byte stored, which is most of what a listener pays, so we say it
- * before Adena opens. It is returned if the data is later freed (e.g. Unlike).
+ * Storage deposit (GNOT) each action locks, measured on the v1 devnet (2026-10-08, 5,000
+ * tracks; a listener's first action of a kind costs the most). Gno charges 100 ugnot per
+ * byte stored, which is most of what a listener pays, so we say it before Adena opens. It
+ * is returned if the data is later freed (e.g. Unlike).
  */
 export const DEPOSIT: Readonly<Record<string, number>> = {
-  Like: 0.3,
-  Follow: 0.3,
-  Pick: 0.9,
-  "Free pick": 0.9,
-  "Fund promo": 0.2,
-  Ticket: 0.6,
-  Tip: 0.5,
-  "Support GnoRadio": 0.35,
-  "Register artist": 0.5,
-  "Publish track": 0.4,
-  "Publish playlist": 0.3,
-  Report: 0.25,
+  Like: 0.1,
+  Follow: 0.05,
+  Pick: 0.07,
+  // a listener's first pick also creates their curator record (0.22 measured on the v1 devnet)
+  "First pick": 0.25,
+  "Free pick": 0.15,
+  "Fund promo": 0.55,
+  Ticket: 0.4, // a listener's first ticket; the next ones less
+  Tip: 0.15,
+  "Support GnoRadio": 0.15,
+  "Register artist": 0.15,
+  "Publish track": 0.1, // 730 B with its stations, 1,212 B every 16th (a new homes key): radio z_gas_publish filetests
+  "Publish playlist": 0.06,
+  Report: 0.05,
   "Turn on tips": 0.05,
 };
 
-/** playlistDeposit: a playlist locks about 0.3 GNOT plus 0.01 per track. */
-export const playlistDeposit = (tracks: number): number => Math.round((0.3 + 0.01 * tracks) * 100) / 100;
+/** PICK_FEE is a pick's network fee, in GNOT. */
+export const PICK_FEE = 0.08;
+
+/** PICK_COST says what a pick costs, from PICK_FEE and DEPOSIT, wherever the app explains it. */
+export const PICK_COST = `about ${String(PICK_FEE)} GNOT, plus about ${String(DEPOSIT["Pick"])} GNOT locked as storage deposit (up to ${String(DEPOSIT["First pick"])} for your first)`;
+
+/** playlistDeposit: a playlist locks about 0.06 GNOT plus 0.002 per track. */
+export const playlistDeposit = (tracks: number): number => Math.round((0.06 + 0.002 * tracks) * 1000) / 1000;
 
 /** allPages reads 100-id pages until a short one (at most 5,000 ids). */
 async function allPages(page: (offset: number) => Promise<number[]>): Promise<number[]> {
@@ -103,6 +112,7 @@ export function useActions(onDone: (c?: Call) => void) {
   const run = useCallback(
     async (label: string, make: (address: string) => Call | Promise<Call>, opts: { readonly deposit?: number; readonly key?: string; readonly after?: (address: string) => void } = {}) => {
       if (signer !== "gnokey" && !hasAdena()) {
+        track("wallet_needed", { label });
         ask(); // no wallet here: say what is needed, never a terminal command unasked
         return;
       }
@@ -124,8 +134,8 @@ export function useActions(onDone: (c?: Call) => void) {
       try {
         const address = await ensure();
         const c = await make(address);
-        // A no-send call to a GnoRadio realm goes through the session when one is on: no prompt.
-        const quick = inSession(c) && savedSession(address) !== undefined;
+        // A no-send call to catalog or radio goes through the session when one is on (never for a GnoRadio role): no prompt.
+        const quick = inSession(c) && await usableSession(address);
         const deposit = opts.deposit ?? DEPOSIT[label];
         const lock = deposit === undefined ? "" : ` · about ${String(deposit)} GNOT locked as storage deposit`;
         setToastState({ text: quick ? `${label}…${lock}` : `${label}… confirm in Adena${lock}`, pending: true });
@@ -184,7 +194,8 @@ export function useActions(onDone: (c?: Call) => void) {
     collect: (station: number, start: number) => void run("Collect", () => c(REALMS.radio, "ClaimPickPayout", [id(station), id(start)])),
     fundPromo: (ugnot: number) => void run("Fund promo", () => c(REALMS.catalog, "FundPromo", [], ugnot)),
     setPromoPay: (ugnot: number, perDay: number) => void run("Promo payout", () => c(REALMS.catalog, "SetPromoPay", [id(ugnot), id(perDay)])),
-    withdrawPromo: (artist: number) => void run("Withdraw promo", () => c(REALMS.catalog, "WithdrawPromo", [id(artist)])),
+    // The budget sits in the data realm's vault, account "catalog/<8-digit artist id>" (catalog sponsor.gno acct).
+    withdrawPromo: (artist: number) => void run("Withdraw promo", () => c(REALMS.data, "VaultWithdraw", [`catalog/${id(artist).padStart(8, "0")}`])),
     reportNote: (station: number, start: number, after: () => void) => void run("Report", () => c(REALMS.radio, "ReportNote", [id(station), id(start)]), { after }),
     buyTicket: (e: ConcertEvent) =>
       void run("Ticket", async () => {
@@ -192,7 +203,15 @@ export function useActions(onDone: (c?: Call) => void) {
         const fee = e.price > 0 ? (await qjson(REALMS.tickets, "FeesJSON()", isFees)).serviceFee : 0;
         return c(REALMS.tickets, "BuyTicket", [id(e.id)], e.price > 0 ? e.price + fee : 0);
       }),
-    checkIn: (ticket: number, after: () => void) => void run("Check in", () => c(REALMS.tickets, "CheckIn", [id(ticket)]), { after }),
+    // The artist cancels their own concert (tickets.CancelEvent): sales stop, refunds are the artist's to make.
+    cancelEvent: (e: ConcertEvent) => void run("Cancel concert", () => c(REALMS.tickets, "CancelEvent", [id(e.id)]), { key: `cancel:${id(e.id)}` }),
+    // The holder gives a ticket to another wallet (tickets.TransferTicket); a checked-in ticket cannot be given.
+    giveTicket: (ticket: number, to: string, after: () => void) =>
+      void run("Give ticket", () => c(REALMS.tickets, "TransferTicket", [to.trim(), id(ticket)]), { key: `give:${id(ticket)}`, after }),
+    checkIn: (ticket: number, code: string, after: () => void) => void run("Check in", () => c(REALMS.tickets, "CheckIn", [id(ticket), code]), { after }),
+    // The holder proves, at the door, that they hold the wallet, with the code the door showed them:
+    // CheckIn needs it from the last 10 minutes, with the same code.
+    present: (ticket: number, code: string, after: () => void) => void run("Show at the door", () => c(REALMS.tickets, "Present", [id(ticket), code]), { key: `present:${id(ticket)}`, after }),
     // a gno.land name (r/sys/users), registered through the chain's registrar; no fee on onyx or mainnet
     registerName: (name: string) =>
       void run("Register name", async () => {
@@ -204,11 +223,29 @@ export function useActions(onDone: (c?: Call) => void) {
     registerArtist: (name: string, bio: string) => void run("Register artist", () => c(REALMS.catalog, "RegisterArtist", [name.trim(), bio.trim()])),
     publishTrack: (d: TrackDraft) =>
       void run("Publish track", () =>
-        c(REALMS.catalog, "PublishTrack", [
+        // radio.PublishTrack publishes through the catalog and puts the track on its stations in one transaction.
+        c(REALMS.radio, "PublishTrack", [
           d.title.trim(), id(d.genre), d.duration.trim(), d.license, d.cmo || "none", d.credits.trim(),
           d.audio.trim(), d.audioSha.trim().toLowerCase(), d.cover.trim(), d.coverSha.trim().toLowerCase(),
           formatSplits(d.splits), d.rights ? "yes" : "no",
         ])),
+    // The artist edits a track's info and media (radio.EditTrack: a new genre or duration moves it on the
+    // stations in the same transaction); license, splits and rights stay as published.
+    editTrack: (t: Track, d: TrackEdit, after: () => void) =>
+      void run("Edit track", () =>
+        c(REALMS.radio, "EditTrack", [
+          id(t.id), d.title.trim(), id(d.genre), d.duration.trim(), d.credits.trim(),
+          d.audio.trim(), d.audioSha.trim().toLowerCase(), d.cover.trim(), d.coverSha.trim().toLowerCase(),
+        ]), { key: `edit:${id(t.id)}`, after }),
+    updatePlaylist: (playlist: number, title: string, ids: readonly number[], after: () => void) =>
+      void run("Update playlist", () => c(REALMS.catalog, "UpdatePlaylist", [id(playlist), title.trim(), ids.join(",")]), { key: `playlist:${id(playlist)}`, after }),
+    // An artist hides or shows again their own track or album (catalog.HideOwn); what the moderator hid stays hidden.
+    // A track's station slots then follow (radio.Refresh, a second signature): silent once hidden, back once shown.
+    hideOwn: (kind: "track" | "album", target: number, hidden: boolean) =>
+      void run(`${hidden ? "Hide" : "Show"} ${kind}`, () => c(REALMS.catalog, "HideOwn", [kind, id(target), String(hidden)]), {
+        key: `hide:${kind}:${id(target)}`,
+        ...(kind === "track" ? { after: () => { window.setTimeout(() => { void run("Refresh stations", () => c(REALMS.radio, "Refresh", [id(target)])); }, 0); } } : {}),
+      }),
     publishPlaylist: (title: string, ids: readonly number[]) =>
       void run("Publish playlist", () => c(REALMS.catalog, "PublishPlaylist", [title.trim(), ids.join(",")]), { deposit: playlistDeposit(ids.length) }),
     report: (kind: "track" | "album" | "artist" | "playlist", target: number, reason: string) =>
@@ -224,6 +261,10 @@ export function useActions(onDone: (c?: Call) => void) {
     dropSlot: (station: number, trackID: number) => void run("Drop from rotation", () => c(REALMS.radio, "DropSlot", [id(station), id(trackID)])),
     restoreSlot: (station: number, trackID: number) => void run("Restore to rotation", () => c(REALMS.radio, "RestoreSlot", [id(station), id(trackID)])),
     resolveReport: (reportID: number) => void run("Resolve report", () => c(REALMS.catalog, "ResolveReport", [id(reportID)])),
+    // A run of spam reports, 1 to 50 from one id, in one transaction (catalog.ResolveReports).
+    resolveReports: (from: number, count: number) => void run("Resolve reports", () => c(REALMS.catalog, "ResolveReports", [id(from), id(count)])),
+    // After hiding or restoring an artist: their tracks' station slots follow, a batch per call from offset (radio.RefreshArtist).
+    refreshArtist: (artist: number, offset = 0) => void run("Refresh stations", () => c(REALMS.radio, "RefreshArtist", [id(artist), id(offset)])),
     hide: (kind: HideKind, target: number, hidden: boolean, reason: string) =>
       void run(`${hidden ? "Hide" : "Restore"} ${kind}`, () => c(REALMS.catalog, HIDE[kind], [id(target), String(hidden), hidden ? reason.trim() : ""])),
     setGoal: (ugnot: number) => void run("Monthly goal", () => c(REALMS.catalog, "SetMonthlyGoal", [id(ugnot)])),

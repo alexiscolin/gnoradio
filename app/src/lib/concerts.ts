@@ -56,3 +56,11 @@ export function almostFull(e: ConcertEvent): string {
   const left = e.capacity - e.sold;
   return left > 0 && !e.cancelled && (left <= 5 || left <= e.capacity * 0.1) ? `Almost full · ${String(left)} left` : "";
 }
+
+/** CHECK_IN: how an artist checks a ticket in, in the app. */
+export const CHECK_IN = "To check in a ticket, scan the holder's QR code at the door with your phone: the door page opens and walks you through it.";
+
+/** REFUND_SHORT: the same, in one line on a ticket card. */
+export const REFUND_SHORT = "No automatic refund: the artist runs the concert.";
+/** REFUND: who sells the ticket, and who refunds it. */
+export const REFUND = "The artist sells the ticket and runs the concert; if it is cancelled, ask the artist for a refund (tickets are not refunded automatically).";

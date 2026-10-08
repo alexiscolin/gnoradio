@@ -15,7 +15,7 @@ export interface Catalog {
   readonly playlists: readonly Playlist[];
   readonly genres: readonly Genre[];
   readonly stations: readonly Station[];
-  /** pending counts catalog tracks not yet synced into the stations. */
+  /** pending counts catalog tracks not on the stations (0: publishing puts them there; Sync is the safety net). */
   readonly pending: number;
   /** newFloor: only tracks with a higher id can be picked on New this week. */
   readonly newFloor: number;
@@ -34,6 +34,7 @@ export type View =
   | { readonly k: "studio" }
   | { readonly k: "contribute"; readonly path?: ContribPath }
   | { readonly k: "about" }
+  | { readonly k: "features" }
   | { readonly k: "legal" }
   | { readonly k: "track"; readonly id: number }
   | { readonly k: "artist"; readonly id: number }
@@ -41,7 +42,8 @@ export type View =
   | { readonly k: "playlist"; readonly id: number }
   | { readonly k: "listener"; readonly address: string }
   | { readonly k: "collection"; readonly list: "saved" | "liked" }
-  | { readonly k: "door"; readonly ticket: number; readonly holder: string };
+  | { readonly k: "door"; readonly ticket: number; readonly holder: string }
+  | { readonly k: "notfound"; readonly path: string };
 
 /** The four ways to contribute, each with its own URL (/contribute/artist…). */
 export type ContribPath = "listener" | "artist" | "claim" | "report";

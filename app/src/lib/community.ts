@@ -1,7 +1,8 @@
+import { useEffect, useState } from "react";
 import { REALMS, gnoAddress, qeval, unquote, qjson } from "./gno";
 import { type Infer, arr, num, obj, oneOf, str } from "./guard";
-import { isActivities, isSupport, isTickets, isUser } from "./schemas";
-import type { Activity, OwnedTicket, SupportInfo, UserInfo } from "./types";
+import { isActivities, isEvent, isSupport, isTickets, isUser } from "./schemas";
+import type { Activity, Catalog, ConcertEvent, OwnedTicket, SupportInfo, UserInfo } from "./types";
 
 export const EMPTY_SUPPORT: SupportInfo = { treasury: "", total: 0, supporters: 0, month: "", monthTotal: 0, goal: 0, top: [] };
 
@@ -28,9 +29,30 @@ export const loadUser = (address: string): Promise<UserInfo> => qjson(REALMS.cat
 export const loadTicketsOf = (address: string): Promise<OwnedTicket[]> =>
   qjson(REALMS.tickets, `TicketsOfJSON(${gnoAddress(address)})`, isTickets).catch((): OwnedTicket[] => []);
 
+/** loadTicket reads one ticket by id (tickets.TicketInfo, any holder, however many they have); null if none. */
+export const loadTicket = async (id: number): Promise<OwnedTicket | null> => {
+  const m = /\((\d+) int\),\s*\((\d+) int\),\s*\((\d+) int\),\s*\((true|false) bool\).*\(true bool\)/s.exec(await qeval(REALMS.tickets, `TicketInfo(${String(id)})`));
+  return m ? { id: Number(m[1]), event: Number(m[2]), serial: Number(m[3]), attended: m[4] === "true" } : null;
+};
+
 /** loadTicketOwner reads who holds a ticket now ("" if none). */
 export const loadTicketOwner = async (ticket: number): Promise<string> =>
   /g1[a-z0-9]{38}/.exec(await qeval(REALMS.tickets, `TicketOwner(${String(ticket)})`))?.[0] ?? "";
+
+/** PRESENT_WINDOW: tickets.CheckIn takes a ticket its holder presented (tickets.Present) this many seconds ago at most. */
+export const PRESENT_WINDOW = 600;
+/** OPENS_BEFORE: check-in opens this long before the start (tickets.checkInWindow); a Present before that fails. */
+export const OPENS_BEFORE = 12 * 3600;
+
+/** loadPresentedAt reads when a ticket's holder last signed tickets.Present with this door code (unix seconds, 0 if not). */
+export const loadPresentedAt = async (ticket: number, code: string): Promise<number> =>
+  Number(/^\((-?\d+) int64\)/.exec(await qeval(REALMS.tickets, `PresentedAt(${String(ticket)}, ${JSON.stringify(code)})`))?.[1] ?? 0);
+
+/** DOOR_CODE: the code the door shows after a scan and the holder signs in tickets.Present (4 to 8 digits). */
+export const DOOR_CODE = /^\d{4,8}$/;
+
+/** doorCode draws a fresh 4-digit door code. */
+export const doorCode = (): string => String((crypto.getRandomValues(new Uint32Array(1))[0] ?? 0) % 10000).padStart(4, "0");
 
 export const RIGHTS_FALLBACK = "I own or control the rights to this recording and its composition, or hold a licence that allows this, and I grant the operator of GnoRadio and its users a worldwide, non-exclusive, royalty-free licence to store, stream, broadcast and display it through GnoRadio and gno.land for as long as it is published.";
 
@@ -52,4 +74,28 @@ export async function hostAllowed(host: string): Promise<boolean | undefined> {
   } catch {
     return undefined;
   }
+}
+
+/** loadEvent reads one concert, past, cancelled or upcoming (null when there is none to show). */
+export const loadEvent = (id: number): Promise<ConcertEvent | null> =>
+  qjson(REALMS.tickets, `func() string { e, ok := EventInfo(${String(id)}); if !ok { return "" }; return eventJSON(&e, "0") }()`, isEvent).catch(() => null);
+
+/**
+ * useEvents gives the concerts of these ids: from the catalog's upcoming list, else read one
+ * by one (a ticket for a cancelled or past concert is not in that list). A missing id maps to
+ * undefined while it loads, null once the chain has none.
+ */
+export function useEvents(cat: Pick<Catalog, "events">, ids: readonly number[]): ReadonlyMap<number, ConcertEvent | null> {
+  const [read, setRead] = useState<ReadonlyMap<number, ConcertEvent | null>>(new Map());
+  const want = [...new Set(ids)].filter((id) => !cat.events.some((e) => e.id === id) && !read.has(id));
+  const key = want.join(",");
+  useEffect(() => {
+    if (!key) return;
+    let alive = true;
+    void Promise.all(key.split(",").map(Number).map(async (id) => [id, await loadEvent(id)] as const)).then((got) => {
+      if (alive) setRead((m) => new Map([...m, ...got]));
+    });
+    return () => { alive = false; };
+  }, [key]);
+  return new Map(ids.map((id) => [id, cat.events.find((e) => e.id === id) ?? read.get(id)] as const).filter((x): x is readonly [number, ConcertEvent | null] => x[1] !== undefined));
 }

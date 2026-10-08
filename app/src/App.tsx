@@ -3,6 +3,7 @@ import { register, start as startAnalytics, track } from "./lib/analytics";
 import { CHAIN_ID } from "./lib/gno";
 import { MiniPlayer, MobileTop, Sidebar, TabBar } from "./components/Chrome";
 import { GnokeySheet } from "./components/GnokeySheet";
+import { jumpTo } from "./components/common";
 import { WalletSheet } from "./wallet/WalletSheet";
 import { NowPlaying } from "./components/NowPlaying";
 import { PickNext } from "./components/PickNext";
@@ -22,8 +23,9 @@ import { type Actions, useActions } from "./player/useActions";
 import { useMediaMeta } from "./player/useMediaMeta";
 import { type Player, usePlayer } from "./player/usePlayer";
 import { Library, Listen, Stations } from "./views/Browse";
-import { Community, Me, Studio } from "./views/Community";
+import { Community, Me, NotFound, Studio } from "./views/Community";
 import { About } from "./views/About";
+import { Features } from "./views/Features";
 import { Legal } from "./views/Legal";
 import { ListenerView } from "./views/Listener";
 import { DoorView } from "./views/Door";
@@ -42,6 +44,8 @@ export default function App() {
   const [loadError, setLoadError] = useState("");
   // Old #/ links still open the right screen; the URL is rewritten to a path below.
   const [view, setView] = useState<View>(() => pathToView(window.location.hash.startsWith("#/") ? window.location.hash : window.location.pathname));
+  // A section anchor in the first URL (/me#me-tickets): kept before the address bar is rewritten, honoured once the page is drawn.
+  const firstHash = useRef(window.location.hash.startsWith("#/") ? "" : decodeURIComponent(window.location.hash.slice(1)));
   const viewRef = useRef(view);
   viewRef.current = view;
   const [sheet, setSheet] = useState(false);
@@ -68,20 +72,22 @@ export default function App() {
   }, []);
 
   const loadSeq = useRef(0);
+  const booting = useRef(true); // the first full catalog load is still running
   // touched: after a transaction, what it can have changed (re-read whatever the browser cache says).
   const refresh = useCallback((touched?: Touched) => {
     const seq = ++loadSeq.current;
     // A return visit opens on the stored catalog; a first visit on the newest tracks while
     // the rest loads, but a page that needs a given artist, album or track waits for the whole catalog.
     const show = (c: Catalog) => { if (seq === loadSeq.current) setCat((prev) => prev ?? c); };
-    loadCatalog({ cached: show, early: EARLY.has(viewRef.current.k) ? show : undefined, touched }).then(
+    loadCatalog({ cached: show, early: EARLY.has(viewRef.current.k) ? show : undefined, touched, current: () => seq === loadSeq.current }).then(
       (c) => {
         if (seq !== loadSeq.current) return;
+        booting.current = false;
         if (seq === 1) track("load", { what: "catalog", ms: Math.round(performance.now()) });
         setCat(c);
         setLoadError("");
       },
-      (e: unknown) => { if (seq === loadSeq.current) setLoadError(errorMessage(e)); },
+      (e: unknown) => { if (seq === loadSeq.current) { booting.current = false; setLoadError(errorMessage(e)); } },
     );
     refreshPulse();
   }, [refreshPulse]);
@@ -110,7 +116,10 @@ export default function App() {
     return () => { window.removeEventListener("popstate", onPop); };
   }, []);
 
-  const player = usePlayer(cat);
+  // A track the radio airs that this catalog does not hold yet (published since it loaded): read it.
+  // Not while the first full load runs: a refresh would restart it (the full catalog brings the track anyway).
+  const fetchTrack = useCallback((id: number) => { if (!booting.current) refresh({ tracks: [id], artists: [] }); }, [refresh]);
+  const player = usePlayer(cat, fetchTrack);
   const { toggle, toggleMute, nudge } = player;
   // Space plays/pauses, M mutes, arrows seek in Library mode. Keys typed into a field or on a control are left alone.
   useEffect(() => {
@@ -130,6 +139,8 @@ export default function App() {
   const afterTx = useCallback((c?: Call) => { refresh(touchedBy(c)); resync(); }, [refresh, resync]);
   const actions = useActions(afterTx);
   useEffect(() => { register({ wallet: actions.wallet.state.status }); }, [actions.wallet.state.status]);
+  // Whether a shared link brought this browser (the sharer is never sent): the share loop, measured.
+  useEffect(() => { register({ referred: sessionRef() !== "" }); }, []);
   useMediaMeta(cat, view, player);
   const saved = useSaved();
   // The catalog names the URL (/artist/scott-buckley-1): once it is loaded, the
@@ -152,6 +163,27 @@ export default function App() {
     document.querySelector(".main")?.scrollTo({ top: 0 });
   }, []);
 
+  useEffect(() => {
+    const h = firstHash.current;
+    if (!cat || !h) return;
+    firstHash.current = "";
+    const id = window.setTimeout(() => { jumpTo(h); }, 300);
+    return () => { window.clearTimeout(id); };
+  }, [cat]);
+
+  // A new screen: focus its title (or the content), so keyboard and screen-reader users land on it, not on <body>.
+  const firstView = useRef(true);
+  useEffect(() => {
+    if (firstView.current) { firstView.current = false; return; }
+    const id = window.requestAnimationFrame(() => {
+      const target = document.querySelector<HTMLElement>(".main .view h1, .main .view h2") ?? document.querySelector<HTMLElement>(".main");
+      if (!target) return;
+      if (!target.hasAttribute("tabindex")) target.setAttribute("tabindex", "-1");
+      target.focus({ preventScroll: true });
+    });
+    return () => { window.cancelAnimationFrame(id); };
+  }, [view]);
+
   const poster = splash === "done" ? null : <Splash ready={cat !== null} error={loadError} onLeave={onSplashLeave} onDone={onSplashDone} onRetry={() => { setLoadError(""); refresh(); }} />;
   if (!cat) return poster;
 
@@ -163,9 +195,10 @@ export default function App() {
     <>
     {poster}
     <div className={`shell${intro ? " reveal" : ""}`}>
-      <MobileTop actions={actions} />
+      <a className="skip" href="#content">Skip to content</a>
+      <MobileTop actions={actions} isAdmin={isAdmin} go={go} />
       <Sidebar view={view} go={go} actions={actions} isAdmin={isAdmin} />
-      <main className="main">
+      <main className="main" id="content" tabIndex={-1}>
         <div className="view" key={viewToPath(view)}>
         {renderView({ view, from, cat, player, actions, go, saved, activity, support, now, openSupport: setSupportTarget, openPick, isAdmin, me: wallet })}
         </div>
@@ -174,7 +207,7 @@ export default function App() {
       <MiniPlayer cat={cat} player={player} onOpen={() => { setSheet(true); }} openPick={openPick} me={wallet} />
       <TabBar view={view} go={go} />
       {pick !== null && (
-        <PickNext cat={cat} station={pick.station} suggest={pick.track} me={wallet} pending={actions.pending} notice={actions.toast} onPick={actions.queue} onClose={() => { setPick(null); }} />
+        <PickNext cat={cat} station={pick.station} suggest={pick.track} me={wallet} pending={actions.pending} notice={actions.toast} onPick={actions.queue} onClose={() => { setPick(null); }} go={go} />
       )}
       {supportTarget && (
         <SupportSheet target={supportTarget} codeURL={codeURLFor(supportTarget)} me={wallet} referrer={sessionRef()} onClose={() => { setSupportTarget(null); }} onTip={actions.tip} onSupport={actions.support} />
@@ -223,7 +256,7 @@ function renderView(a: RenderArgs) {
     case "me":
       return <Me cat={cat} go={go} actions={actions} saved={a.saved} openPick={a.openPick} />;
     case "studio":
-      return a.isAdmin ? <Studio cat={cat} go={go} actions={actions} /> : <p className="muted">The studio is for the GnoRadio admin.</p>;
+      return a.isAdmin ? <Studio cat={cat} go={go} actions={actions} /> : <NotFound go={go} text="The studio is for the GnoRadio admin: connect the admin wallet to open it." />;
     case "track":
       return <TrackView cat={cat} player={player} go={go} id={view.id} actions={actions} openSupport={a.openSupport} openPick={a.openPick} />;
     case "artist":
@@ -233,7 +266,7 @@ function renderView(a: RenderArgs) {
     case "playlist":
       return <PlaylistView cat={cat} player={player} go={go} id={view.id} actions={actions} saved={a.saved} />;
     case "listener":
-      return <ListenerView cat={cat} go={go} address={view.address} me={a.me} />;
+      return <ListenerView cat={cat} go={go} address={view.address} me={a.me} openPick={a.openPick} />;
     case "collection":
       return <CollectionView cat={cat} player={player} go={go} actions={actions} saved={a.saved} list={view.list} />;
     case "door":
@@ -242,7 +275,11 @@ function renderView(a: RenderArgs) {
       return <Contribute cat={cat} go={go} path={view.path} actions={actions} isAdmin={a.isAdmin} openPick={a.openPick} />;
     case "about":
       return <About cat={cat} support={a.support} go={go} />;
+    case "features":
+      return <Features cat={cat} support={a.support} go={go} openPick={a.openPick} me={a.me} />;
     case "legal":
       return <Legal />;
+    case "notfound":
+      return <NotFound go={go} text="Nothing lives at this address." />;
   }
 }

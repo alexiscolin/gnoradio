@@ -1,24 +1,31 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import verify from "./functions/verify.mjs";
+import { RealmError } from "./cards";
 import { WELL_KNOWN, proofLine } from "../src/lib/proof";
 import { WALLET, keyPair, post, str, verifies } from "./testing";
+import { serverChainId } from "../src/lib/network";
+import { REALMS } from "../src/lib/realms";
 
-const chain = vi.hoisted(() => ({ calls: [] as string[], artist: {}, track: { audio: "audius:T1" } }));
-vi.mock("@gnolang/gno-js-client", () => ({
-  GnoJSONRPCProvider: {
-    create: () =>
-      Promise.resolve({
-        evaluateExpression: (_pkg: string, expr: string) => {
-          chain.calls.push(expr);
-          if (expr.startsWith("ArtistJSON(")) return Promise.resolve(str(JSON.stringify(chain.artist)));
-          if (expr.startsWith("TrackJSON(")) return Promise.resolve(str(JSON.stringify(chain.track)));
-          if (expr.startsWith("ClaimMessage(")) return Promise.resolve(str("claim message"));
-          return Promise.resolve("");
-        },
-      }),
-  },
-}));
+const chain = vi.hoisted(() => ({ calls: [] as string[], artist: {}, track: { audio: "audius:T1" }, fail: "" }));
+// The chain, through netlify/'s one read client (cards.qevalRaw). ClaimMessage answers as the realm does.
+vi.mock("./cards", async (orig) => {
+  // The realm's text, built from the same chain id and data path as the robot (not through ./bot: it imports this module).
+  const { serverChainId } = await import("../src/lib/network");
+  const { REALMS } = await import("../src/lib/realms");
+  const certificate = (kind: string, ...f: (string | number)[]) => [`gnoradio-${kind}`, serverChainId(), REALMS.data, ...f.map(String)].join("|");
+  const answer = (expr: string): string => {
+    chain.calls.push(expr);
+    // The node's panic for a hidden artist, or an outage (the 3 s timeout, a 5xx).
+    if (chain.fail && expr.startsWith("ArtistJSON(")) throw chain.fail === "realm" ? new RealmError("no answer") : new Error("The operation timed out");
+    if (expr.startsWith("ArtistJSON(")) return str(JSON.stringify(chain.artist));
+    if (expr.startsWith("TrackJSON(")) return str(JSON.stringify(chain.track));
+    if (expr.startsWith("ClaimMessage(")) return str(certificate("claim", ...(JSON.parse(`[${expr.slice(13, -1)}]`) as (string | number)[])));
+    return "";
+  };
+  const { unquote } = await import("../src/lib/proof");
+  return { ...(await orig<object>()), qevalRaw: (_rpc: string, _pkg: string, expr: string) => Promise.resolve(answer(expr)), qeval: (_rpc: string, _pkg: string, expr: string) => Promise.resolve(unquote(answer(expr))) };
+});
 
 const LINE = proofLine(7, WALLET);
 const artist = (a: object = {}) => ({ id: 7, kind: "", owner: "", source: "", verified: false, tracks: [1], ...a });
@@ -45,10 +52,12 @@ beforeEach(async () => {
   const k = await keyPair();
   publicKey = k.publicKey;
   vi.stubEnv("URL", "https://radio.example");
+  vi.stubEnv("VITE_GNORADIO_NS", "gnoradio");
   vi.stubEnv("BOT_SIGNING_KEY", k.seed);
   chain.calls = [];
   chain.artist = artist();
   chain.track = { audio: "audius:T1" };
+  chain.fail = "";
   web = { [`https://artist.example${WELL_KNOWN}`]: () => new Response(`hello\n${LINE}\n`) };
   dns = {};
   fetched = [];
@@ -95,7 +104,7 @@ describe("verify well-known file", () => {
     const b = await json(r);
     expect(b).toMatchObject({ found: true, page: `https://artist.example${WELL_KNOWN}` });
     expect((b.expires ?? 0) - before).toBeLessThanOrEqual(7200);
-    expect(await verifies(publicKey, b.sig ?? "", "claim message")).toBe(true);
+    expect(await verifies(publicKey, b.sig ?? "", ["gnoradio-claim", serverChainId(), REALMS.data, 7, WALLET, `https://artist.example${WELL_KNOWN}`, b.expires].join("|"))).toBe(true);
     expect(chain.calls).toContain(`ClaimMessage(7, ${JSON.stringify(WALLET)}, ${JSON.stringify(`https://artist.example${WELL_KNOWN}`)}, ${String(b.expires)})`);
   });
 
@@ -110,9 +119,13 @@ describe("verify well-known file", () => {
     expect(b.sig).toBeUndefined();
   });
 
-  it("uses a curated artist's recorded page, not the one sent", async () => {
-    chain.artist = artist({ kind: "curated", source: "https://artist.example/bio" });
-    expect((await ask({ page: "https://elsewhere.example" })).status).toBe(200);
+  it.each(["https://artist.example", "https://archive.example/lea", "https://www.archive.example/lea"])("never verifies an imported profile, whatever page (%s): the moderator does", async (page) => {
+    chain.artist = artist({ kind: "curated", source: "https://archive.example/details/lea" });
+    const r = await ask({ page });
+    expect(r.status).toBe(400);
+    expect((await json(r)).error).toMatch(/Imported profiles are verified by the GnoRadio moderator/);
+    expect(fetched).toEqual([]);
+    expect(chain.calls.some((e) => e.startsWith("ClaimMessage("))).toBe(false);
   });
 
   it("answers notFound with the line to publish", async () => {
@@ -244,5 +257,16 @@ describe("verify Audius", () => {
     expect((await ask()).status).toBe(502);
     chain.artist = artist({ kind: "audius", tracks: [] });
     expect((await ask()).status).toBe(502);
+  });
+});
+
+describe("verify chain reads", () => {
+  it("says a hidden artist is unknown, but an outage is retryable, not a missing profile", async () => {
+    chain.fail = "realm";
+    expect((await ask()).status).toBe(404);
+    chain.fail = "net";
+    const r = await ask();
+    expect(r.status).toBe(502);
+    expect((await json(r)).error).toMatch(/try again/);
   });
 });

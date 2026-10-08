@@ -32,9 +32,13 @@ describe("useWallet disconnect", () => {
     expect(first.result.current.state.status).toBe("idle");
     first.unmount();
 
+    const calls = adena.GetAccount.mock.calls.length;
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const reload = renderHook(() => useWallet(() => undefined));
-    await new Promise((r) => setTimeout(r, 700)); // past the delayed Adena check
+    await act(() => vi.advanceTimersByTimeAsync(600)); // the delayed Adena check has run
+    vi.useRealTimers();
     expect(reload.result.current.state.status).toBe("idle");
+    expect(adena.GetAccount.mock.calls.length).toBe(calls); // it did not reconnect on its own
 
     await act(() => reload.result.current.connectWallet());
     expect(reload.result.current.state.status).toBe("connected");

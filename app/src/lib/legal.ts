@@ -17,3 +17,13 @@ export const HOST = "Netlify, Inc., 101 2nd Street, San Francisco, CA 94105, USA
 /** The public repository, and where to write to the publisher: its issues (a GitHub account, public). */
 export const REPO = "https://github.com/alexiscolin/gnoradio";
 export const CONTACT = `${REPO}/issues/new`;
+/** The terms' version: change it with the terms. */
+export const TERMS_DATE = "2026-10-08";
+/** Said wherever a contact is offered: issues and reports are public. */
+export const NO_PERSONAL_DATA = "Do not put personal data (your name, contact details) in a GitHub issue or an on-chain report; a private contact will be added before GnoRadio opens to the public.";
+/** Who GnoRadio is not. */
+export const INDEPENDENT = "GnoRadio is an independent personal project, not an official gno.land product; not affiliated with Audius, Adena or gno.land.";
+/** What the treasury pays for, said wherever money goes to it. */
+export const TREASURY_USE = "It pays for the site the radio relies on: hosting, the domain, the dedication check and the on-chain deposits of each new release.";
+/** What running GnoRadio costs, said wherever support is asked for. */
+export const COSTS = "No robot transacts for GnoRadio, and it pays nothing per listener or artist action: a published track joins its stations in the artist's own transaction, and everyone pays their own transactions. The publisher pays the one-time deploy and the launch catalog.";

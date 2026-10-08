@@ -7,7 +7,7 @@ const ON = ["onyx-1", "https://rpc.onyx.testnets.gno.land:443"] as const;
 describe("gnokeyCommand", () => {
   it("writes the gnoweb-style call for a listener action", () => {
     expect(gnokeyCommand({ pkg: REALMS.catalog, func: "Like", args: ["12"] }, ...ON, "alice")).toBe(
-      "gnokey maketx call -pkgpath gno.land/r/gnoradio/catalog/v0 -func Like -args '12' -gas-fee 40000ugnot -gas-wanted 40000000 -broadcast -chainid 'onyx-1' -remote 'https://rpc.onyx.testnets.gno.land:443' 'alice'",
+      "gnokey maketx call -pkgpath gno.land/r/gnoradio/catalog/v1 -func Like -args '12' -gas-fee 40000ugnot -gas-wanted 40000000 -broadcast -chainid 'onyx-1' -remote 'https://rpc.onyx.testnets.gno.land:443' 'alice'",
     );
   });
   it("sends coins only when the call is payable", () => {
@@ -25,7 +25,7 @@ describe("gnokeyCommand", () => {
   it("names the chain and the node, and holds a place for the key", () => {
     const cmd = gnokeyCommand({ pkg: REALMS.radio, func: "Sync", args: ["20"] }, "gnoland-1", "https://rpc.gno.land:443", "  ");
     expect(cmd).toContain("-chainid 'gnoland-1' -remote 'https://rpc.gno.land:443' 'YOUR_KEY_NAME'");
-    expect(cmd).toContain(`-gas-fee ${String(feeFor(gasFor("Sync")))}ugnot -gas-wanted 500000000`);
+    expect(cmd).toContain(`-gas-fee ${String(feeFor(gasFor("Sync")))}ugnot -gas-wanted 100000000`);
   });
 });
 

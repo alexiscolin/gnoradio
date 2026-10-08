@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { bookAt, gmt, hhmm, pickBlock } from "../components/PickNext";
 import {
   type TrackDraft, artistProblems, formatSplits, mediaProblem, parseClock, playlistProblems, reportProblems,
-  sha256Hex, splitsProblem, trackProblems, validName, validText,
+  sha256Hex, splitsProblem, trackProblems, validName, validText, editProblems, giftProblem, allowHost,
 } from "./rules";
 
 const ME = "g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5";
@@ -15,6 +15,15 @@ const draft: TrackDraft = {
 };
 
 describe("text rules mirror the realm", () => {
+  it("refuses what text.Valid and validName refuse, and finds the host the realm checks", () => {
+    expect(validText("\uff21\uff22\uff23", 1, 64)).toBe(false); // fullwidth ABC
+    expect(validText("\u{1d400}ad", 1, 64)).toBe(false); // mathematical bold A
+    expect(validText("a\u3164b", 1, 64)).toBe(false); // Hangul filler
+    expect(validName("..")).toBe(false); // no letter or digit
+    expect(validName("A.")).toBe(true);
+    expect(allowHost("https://archive.org?x=1")).toBe("archive.org");
+    expect(allowHost("https://Archive.org#a/b")).toBe("archive.org");
+  });
   it("validText accepts letters in any script and the allowed punctuation", () => {
     expect(validText("Minuit sur le Rhône, vol. 2 - live!", 1, 64)).toBe(true);
     expect(validText("東京 Night", 1, 64)).toBe(true);
@@ -74,6 +83,17 @@ describe("forms", () => {
     expect(bad.length).toBeGreaterThanOrEqual(6);
     expect(bad.join(" ")).toMatch(/rights/);
   });
+  it("checks a track edit without the publish-only fields", () => {
+    expect(editProblems(draft)).toEqual([]);
+    expect(editProblems({ ...draft, title: "", duration: "25:00" })).toHaveLength(2);
+  });
+  it("checks a ticket gift's recipient as the realm does", () => {
+    expect(giftProblem(OTHER, ME)).toBe("");
+    expect(giftProblem(OTHER.toUpperCase(), ME)).toMatch(/lower case/);
+    expect(giftProblem("g1abc", ME)).toMatch(/g1/);
+    expect(giftProblem(ME, ME)).toMatch(/yours/);
+    expect(giftProblem("", ME)).not.toBe("");
+  });
   it("checks artist, playlist and report inputs", () => {
     expect(artistProblems("Lea Kosmos", "Night synthwave.")).toEqual([]);
     expect(artistProblems("Daft  Punk", "")).toHaveLength(1);
@@ -124,6 +144,14 @@ describe("pickBlock", () => {
     expect(pickBlock([], now, ME, 0, 0, hour + 3000, four)).toMatch(/already booked for that hour/);
     expect(pickBlock([], now, ME, 0, 0, hour + 3600, four)).toBe("");
     expect(pickBlock([], now, ME, 0, 0, 0, [b(hour, ME)])).toMatch(/already waiting/); // a booked pick waits too
+    // Booked picks of the hour that already aired still count (radio.QueueAt): no 8 in one hour.
+    const thisHour = Math.floor(now / 3600) * 3600;
+    const aired = [0, 60, 120, 180].map((m) => b(thisHour + m));
+    expect(pickBlock([], thisHour + 600, ME, 0, 0, thisHour + 1800, aired)).toMatch(/already booked for that hour/);
+    // Booked picks take at most 15 of the 30 queue slots (radio.PickRules).
+    const fifteen = Array.from({ length: 15 }, (_, i) => b(hour + 3600 + i * 3600));
+    expect(pickBlock([], now, ME, 0, 0, hour + 1800, fifteen)).toMatch(/15 picks are already booked on this station/);
+    expect(pickBlock([], now, ME, 0, 180, 0, fifteen)).toBe(""); // a pick for now still has room
   });
   it("books a typed time today, or tomorrow once it has passed, on a quarter hour", () => {
     const soon = bookAt(hhmm(now + 3600), now);

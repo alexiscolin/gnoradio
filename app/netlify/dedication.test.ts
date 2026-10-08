@@ -4,23 +4,20 @@ import dedication from "./functions/dedication.mjs";
 import { DOWN } from "../src/lib/moderation";
 import { REALMS, SAFE } from "../src/lib/realms";
 import { WALLET, keyPair, post, str, verifies } from "./testing";
+import { certificate } from "./bot";
 
 // The chain: every evaluateExpression goes through chain.eval, set per test.
 type Eval = (pkg: string, expr: string) => string;
 const chain = vi.hoisted((): { calls: [string, string][]; eval: Eval } => ({ calls: [], eval: () => "" }));
-vi.mock("@gnolang/gno-js-client", () => ({
-  GnoJSONRPCProvider: {
-    create: () =>
-      Promise.resolve({
-        evaluateExpression: (pkg: string, expr: string) => {
-          chain.calls.push([pkg, expr]);
-          return Promise.resolve(chain.eval(pkg, expr));
-        },
-      }),
-  },
-}));
+vi.mock("./cards", async (orig) => {
+  const { unquote } = await import("../src/lib/proof");
+  const answer = (pkg: string, expr: string) => { chain.calls.push([pkg, expr]); return chain.eval(pkg, expr); };
+  return { ...(await orig<object>()), qevalRaw: (_rpc: string, pkg: string, expr: string) => Promise.resolve(answer(pkg, expr)), qeval: (_rpc: string, pkg: string, expr: string) => Promise.resolve(unquote(answer(pkg, expr))) };
+});
 
-const okChain = (pkg: string, expr: string) => (pkg === SAFE ? str("") : expr.startsWith("NoteMessage(") ? str("note message") : "");
+// NoteMessage answers as the realm does: the robot signs only that exact text.
+const okChain = (pkg: string, expr: string) =>
+  pkg === SAFE ? str("") : expr.startsWith("NoteMessage(") ? str(certificate("note", ...(JSON.parse(`[${expr.slice(12, -1)}]`) as (string | number)[]))) : expr.startsWith("MutedUntil(") ? "(0 int64)" : "";
 const scores = (s: Record<string, number>) => Response.json({ results: [{ category_scores: s }] });
 const json = async (r: Response) => (await r.json()) as { error?: string; expires?: number; sig?: string };
 const valid = { note: "Happy birthday Ana!", author: WALLET, station: 3 };
@@ -32,6 +29,7 @@ beforeEach(async () => {
   const k = await keyPair();
   publicKey = k.publicKey;
   vi.stubEnv("URL", "https://radio.example");
+  vi.stubEnv("VITE_GNORADIO_NS", "gnoradio");
   vi.stubEnv("NETLIFY_DEV", "");
   vi.stubEnv("OPENAI_API_KEY", "sk-test");
   vi.stubEnv("BOT_SIGNING_KEY", k.seed);
@@ -84,12 +82,26 @@ describe("dedication judgment", () => {
     expect(chain.calls[0]).toEqual([SAFE, `Note(${JSON.stringify(valid.note)}, 40)`]);
   });
 
+  it("refuses a muted author with 422 and when the pause ends, without asking OpenAI", async () => {
+    chain.eval = (pkg, expr) => (expr.startsWith("MutedUntil(") ? "(1893456000 int64)" : okChain(pkg, expr));
+    const r = await dedication(post(valid));
+    expect(r.status).toBe(422);
+    expect((await json(r)).error).toBe("Your dedications are paused after reports until Tue, 01 Jan 2030 00:00:00 GMT. Pick without one.");
+    expect(openai).not.toHaveBeenCalled();
+    expect(chain.calls.some(([, e]) => e.startsWith("NoteMessage("))).toBe(false);
+  });
+
   it("asks rephrasing when OpenAI flags the note", async () => {
     openai.mockResolvedValue(scores({ "harassment/threatening": 0.9 }));
     const r = await dedication(post(valid));
     expect(r.status).toBe(422);
     expect((await json(r)).error).toBe("Please rephrase your dedication.");
     expect(chain.calls.some(([, e]) => e.startsWith("NoteMessage("))).toBe(false);
+  });
+
+  it("signs nothing when the realm's text is not this exact certificate", async () => {
+    chain.eval = (pkg, expr) => (expr.startsWith("NoteMessage(") ? str("gnoradio-note|other-chain|x") : okChain(pkg, expr));
+    expect((await dedication(post(valid))).status).toBe(503);
   });
 
   it("signs a short-lived certificate bound to author and station", async () => {
@@ -99,8 +111,9 @@ describe("dedication judgment", () => {
     const { expires = 0, sig = "" } = await json(r);
     expect(expires).toBeGreaterThan(before);
     expect(expires - before).toBeLessThanOrEqual(900); // the realm refuses longer
-    expect(await verifies(publicKey, sig, "note message")).toBe(true);
-    expect(chain.calls[1]).toEqual([REALMS.radio, `NoteMessage(${JSON.stringify(WALLET)}, 3, ${JSON.stringify(valid.note)}, ${String(expires)})`]);
+    expect(await verifies(publicKey, sig, certificate("note", WALLET, 3, valid.note, expires))).toBe(true);
+    expect(chain.calls[1]).toEqual([REALMS.radio, `MutedUntil(${JSON.stringify(WALLET)})`]);
+    expect(chain.calls[2]).toEqual([REALMS.radio, `NoteMessage(${JSON.stringify(WALLET)}, 3, ${JSON.stringify(valid.note)}, ${String(expires)})`]);
 
     const [url, init] = openai.mock.calls[0] ?? [];
     expect(url).toBe("https://api.openai.com/v1/moderations");

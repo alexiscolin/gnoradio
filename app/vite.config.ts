@@ -1,5 +1,8 @@
 import { defineConfig } from "vitest/config";
-import { loadEnv, type Plugin } from "vite";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { resolve } from "node:path";
+import { createServer, loadEnv, type Plugin } from "vite";
+import { sitemap } from "./src/lib/seo";
 import react from "@vitejs/plugin-react";
 
 // In dev, /api/<name> runs the Netlify function netlify/functions/<name>.mts
@@ -14,7 +17,7 @@ function robot(): Plugin {
       process.env.BOT_RPC ??= "http://127.0.0.1:27157";
       // Local only: the robot functions accept calls without a site URL, as under `netlify dev`.
       process.env.NETLIFY_DEV ??= "true";
-      for (const k of ["BOT_SIGNING_KEY", "BOT_MNEMONIC", "OPENAI_API_KEY"]) if (env[k]) process.env[k] ??= env[k];
+      for (const k of ["BOT_SIGNING_KEY", "OPENAI_API_KEY"]) if (env[k]) process.env[k] ??= env[k];
       for (const name of ["verify", "dedication"]) {
         server.middlewares.use(`/api/${name}`, (req, res) => {
           const chunks: Buffer[] = [];
@@ -38,19 +41,31 @@ function robot(): Plugin {
 // Open Graph image absolute and goes into robots.txt and the sitemap.
 process.env.VITE_SITE_URL ??= "";
 const SITE = process.env.VITE_SITE_URL;
-const SECTIONS = ["", "live", "stations", "library", "community", "concerts", "contribute", "about", "legal"];
+const SECTIONS = ["", "features", "live", "stations", "library", "community", "concerts", "contribute", "about", "legal"];
 
-/** seoFiles writes robots.txt and sitemap.xml next to the build. */
+/** seoFiles writes robots.txt, sitemap.xml and the static copy of /features (src/lib/prerender.ts) next to the build. */
 function seoFiles(): Plugin {
+  let outDir = "dist";
   return {
     name: "gnoradio-seo",
     apply: "build",
+    configResolved(c) { outDir = resolve(c.root, c.build.outDir); },
+    // The page's copy imports the app's modules (import.meta.env and all): Vite loads them as it would for SSR.
+    async closeBundle() {
+      const server = await createServer({ configFile: false, appType: "custom", logLevel: "error", server: { middlewareMode: true, hmr: false } });
+      try {
+        const { featuresPage } = (await server.ssrLoadModule("/src/lib/prerender.ts")) as { featuresPage: (index: string, site: string) => string };
+        await mkdir(`${outDir}/features`, { recursive: true });
+        await writeFile(`${outDir}/features/index.html`, featuresPage(await readFile(`${outDir}/index.html`, "utf8"), SITE));
+      } finally {
+        await server.close();
+      }
+    },
     generateBundle() {
-      const robots = `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /rpc\n${SITE ? `Sitemap: ${SITE}/sitemap.xml\n` : ""}`;
+      const robots = `User-agent: *\nAllow: /\nDisallow: /api/\n${SITE ? `Sitemap: ${SITE}/sitemap.xml\n` : ""}`;
       this.emitFile({ type: "asset", fileName: "robots.txt", source: robots });
       if (!SITE) return;
-      const urls = SECTIONS.map((p) => `<url><loc>${SITE}/${p}</loc></url>`).join("");
-      this.emitFile({ type: "asset", fileName: "sitemap.xml", source: `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}</urlset>\n` });
+      this.emitFile({ type: "asset", fileName: "sitemap.xml", source: sitemap(SITE, SECTIONS) });
     },
   };
 }

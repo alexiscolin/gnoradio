@@ -81,3 +81,9 @@ export const firstNonEmpty = (...xs: readonly (string | undefined)[]): string =>
 
 /** plural writes "1 follower", "3 followers". */
 export const plural = (n: number, word: string): string => `${String(n)} ${word}${n === 1 ? "" : "s"}`;
+
+/** esc makes text safe in HTML, XML and SVG markup (text and quoted attributes). */
+export const esc = (s: string): string => s.replace(/[&<>"']/g, (c) => `&#${String(c.charCodeAt(0))};`);
+
+/** utf8Base64 encodes a string as UTF-8 then base64 (btoa alone mangles anything past Latin-1). */
+export const utf8Base64 = (s: string): string => btoa(String.fromCharCode(...new TextEncoder().encode(s)));

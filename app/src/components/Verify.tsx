@@ -3,6 +3,7 @@ import { REALMS, qjson } from "../lib/gno";
 import { type Infer, bool, num, obj, opt, str } from "../lib/guard";
 import { hostOf } from "../lib/format";
 import { WELL_KNOWN, proofLine } from "../lib/proof";
+import { CONTACT } from "../lib/legal";
 import { safeHttps } from "../lib/safe";
 import type { Artist } from "../lib/types";
 import type { Actions } from "../player/useActions";
@@ -14,13 +15,30 @@ export const isClaim = obj({ verified: bool, proof: str, pending: bool, to: opt(
 type Claim = Infer<typeof isClaim>;
 
 const VERIFY_HELP =
-  "Tips and paid tickets only reach artists who proved who they are, so nobody can collect money in someone else's name. " +
+  "Tips and paid tickets only reach artists who proved they control their page, so a false claim cannot collect money in someone else's name. " +
+  "One exception, public on chain: the moderator can give an imported profile to another wallet. " +
   "The proof is a short code the artist adds where only they can write: their Audius bio, or a file on their own website. " +
   "A robot reads it, then the request stays public for 72 hours before it counts: if the page was hacked, there is time to stop it. " +
   "GnoRadio never holds the money and takes nothing: a tip reaches the artist in the same transaction.";
 
 /** tippable: tips and paid tickets need a verified artist (catalog/verify.gno). */
 export const tippable = (a: Artist | undefined): boolean => a !== undefined && a.owner !== "" && a.verified;
+
+/** MODERATOR_MARK: a verified artist with no proof host was verified by the moderator (catalog AssignArtist). */
+export const MODERATOR_MARK = "✓ verified by the GnoRadio moderator";
+
+/**
+ * ProofMark is the ✓ of a verified artist with the host that proved it
+ * (Artist.proofHost, read with ArtistJSON): a ✓ only says someone controls that
+ * domain, so the host is always shown next to it. Verified with no host: the
+ * moderator verified it (catalog.ProofHost is "" then), and says so.
+ */
+export function ProofMark({ a }: { readonly a: Pick<Artist, "verified" | "proofHost"> }) {
+  if (!a.verified) return null;
+  return a.proofHost
+    ? <span className="proof-host" title={`Verified: the proof was found on ${a.proofHost}`}>✓ {a.proofHost}</span>
+    : <span className="proof-host">{MODERATOR_MARK}</span>;
+}
 
 const day = (unix: number) => new Date(unix * 1000).toLocaleString("en", { weekday: "short", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
@@ -41,7 +59,7 @@ export function VerifyStatus({ a, claim, onVerify }: { readonly a: Artist; reado
     return (
       <span className="vstatus ok">
         <Shape g="circle" size={10} fill="var(--blue)" /> Verified artist
-        {proof && <> · <a href={proof} target="_blank" rel="noreferrer">via {hostOf(proof)}</a></>}
+        {proof ? <> · <a href={proof} target="_blank" rel="noreferrer">via {hostOf(proof)}</a></> : a.proofHost === "" && <> · {MODERATOR_MARK}</>}
         <Help text={VERIFY_HELP} />
       </span>
     );
@@ -76,8 +94,7 @@ export function VerifyPanel({ a, claim, actions, onClose, onChange }: { readonly
   const now = Date.now() / 1000;
   const where =
     a.kind === "audius" ? "in your Audius bio (Audius › Edit profile › Bio)"
-      : a.kind === "curated" && a.source ? `in a file on your site: ${new URL(a.source).origin}${WELL_KNOWN}`
-        : `in a file on your own website: yourname.com${WELL_KNOWN}`;
+      : `in a file on your own website: yourname.com${WELL_KNOWN}`;
   const needsPage = a.kind === "artist";
 
   const run = async () => {
@@ -107,7 +124,7 @@ export function VerifyPanel({ a, claim, actions, onClose, onChange }: { readonly
         <h3><Shape g="circle" size={14} fill="var(--blue)" /> Verify {a.name}</h3>
         <button className="x" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
       </div>
-      <p className="muted small">Prove this is you so fans can tip you and buy your paid tickets. No paperwork, no email: a short code on your own page is enough. <Help text={VERIFY_HELP} /></p>
+      <p className="muted small">Prove this page is yours so fans can tip you and buy your paid tickets. No paperwork, no email: a short code on your own page is enough. <Help text={VERIFY_HELP} /></p>
 
       {claim?.pending && (claim.to === wallet || now >= (claim.readyAt ?? 0)) ? (
         <div className="verify-done">
@@ -120,6 +137,12 @@ export function VerifyPanel({ a, claim, actions, onClose, onChange }: { readonly
           ) : (
             <span>Tips open on <b>{day(claim.readyAt ?? 0)}</b>. This 72-hour wait is public, so if someone hacked your page there is time to stop it. You can then remove the code from your page.</span>
           )}
+        </div>
+      ) : a.kind === "curated" ? (
+        // An imported profile's pages are its source's: no proof the robot reads is the artist's,
+        // so only the moderator gives it an owner (catalog.AssignArtist).
+        <div className="verify-done">
+          <span>Imported profile: <a href={CONTACT} target="_blank" rel="noreferrer">contact the moderator to claim it</a>.</span>
         </div>
       ) : !wallet ? (
         <div className="verify-done">
@@ -146,7 +169,6 @@ export function VerifyPanel({ a, claim, actions, onClose, onChange }: { readonly
               {needsPage && (
                 <label className="field">Your website<input className="mono" type="url" inputMode="url" value={page} placeholder="https://yourname.com" onChange={(e) => { setPage(e.target.value); }} /></label>
               )}
-              {a.kind === "curated" && !a.source && <small className="error">This profile has no page of its own to check. Register your own artist profile instead.</small>}
             </div>
           </li>
           <li>

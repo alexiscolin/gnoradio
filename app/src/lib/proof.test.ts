@@ -29,3 +29,14 @@ describe("proof", () => {
     for (const ip of ["93.184.216.34", "172.32.0.1", "2606:4700::1111"]) expect(privateIP(ip)).toBe(false);
   });
 });
+
+
+describe("hasChecksum", () => {
+  it("accepts real addresses and refuses a typo the charset alone lets through", async () => {
+    const { hasChecksum } = await import("./proof");
+    expect(hasChecksum("g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5")).toBe(true);
+    expect(hasChecksum("g1mpkp5lm8lwpm0pym4388836d009zfe4maxlqsq")).toBe(true);
+    expect(hasChecksum("g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf6")).toBe(false);
+    expect(hasChecksum("g1u7y667z64x2h7vc6fmpcprgey4ck233jaww9qz")).toBe(false);
+  });
+});

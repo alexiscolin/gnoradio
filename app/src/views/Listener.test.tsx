@@ -6,7 +6,8 @@ import { ListenerView } from "./Listener";
 const A = "g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5";
 const now = Math.floor(Date.now() / 1000);
 
-vi.mock("../lib/incentives", () => ({
+vi.mock("../lib/incentives", async (orig) => ({
+  ...(await orig<object>()),
   loadCurator: () => Promise.resolve({ address: A, picks: 7, tips: 2, earned: 1_500_000, promo: 0, week: { picks: 3, tips: 1, earned: 0, rank: 2 } }),
 }));
 vi.mock("../lib/community", () => ({
@@ -28,7 +29,7 @@ const cat = {
 describe("ListenerView", () => {
   it("shows the curator, their picks with dedications and playlists", async () => {
     const go = vi.fn();
-    render(<ListenerView cat={cat} go={go} address={A} me={A} />);
+    render(<ListenerView cat={cat} go={go} address={A} me={A} openPick={vi.fn()} />);
     expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("@alice");
     expect(await screen.findByText("#2")).toBeTruthy();
     expect(screen.getByText("7")).toBeTruthy();
@@ -38,5 +39,14 @@ describe("ListenerView", () => {
     expect(go).toHaveBeenCalledWith({ k: "playlist", id: 9 });
     fireEvent.click(screen.getByRole("button", { name: "Me" }));
     expect(go).toHaveBeenCalledWith({ k: "me" });
+    expect(screen.queryByRole("button", { name: /Tune in/ })).toBeNull(); // their own page
+  });
+  it("invites a visitor to tune in or pick a track too", () => {
+    const go = vi.fn(), openPick = vi.fn();
+    render(<ListenerView cat={cat} go={go} address={A} me="" openPick={openPick} />);
+    fireEvent.click(screen.getByRole("button", { name: /Tune in/ }));
+    expect(go).toHaveBeenCalledWith({ k: "stations", live: 0 });
+    fireEvent.click(screen.getByRole("button", { name: /Pick a track too/ }));
+    expect(openPick).toHaveBeenCalledWith(0);
   });
 });

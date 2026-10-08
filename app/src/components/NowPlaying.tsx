@@ -3,7 +3,7 @@ import { useNames } from "../lib/names";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { clock, firstNonEmpty } from "../lib/format";
 import type { Catalog, Navigate } from "../lib/types";
-import type { Actions } from "../player/useActions";
+import { type Actions, PICK_COST } from "../player/useActions";
 import { NOT_RESPONDING, type Player, usePosition } from "../player/usePlayer";
 import { Help } from "./Help";
 import { Cover } from "./Cover";
@@ -11,10 +11,11 @@ import { Dial } from "./Dial";
 import { Shape } from "./Shapes";
 import type { SupportTarget } from "./SupportSheet";
 import { tippable } from "./Verify";
-import { favouriteMin, inMinutes, type Note, nextSet, pickNote, setName, shortBio, stationLine, why } from "../lib/onair";
+import { favouriteMin, inMinutes, type Note, nextSet, pickNote, pickerOf, setName, shortBio, stationLine, why } from "../lib/onair";
 import { collectable, usePickOnAir, useSponsored } from "../lib/incentives";
 import { gnot } from "../lib/format";
-import { ShareButton, Who } from "./common";
+import { Empty, MakeMusic, NOTHING_ON_AIR, ShareButton, Who } from "./common";
+import { gnowebOf } from "../lib/links";
 
 interface Props {
   readonly cat: Catalog;
@@ -37,11 +38,11 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
     const modal = window.matchMedia("(max-width: 900px)").matches;
     if (!modal) return;
     const back = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const others = [...document.querySelectorAll<HTMLElement>(".shell > :not(.now)")];
+    const others = [...document.querySelectorAll<HTMLElement>(".shell > :not(.now, .toast)")];
     for (const el of others) el.inert = true;
     closeRef.current?.focus();
-    // A dialog opened from the sheet (PickNext, Support) handles its own Escape: close one layer at a time.
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !document.querySelector("dialog[open]")) onClose(); };
+    // A dialog opened from the sheet (PickNext, Support) or an open help popover handles its own Escape: close one layer at a time.
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !e.defaultPrevented && !document.querySelector("dialog[open]")) onClose(); };
     window.addEventListener("keydown", onKey);
     return () => {
       for (const el of others) el.inert = false;
@@ -68,20 +69,22 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
   // On the radio, the track on air may be a listener's pick: credit them.
   const onAir = live ? p.entries.find((e) => e.start <= chainNow && e.end > chainNow && e.track === p.current) : undefined;
   // Report is for listeners: not the author, and once per dedication (each report costs a fee).
+  const [still, setStill] = useState(false); // the dedication ticker held still (WCAG 2.2.2)
   const [reported, setReported] = useState<ReadonlySet<string>>(new Set());
   const ws = actions.wallet.state;
   const me = ws.status === "connected" || ws.status === "wrong-network" ? ws.address : "";
   const noteKey = onAir ? `${String(p.station)}/${String(onAir.start)}` : "";
-  const canReport = onAir !== undefined && (me === "" || onAir.by !== me) && !reported.has(noteKey);
+  // A wallet the realm keeps from reporting (sponsorBlock: no pick history yet) is not offered the button.
+  const sponsored = useSponsored(me, actions.pending);
+  const canReport = onAir !== undefined && (me === "" || onAir.by !== me) && !reported.has(noteKey) && (sponsored?.block ?? "") === "";
   const who = useNames([...upNext, ...(onAir ? [onAir] : [])].map((e) => e.by));
   // The listener's own pick on air, here or on another station: their moment, then its result.
   const myPick = usePickOnAir(me, cat, chainNow, actions.say);
   const mine = me !== "" && onAir?.queued === true && onAir.by === me;
   const elsewhere = myPick && !(live && myPick.station === p.station) ? myPick : null;
-  // A tip during a listener's pick shares the artist's promo share with them (radio.TipOnAir); the admin's picks earn nothing.
-  const picker = onAir?.queued && onAir.by !== cat.admin ? onAir.by : undefined;
+  const picker = pickerOf(onAir, cat.admin);
   // Free (sponsored) picks of mine that have played in full: one signature collects the artist's refund.
-  const toCollect = collectable(useSponsored(me, actions.pending))[0];
+  const toCollect = collectable(sponsored)[0];
 
   // One quiet line under the artist, timed from the last tune-in or track change.
   const markKey = `${p.mode}/${String(p.station)}/${String(p.current)}`;
@@ -117,10 +120,11 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
         frac={t && t.duration > 0 ? (airing ? chainNow - airing.start : pos) / t.duration : 0}
         seconds={airing ? chainNow - airing.start : pos}
         buffering={p.buffering}
-        tuning={live && !t && !p.error}
+        tuning={live && !t && !p.error && !p.synced && cat.tracks.length > 0}
         caption={t ? `of ${clock(t.duration)}${live ? " · live" : ""}` : live ? "Nothing on air yet" : "Choose a track"}
         live={live}
         onSeek={live ? undefined : p.seek}
+        chain={t ? { href: gnowebOf({ k: "track", id: t.id }), label: `View ${t.title} on gno.land, opens a new tab` } : undefined}
       />
 
       <div className="now-meta">
@@ -148,18 +152,20 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
                 </div>
               </div>
               {onAir?.note && (
-                <div className={`dedic${canReport ? "" : " solo"}`} role="note" aria-label={`Dedication: ${onAir.note}`}>
-                  <span className="dedic-tag" aria-hidden="true"><Shape g="quarter" size={12} fill="var(--red)" /></span>
+                <div className={`dedic${canReport ? "" : " solo"}${still ? " still" : ""}`} role="note" aria-label={`Dedication: ${onAir.note}`}>
+                  <button className="dedic-tag" aria-pressed={still} aria-label="Hold the dedication still" onClick={() => { setStill((v) => !v); }}><Shape g="quarter" size={12} fill="var(--red)" /></button>
                   <span className="dedic-track" aria-hidden="true">
                     {/* Twice, so the ticker loops without a gap. */}
-                    <span className="dedic-run">{onAir.note} · from <Who address={onAir.by} shown={who} go={go} tabIndex={-1} /><i /> {onAir.note} · from <Who address={onAir.by} shown={who} go={go} tabIndex={-1} /><i /></span>
+                    <span className="dedic-run"><span>{onAir.note} · from <Who address={onAir.by} shown={who} go={go} tabIndex={-1} /><i /></span><span className="dedic-copy"> {onAir.note} · from <Who address={onAir.by} shown={who} go={go} tabIndex={-1} /><i /></span></span>
                   </span>
-                  {canReport && <button className="dedic-report" onClick={() => { actions.reportNote(p.station, onAir.start, () => { setReported((s) => new Set(s).add(noteKey)); }); }} title="Report this dedication · open to listeners who picked a track; three reports hide it">Report</button>}
+                  {canReport && <button className="dedic-report" onClick={() => { actions.reportNote(p.station, onAir.start, () => { setReported((s) => new Set(s).add(noteKey)); }); }} title="Report this dedication · open to listeners whose first pick is 7 days old, with 3 normal picks in the last two 15-day periods; three reports hide it">Report</button>}
                 </div>
               )}
             </>
           ) : (
-            <span className="muted">Pick a track or go live.</span>
+            cat.tracks.length === 0
+              ? <Empty text={NOTHING_ON_AIR}><MakeMusic go={go} /></Empty>
+              : <span className="muted">Pick a track or go live.</span>
           )}
           {p.error && (
             <span className="error small" role="alert">
@@ -176,7 +182,7 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
           <span>
             {elsewhere ? <>“{cat.byId.get(elsewhere.track)?.title ?? "Your track"}” is playing for everyone tuned in.</>
               : onAir?.sponsored ? <>Free pick: {artist?.name ?? "the artist"} refunds you {gnot(onAir.sponsored)} once it has played in full. Collect it here then.</>
-              : artist && tippable(artist) ? <>Tips sent from the radio while it plays share {artist.promo}% with you (half if they came through someone's link).</>
+              : artist && tippable(artist) && artist.promo > 0 ? <>Tips sent from the radio while it plays share {artist.promo}% with you (half if they came through someone's link).</>
                 : <>It plays for everyone tuned in. Share it.</>}
           </span>
           <span className="head-actions">
@@ -249,7 +255,12 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
 
       {live && (
         <div className="upnext">
-          <span className="lbl">Up next on {stationName} <Help text="Listeners program the radio: one pick per station per hour, up to 2 hours ahead. A pick costs about 0.08 GNOT and locks about 0.3 GNOT as storage deposit (up to 0.9 for your first)." /></span>
+          <span className="lbl upnext-head">
+            <span>Up next on {stationName} <Help text={`Listeners program the radio: one pick per station per hour, up to 2 hours ahead. A pick costs ${PICK_COST}.`} /></span>
+            <span className="proof">
+              <ChainLink href={gnowebOf({ k: "stations", live: p.station })} what={`the ${stationName} schedule`}>Schedule</ChainLink>
+            </span>
+          </span>
           {upNext.map((e) => (
             <div key={`${String(e.track)}-${String(e.start)}`} className={`row tiny${e.queued ? " picked" : ""}`}>
               <span className="mono muted">{new Date(e.start * 1000).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</span>
@@ -260,7 +271,7 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
           {upNext.length > 0 && !upNext.some((e) => e.queued) && (
             <button className="pick-cta" onClick={() => { openPick(p.station); }}>
               <Icon name="on-air" size={18} />
-              <span>Next {upNext.length === 1 ? "track is" : `${String(upNext.length)} tracks are`} up for grabs<small>Pick one: your name on air, a share of its tips</small></span>
+              <span>Next {upNext.length === 1 ? "track is" : `${String(upNext.length)} tracks are`} up for grabs<small>Pick one: your name on air, a share of its tips when the artist set one</small></span>
               <span aria-hidden="true">+</span>
             </button>
           )}
@@ -268,4 +279,9 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
       )}
     </section>
   );
+}
+
+/** ChainLink opens a page rendered by the chain on gnoweb, in a new tab. */
+function ChainLink({ href, what, children }: { readonly href: string; readonly what: string; readonly children: string }) {
+  return <a href={href} target="_blank" rel="noreferrer" aria-label={`View ${what} on gno.land, opens a new tab`}>{children} <Icon name="external" size={12} className="nudge-out" /></a>;
 }

@@ -11,6 +11,24 @@ const LINE = new RegExp(`gnoradio:(\\d+):(${G1})`, "g");
 /** isAddress tells whether s is a gno.land g1… address (bech32 charset, 40 characters). */
 export const isAddress = (s: string): boolean => ADDRESS.test(s);
 
+const CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l";
+/** hasChecksum also checks the bech32 checksum, as the chain does (address.IsValid): a typo'd g1… fails here. */
+export function hasChecksum(s: string): boolean {
+  if (!isAddress(s)) return false;
+  const gen = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3];
+  let chk = 1;
+  const step = (v: number) => {
+    const top = chk >>> 25;
+    chk = ((chk & 0x1ffffff) << 5) ^ v;
+    gen.forEach((g, i) => { if ((top >>> i) & 1) chk ^= g; });
+  };
+  for (const c of "g") step(c.charCodeAt(0) >>> 5);
+  step(0);
+  for (const c of "g") step(c.charCodeAt(0) & 31);
+  for (const c of s.slice(2)) step(CHARSET.indexOf(c));
+  return chk === 1;
+}
+
 /**
  * hasProof reports whether text proves artistID belongs to wallet: it must
  * name exactly one wallet for that artist, so a page listing several (a
@@ -39,7 +57,10 @@ export function proofPage(raw: string): URL | null {
  * Pages whose content the artist does not control alone: a proof there could
  * be planted by an uploader or a commenter, so they never count.
  */
-const SHARED_HOSTS = ["archive.org", "wikimedia.org", "github.com", "gno.land", "bandcamp.com", "soundcloud.com"];
+// The import sources of curated profiles are here too: the proof of a curated profile is read at
+// the origin of its recorded page, so the operator of ccMixter could otherwise claim every artist
+// imported from it. Such a profile is verified by the admin (AssignArtist), not by the robot.
+const SHARED_HOSTS = ["archive.org", "wikimedia.org", "github.com", "gno.land", "bandcamp.com", "soundcloud.com", "ccmixter.org", "freemusicarchive.org", "jamendo.com"];
 export const isSharedHost = (host: string): boolean => SHARED_HOSTS.some((s) => host === s || host.endsWith(`.${s}`));
 
 /** WELL_KNOWN is where a non-Audius artist proves a domain: a file only its owner can write. */

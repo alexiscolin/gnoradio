@@ -2,7 +2,8 @@ import { bucket, track } from "../lib/analytics";
 import { Icon } from "../components/Icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type TrackOrder, sortTracks } from "../lib/catalog";
-import { BigList, type Crumb, Count, Crumbs, Head, TrackCards, TrackRows } from "../components/common";
+import { BigList, type Crumb, Count, Crumbs, Empty, Head, MakeMusic, NOTHING_ON_AIR, NO_TRACK, Proof, TrackCards, TrackRows } from "../components/common";
+import { ProofMark } from "../components/Verify";
 import { DEFAULT_GOAL, clock, gnot, plural } from "../lib/format";
 import { ActivityFeed } from "../components/ActivityFeed";
 import { Shape } from "../components/Shapes";
@@ -16,6 +17,7 @@ import { PlayButton } from "../components/PlayButton";
 import type { SupportTarget } from "../components/SupportSheet";
 import type { Activity, Catalog, Navigate, SupportInfo } from "../lib/types";
 import type { Saved } from "../lib/saved";
+import { codeURL, gnowebOf } from "../lib/links";
 import { MineLinks } from "./Collection";
 import type { Actions } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
@@ -41,35 +43,35 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
   return (
     <section>
       <div className="hero">
-        <button className="onair" onClick={() => { player.goLive(0); }}>
+        <button className="onair" onClick={() => { if (onAir) player.goLive(0); else go({ k: "contribute", path: "artist" }); }}>
           <span className="chip red"><Shape g="circle" size={9} fill="#fff" /> On air · Main</span>
           <span className="onair-eq" aria-hidden="true"><i /><i /><i /><i /></span>
           <span className="onair-title">{onAir?.title ?? "Nothing on air yet"}</span>
-          <span className="muted">{onAir && main ? `${onAir.artistName} · ${clock(main.now.offset)} in · everyone hears the same second` : "Publish or import the first track."}</span>
-          <span className="muted small">Or play any track just for you in the Library.</span>
-          <span className="go">Listen <Icon name="arrow-right" size={16} className="nudge" /></span>
+          <span className="muted">{onAir && main ? `${onAir.artistName} · ${clock(main.now.offset)} in · everyone hears the same second` : "Publish the first track: it goes on air in the same transaction."}</span>
+          {onAir && <span className="muted small">Or play any track just for you in the Library.</span>}
+          <span className="go">{onAir ? "Listen" : "Make music"} <Icon name="arrow-right" size={16} className="nudge" /></span>
         </button>
         <button className="block-yellow" onClick={() => { go({ k: "community" }); }}>
-          <span className="lbl">Kept on air by listeners</span>
-          <span className="big">{gnot(support.monthTotal)}</span>
+          <span className="lbl">Given to GnoRadio by listeners</span>
+          <span className="big">{support.monthTotal > 0 ? gnot(support.monthTotal) : "Be the first"}</span>
           <span className="bar"><i style={{ width: `${String(Math.min(100, (support.monthTotal / goal) * 100))}%` }} /></span>
-          <span className="small">of {gnot(goal)} this month · {plural(support.supporters, "supporter")}</span>
+          <span className="small">{support.monthTotal > 0 ? `of ${gnot(goal)} this month` : `Goal: ${gnot(goal)} this month`}{support.supporters > 0 ? ` · ${plural(support.supporters, "supporter")}` : ""}</span>
         </button>
       </div>
-      <button className="bethedj" onClick={() => { openPick(0); }}>
+      {cat.tracks.length > 0 && <button className="bethedj" onClick={() => { openPick(0); }}>
         <Icon name="on-air" size={48} className="bethedj-icon" />
         <span className="bethedj-txt">
           <b>Be the DJ</b>
-          <span>Pick a track: it plays on Main for everyone tuned in.</span>
+          <span>Pick a track: it plays on Main for everyone tuned in, next or at a time you choose.</span>
           <span className="bethedj-perks">
             <span>Your name on air</span>
-            <span>Your dedication on air</span>
-            <span>Earn a share of tips</span>
-            <span>Free when sponsored</span>
+            <span>A dedication on air</span>
+            <span>A share of tips, if the artist sets one</span>
+            <span>Some picks refunded by the artist</span>
           </span>
         </span>
         <span className="bethedj-go">Pick a track <Icon name="arrow-right" size={16} className="nudge" /></span>
-      </button>
+      </button>}
       <div className="cols">
         <div>
           <h3 className="sub">Community pulse <span className="live-dot" aria-hidden="true" /></h3>
@@ -78,14 +80,14 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
         </div>
         <div>
           <h3 className="sub">Support an artist</h3>
-          {claimed.length === 0 && <p className="muted">Artists who verified their profile appear here. Every tip reaches them in the same transaction.</p>}
+          {claimed.length === 0 && <Empty text="Artists who verified their profile appear here. Every tip reaches them in the same transaction."><button className="link small" onClick={() => { go({ k: "contribute", path: "claim" }); }}>Verify your profile <Icon name="arrow-right" size={14} className="nudge" /></button></Empty>}
           <div className="artists">
             {claimed.map((a) => {
               const first = cat.byId.get(a.tracks[a.tracks.length - 1] ?? 0);
               return (
                 <div key={a.id} className="artist-card">
                   <button className="name" onClick={() => { go({ k: "artist", id: a.id }); }}>{a.name}</button>
-                  <span className="muted small">{[a.tips > 0 ? `${gnot(a.tips)} raised` : "Be the first to support them", a.followers > 0 ? plural(a.followers, "follower") : ""].filter(Boolean).join(" · ")}</span>
+                  <span className="muted small"><ProofMark a={a} /> {[a.tips > 0 ? `${gnot(a.tips)} raised` : "Be the first to support them", a.followers > 0 ? plural(a.followers, "follower") : ""].filter(Boolean).join(" · ")}</span>
                   {first && <button className="cta yellow" onClick={() => { openSupport({ kind: "tip", track: first, artist: a }); }}><Shape g="square" size={10} fill="var(--ink)" /> Tip</button>}
                 </div>
               );
@@ -95,7 +97,7 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
       </div>
 
       <h3 className="sub">New releases</h3>
-      <TrackCards tracks={fresh} player={player} meta={(t) => (t.likes > 0 ? `${t.artistName} · ♥ ${String(t.likes)}` : t.artistName)} />
+      {fresh.length === 0 ? <Empty text={NO_TRACK}><MakeMusic go={go} /></Empty> : <TrackCards tracks={fresh} player={player} meta={(t) => (t.likes > 0 ? `${t.artistName} · ♥ ${String(t.likes)}` : t.artistName)} />}
       {cat.playlists.length > 0 && (
         <>
           <h3 className="sub">Community playlists</h3>
@@ -116,11 +118,18 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
 export function Stations({ cat, player, go, live, back }: ViewProps & { readonly live?: number | undefined; readonly back?: Required<Crumb> | undefined }) {
   // A shared #/station/N link tunes in once on arrival.
   const { goLive } = player;
-  useEffect(() => { if (live !== undefined) goLive(live); }, [live, goLive]);
+  // Tune in once per /live/N, not again each time the catalog (and so goLive) is renewed.
+  const tuned = useRef<number | undefined>(undefined);
+  useEffect(() => {
+    if (live === undefined || tuned.current === live) return;
+    tuned.current = live;
+    goLive(live);
+  }, [live, goLive]);
   return (
     <section>
       {back && <Crumbs trail={[back, { label: "Stations" }]} go={go} />}
       <Head a="Choose" b="Station" note="Each station plays the same second for everyone." right={<Count label="All" value={cat.stations.length} />} />
+      {cat.tracks.length === 0 && <Empty text={NOTHING_ON_AIR}><MakeMusic go={go} /></Empty>}
       {/* The big station list, each with its one-line identity. */}
       <div className="biglist stations">
         {cat.stations.map((s) => {
@@ -135,6 +144,7 @@ export function Stations({ cat, player, go, live, back }: ViewProps & { readonly
           );
         })}
       </div>
+      <Proof page={gnowebOf({ k: "stations" })} code={codeURL("radio")} label="the stations" />
     </section>
   );
 }
@@ -213,7 +223,7 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
         <input
           ref={input}
           value={raw}
-          placeholder={`Search ${cat.tracks.length.toLocaleString("en")} tracks, ${index.artists.length.toLocaleString("en")} artists…`}
+          placeholder={cat.tracks.length > 0 ? `Search ${cat.tracks.length.toLocaleString("en")} tracks, ${index.artists.length.toLocaleString("en")} artists…` : "Search the library"}
           onChange={(e) => { setRaw(e.target.value); }}
           onKeyDown={(e) => {
             if (e.key === "Escape") { setRaw(""); setQ(""); }
@@ -285,9 +295,9 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
             </div>
           )}
           {genre === 0 ? <h3 className="sub sub-row">All tracks {orders}</h3> : inGenre.length > 0 && (
-            <div className="head-actions genre-play"><PlayButton label="Play all" onClick={() => { player.playList(inGenre.map((t) => t.id), 0); }} />{orders}</div>
+            <div className="head-actions genre-play"><PlayButton label="Play all" tracks={inGenre} onClick={() => { player.playList(inGenre.map((t) => t.id), 0); }} />{orders}</div>
           )}
-          <TrackRows key={`${String(genre)}/${order}`} tracks={inGenre} player={player} actions={actions} saved={saved} />
+          {inGenre.length === 0 ? <Empty text={NO_TRACK}><MakeMusic go={go} /></Empty> : <TrackRows key={`${String(genre)}/${order}`} tracks={inGenre} player={player} actions={actions} saved={saved} />}
           {cat.albums.length > 0 && (
             <>
               <h3 className="sub">Albums</h3>

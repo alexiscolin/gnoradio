@@ -4,10 +4,11 @@
 // that the artist submits with catalog.Claim, paying the gas. The realm keeps the
 // claim public for 72 hours before it counts and lets the admin cancel it or
 // revoke the key (SetBot voids every pending claim it signed). The signing key holds no other power (netlify/bot.ts).
-import type { GnoJSONRPCProvider } from "@gnolang/gno-js-client";
-import { provider, readBody, refuse, reply, signCertificate } from "../bot";
-import { WELL_KNOWN, hasProof, isAddress, isSharedHost, privateIP, proofLine, proofPage, unquote } from "../../src/lib/proof";
+import { RealmError } from "../cards";
+import { certificate, chain, readBody, refuse, reply, signCertificate } from "../bot";
+import { WELL_KNOWN, hasProof, isAddress, isSharedHost, privateIP, proofLine, proofPage } from "../../src/lib/proof";
 import { REALMS } from "../../src/lib/realms";
+import { rateLimit } from "../limit";
 
 const CATALOG = REALMS.catalog;
 const MAX_PAGE = 1_000_000;
@@ -16,9 +17,15 @@ const UNREADABLE = "We could not read that file. Check the address and that it i
 
 interface Artist { id: number; kind: string; owner: string; source: string; verified: boolean; tracks: number[] }
 
-async function readJSON<T>(p: GnoJSONRPCProvider, expr: string): Promise<T> {
-  return JSON.parse(unquote(await p.evaluateExpression(CATALOG, expr))) as T;
+async function readJSON<T>(expr: string): Promise<T> {
+  return JSON.parse(await chain(CATALOG, expr)) as T;
 }
+
+/** refused is a read the realm refused (a hidden or unknown id) as null; a timeout or an outage stays an error, so the artist is told to retry. */
+const refused = (e: unknown): null => {
+  if (e instanceof RealmError) return null;
+  throw e;
+};
 
 /** publicHost resolves a name (DNS over HTTPS) and refuses one that points inside a network. */
 // ponytail: fetch() resolves the name again, so a rebinding DNS could answer
@@ -69,11 +76,15 @@ async function fetchText(url: URL): Promise<string> {
   throw new Error(UNREADABLE);
 }
 
-/** Audius: the profile is the one owning the artist's first track (a stable id, unlike the handle). */
-async function audiusProof(p: GnoJSONRPCProvider, a: Artist): Promise<{ text: string; page: string }> {
-  const first = a.tracks[0];
-  if (first === undefined) throw new Error("this artist has no track to check");
-  const t = await readJSON<{ audio: string }>(p, `TrackJSON(${String(first)})`);
+/** Audius: the profile is the one owning the artist's first visible track (a stable id, unlike the handle). */
+async function audiusProof(a: Artist): Promise<{ text: string; page: string }> {
+  let t: { audio: string } | undefined;
+  // A hidden track does not read (TrackJSON refuses it): the next one does.
+  for (const id of a.tracks.slice(0, 20)) {
+    t = (await readJSON<{ audio: string }>(`TrackJSON(${String(id)})`).catch(refused)) ?? undefined;
+    if (t) break;
+  }
+  if (!t) throw new Error("this artist has no track to check");
   const id = t.audio.startsWith("audius:") ? t.audio.slice(7) : "";
   if (!id) throw new Error("this track is not an Audius track");
   const r = await fetch(`https://api.audius.co/v1/tracks/${encodeURIComponent(id)}?app_name=GnoRadio`, { signal: AbortSignal.timeout(8000) });
@@ -93,19 +104,22 @@ export default async (req: Request): Promise<Response> => {
   if (!Number.isInteger(artistID) || artistID < 1 || !isAddress(wallet)) return reply(400, { error: "invalid artist or wallet" });
 
   try {
-    const p = await provider();
-    const a = await readJSON<Artist>(p, `ArtistJSON(${String(artistID)})`);
+    // An unknown or hidden artist does not read: say so, not "try again".
+    const a = await readJSON<Artist>(`ArtistJSON(${String(artistID)})`).catch(refused);
+    if (!a) return reply(404, { error: "No such artist on GnoRadio (or it is hidden)." });
     if (a.verified) return reply(409, { error: "This profile is already verified." });
     if (a.owner && a.owner !== wallet) return reply(403, { error: "This profile belongs to another wallet." });
+    // An imported profile's page is its source's (an archive, a label): no page proves the
+    // artist, so only the moderator gives it an owner (catalog.AssignArtist; Claim refuses it).
+    if (a.kind === "curated") return reply(400, { error: "Imported profiles are verified by the GnoRadio moderator: contact them to claim this one." });
 
     // Where to look: Audius through the account owning the artist's track; any
-    // other artist through a file on their own domain (an imported profile: the
-    // domain of its recorded page), never a page others can comment on.
+    // other artist through a file on their own domain, never a page others can comment on.
     let found: { text: string; page: string };
     if (a.kind === "audius") {
-      found = await audiusProof(p, a);
+      found = await audiusProof(a);
     } else {
-      const site = proofPage(a.kind === "curated" ? a.source : typeof body.page === "string" ? body.page : "");
+      const site = proofPage(typeof body.page === "string" ? body.page : "");
       if (!site) return reply(400, { error: "Give your website's address, e.g. https://yourname.com" });
       if (isSharedHost(site.hostname)) {
         return reply(400, { error: `${site.hostname} pages can be written by others, so they cannot prove who you are. Use your own website.` });
@@ -120,7 +134,9 @@ export default async (req: Request): Promise<Response> => {
     // A certificate the artist submits with catalog.Claim from their own wallet:
     // the robot signs, the artist pays the gas.
     const expires = Math.floor(Date.now() / 1000) + CERT_LIFE;
-    const message = unquote(await p.evaluateExpression(CATALOG, `ClaimMessage(${String(artistID)}, ${JSON.stringify(wallet)}, ${JSON.stringify(found.page)}, ${String(expires)})`));
+    const message = await chain(CATALOG, `ClaimMessage(${String(artistID)}, ${JSON.stringify(wallet)}, ${JSON.stringify(found.page)}, ${String(expires)})`);
+    // Signed only when the realm's text is exactly this artist, wallet, page and expiry on this chain and deployment.
+    if (message !== certificate("claim", artistID, wallet, found.page, expires)) return reply(503, { error: "The robot is not configured on this site." });
     const sig = await signCertificate(message);
     if (!sig) return reply(200, { found: true, page: found.page, note: "Proof found, but the robot key is not set on this server." });
     return reply(200, { found: true, page: found.page, expires, sig });
@@ -130,4 +146,4 @@ export default async (req: Request): Promise<Response> => {
   }
 };
 
-export const config = { path: "/api/verify" };
+export const config = { path: "/api/verify", rateLimit: rateLimit(10) };

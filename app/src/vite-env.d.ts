@@ -1,7 +1,9 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
-  /** gno.land RPC endpoint; defaults to the dev proxy at /rpc. */
+  /** Chain preset: dev, onyx or mainnet (lib/network.ts); each variable below overrides one value of it. */
+  readonly VITE_NETWORK?: string;
+  /** gno.land RPC the page reads; the dev proxy /rpc on a devnet, the chain's public RPC otherwise. */
   readonly VITE_RPC?: string;
   /** Chain id the wallet must sign for (dev, onyx-1…). */
   readonly VITE_CHAIN_ID?: string;

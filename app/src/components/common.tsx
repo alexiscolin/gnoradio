@@ -1,12 +1,14 @@
 import { track } from "../lib/analytics";
 import { withRef } from "../lib/incentives";
+import { isAddress } from "../lib/proof";
 import { Icon } from "./Icons";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { clock, licenseLabel } from "../lib/format";
+import { UNAVAILABLE, checkWhenSeen, isDead, usePlayable } from "../lib/playable";
 import { viewToPath } from "../lib/router";
 import type { Saved } from "../lib/saved";
 import type { Navigate, Track, View } from "../lib/types";
-import type { Actions } from "../player/useActions";
+import { type Actions, DEPOSIT } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
 import { Cover } from "./Cover";
 import { type Glyph, Shape } from "./Shapes";
@@ -55,6 +57,9 @@ export function BigList({ items, compact = false }: {
 /** TrackRows lists tracks; clicking one plays the list from there. */
 const ROWS_PAGE = 100;
 
+/** deadProps greys out a play control whose track has no working audio. */
+export const deadProps = (t: Track | undefined) => (isDead(t) ? { disabled: true, title: UNAVAILABLE } : {});
+
 /** rightsLabel is how a track's rights read in a list. */
 export const rightsLabel = (t: Track): string => (t.origin === "audius" ? "Audius" : licenseLabel(t.license));
 
@@ -75,6 +80,7 @@ export function TrackRows({ tracks, player, actions, saved }: { readonly tracks:
   // Long lists render 100 rows at a time (each row may fetch its cover); play still uses the whole list.
   const [shown, setShown] = useState(ROWS_PAGE);
   const left = tracks.length - shown;
+  usePlayable();
   return (
     <div className="rows">
       {tracks.slice(0, shown).map((t, i) => {
@@ -82,8 +88,8 @@ export function TrackRows({ tracks, player, actions, saved }: { readonly tracks:
         const kept = saved.has(t.id);
         return (
           // The play button covers the whole row (::after); like and save sit above it.
-          <div key={t.id} className={`track${player.current === t.id ? " on" : ""}`}>
-            <button className="track-play" onClick={() => { player.playList(ids, i); }}>
+          <div key={t.id} ref={checkWhenSeen(t)} className={`track${player.current === t.id ? " on" : ""}${isDead(t) ? " dead" : ""}`}>
+            <button className="track-play" {...deadProps(t)} onClick={() => { player.playList(ids, i); }}>
               <span className="mono muted num">
                 {player.current === t.id && player.playing
                   ? <i className="eq" aria-label="Playing"><i /><i /><i /></i>
@@ -91,7 +97,7 @@ export function TrackRows({ tracks, player, actions, saved }: { readonly tracks:
               </span>
               <Cover t={t} size="40px" />
               <span className="tt">
-                <b>{t.title}</b>
+                <b>{t.title}{isDead(t) && <span className="sr"> · {UNAVAILABLE}</span>}</b>
                 {!(oneArtist && oneRights) && <span className="muted">{[oneArtist ? "" : t.artistName, oneRights ? "" : rightsLabel(t)].filter(Boolean).join(" · ")}</span>}
               </span>
             </button>
@@ -119,12 +125,13 @@ export function TrackRows({ tracks, player, actions, saved }: { readonly tracks:
 
 export function TrackCards({ tracks, player, meta }: { readonly tracks: readonly Track[]; readonly player: Player; readonly meta: (t: Track) => string }) {
   const ids = tracks.map((t) => t.id);
+  usePlayable();
   return (
     <div className="grid">
       {tracks.map((t, i) => (
-        <button key={t.id} className="card" onClick={() => { player.playList(ids, i); }}>
+        <button key={t.id} ref={checkWhenSeen(t)} className="card" {...deadProps(t)} onClick={() => { player.playList(ids, i); }}>
           <Cover t={t} />
-          <b>{t.title}</b>
+          <b>{t.title}{isDead(t) && <span className="sr"> · {UNAVAILABLE}</span>}</b>
           <span className="muted">{meta(t)}</span>
         </button>
       ))}
@@ -133,12 +140,17 @@ export function TrackCards({ tracks, player, meta }: { readonly tracks: readonly
 }
 
 /** Proof links a screen to its twin page on gnoweb and to the code behind it. */
-export function Proof({ page, code }: { readonly page: string; readonly code: string }) {
+/** Proof links a screen to its page rendered by the chain on gnoweb and, when given, the code behind it. */
+export function Proof({ page, code, label, text = "View on gno.land" }: { readonly page: string; readonly code?: string | undefined; readonly label?: string | undefined; readonly text?: string | undefined }) {
   return (
     <p className="proof">
-      <a href={page} target="_blank" rel="noreferrer">View on gno.land <Icon name="external" size={12} className="nudge-out" /></a>
-      <span aria-hidden="true"> · </span>
-      <a href={code} target="_blank" rel="noreferrer">Read the code <Icon name="external" size={12} className="nudge-out" /></a>
+      <a href={page} target="_blank" rel="noreferrer" aria-label={label ? `View ${label} on gno.land, opens a new tab` : undefined}>{text} <Icon name="external" size={12} className="nudge-out" /></a>
+      {code && (
+        <>
+          <span aria-hidden="true"> · </span>
+          <a href={code} target="_blank" rel="noreferrer">Read the code <Icon name="external" size={12} className="nudge-out" /></a>
+        </>
+      )}
     </p>
   );
 }
@@ -160,7 +172,7 @@ export function LikeButton({ t, actions }: { readonly t: Track; readonly actions
       aria-pressed={on}
       aria-busy={busy}
       disabled={busy}
-      title={`${on ? "Unlike" : "Like"} · public, on-chain · the first like locks about 0.3 GNOT of storage deposit; Unlike frees it`}
+      title={`${on ? "Unlike" : "Like"} · public, on-chain · the first like locks about ${String(DEPOSIT["Like"])} GNOT of storage deposit; Unlike frees it`}
       onClick={toggle}
     >
       <Icon name={on ? "heart-on" : "heart"} size={15} />
@@ -224,7 +236,10 @@ export function Crumbs({ trail, go }: { readonly trail: readonly Crumb[]; readon
  * ShareButton shares a link, this page's by default: the system sheet on
  * phones, the clipboard elsewhere. `to` shares another screen, `text` adds a line.
  */
-export function ShareButton({ title, to, text, refBy = "", compact = false }: { readonly title: string; readonly to?: View; readonly text?: string; readonly refBy?: string; readonly compact?: boolean }) {
+/** EARNS: what a copied link of mine does (the tipper sees the split before signing). */
+const EARNS = "Link copied · tips through it share the promo share with you, when the artist set one";
+
+export function ShareButton({ title, to, text = `${title} on GnoRadio, the community radio. Listen free.`, refBy = "", compact = false, label = "Share" }: { readonly title: string; readonly to?: View; readonly text?: string; readonly refBy?: string; readonly compact?: boolean; readonly label?: string }) {
   const [copied, setCopied] = useState(false);
   const share = async () => {
     track("share", { what: to?.k ?? "page" });
@@ -243,7 +258,7 @@ export function ShareButton({ title, to, text, refBy = "", compact = false }: { 
   }
   return (
     <button className="btn share" onClick={() => void share()} title="Share a link">
-      <Icon name="share" size={15} /> {copied ? "Link copied" : "Share"}
+      <Icon name="share" size={15} /> {copied ? (isAddress(refBy) ? EARNS : "Link copied") : label}
     </button>
   );
 }
@@ -266,4 +281,59 @@ export function Stats({ items, empty }: { readonly items: readonly Stat[]; reado
   const on = items.filter((s) => s.value > 0);
   if (on.length === 0) return <p className="muted">{empty}</p>;
   return <div className="stats">{on.map((s) => <div key={s.label}><Shape g={s.g} size={14} /><b className="mono">{s.shown}</b><span>{s.label}</span></div>)}</div>;
+}
+
+/**
+ * Confirm is a button that asks once before an action that cannot be taken
+ * back quietly: the first press shows what will happen, the second signs.
+ */
+export function Confirm({ label, ask, onConfirm, busy = false, className = "cta ghost" }: {
+  readonly label: string; readonly ask: string; readonly onConfirm: () => void; readonly busy?: boolean; readonly className?: string;
+}) {
+  const [asking, setAsking] = useState(false);
+  // Focus follows the swap: to Keep (the safe answer) when asking, back to the trigger after Keep.
+  const trigger = useRef<HTMLButtonElement>(null);
+  const keep = useRef<HTMLButtonElement>(null);
+  const back = useRef(false);
+  useEffect(() => {
+    if (asking) keep.current?.focus();
+    else if (back.current) { back.current = false; trigger.current?.focus(); }
+  }, [asking]);
+  if (!asking) return <button ref={trigger} className={className} disabled={busy} onClick={() => { setAsking(true); }}>{busy ? "Confirm in Adena…" : label}</button>;
+  return (
+    <span className="confirm" role="group" aria-label={label}>
+      <span className="small">{ask}</span>
+      <button className="cta red" onClick={() => { setAsking(false); onConfirm(); }}>Yes, {label.toLowerCase()}</button>
+      <button ref={keep} className="cta ghost" onClick={() => { back.current = true; setAsking(false); }}>Keep</button>
+    </span>
+  );
+}
+
+/** walletOf is the address of the connected wallet, "" without one. */
+export const walletOf = (a: Actions): string => {
+  const s = a.wallet.state;
+  return s.status === "connected" || s.status === "wrong-network" ? s.address : "";
+};
+
+/** The empty states' shared lines. */
+export const NO_TRACK = "No track yet: publish the first one.";
+export const NOTHING_ON_AIR = "Nothing on air yet: publish the first track.";
+
+/** Empty is what a list shows before anyone filled it: one honest line, then the way to fill it. */
+export function Empty({ text, children }: { readonly text: string; readonly children?: ReactNode }) {
+  return <div className="empty-state"><p className="muted">{text}</p>{children && <div className="empty-ctas">{children}</div>}</div>;
+}
+
+/** MakeMusic is the empty states' artist way in: publish the first track. */
+export function MakeMusic({ go, label = "Make music" }: { readonly go: Navigate; readonly label?: string }) {
+  return <button className="cta" onClick={() => { go({ k: "contribute", path: "artist" }); }}>{label} <Icon name="arrow-right" size={16} className="nudge" /></button>;
+}
+
+/** jumpTo scrolls to a section of the page and moves focus there (smooth unless the listener asked for less motion). */
+export function jumpTo(id: string): void {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  if (!el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+  el.focus({ preventScroll: true });
 }

@@ -3,13 +3,18 @@
 
 import { check, type Guard } from "./guard";
 import { MAX_NOTE } from "./moderation";
+import { endpoints } from "./network";
 import { isAddress, unquote } from "./proof";
 import { REALMS, SAFE } from "./realms";
+import { utf8Base64 } from "./format";
 
 export { MAX_NOTE, REALMS, SAFE, unquote };
 
-export const RPC = import.meta.env.VITE_RPC ?? "/rpc";
-export const CHAIN_ID = import.meta.env.VITE_CHAIN_ID ?? (import.meta.env.PROD ? "onyx-1" : "dev");
+/** NET: the chain this build talks to (lib/network.ts); a production build without VITE_NETWORK is onyx. */
+// (No window when the build prerenders /features: the host only matters on a devnet.)
+const NET = endpoints(import.meta.env, import.meta.env.PROD ? "onyx" : "dev", typeof window === "undefined" ? undefined : window.location.hostname);
+export const RPC = NET.rpc;
+export const CHAIN_ID = NET.chainId;
 
 /** networkLabel names a non-mainnet chain for the network badge; "" on mainnet. */
 export function networkLabel(chainId: string): string {
@@ -28,7 +33,6 @@ export async function noteProblem(note: string): Promise<string> {
   return note === "" ? "" : unquote(await qeval(SAFE, `Note(${JSON.stringify(note)}, ${String(MAX_NOTE)})`));
 }
 
-const toBase64 = (s: string) => btoa(String.fromCharCode(...new TextEncoder().encode(s)));
 const fromBase64 = (s: string) => new TextDecoder().decode(Uint8Array.from(atob(s), (c) => c.charCodeAt(0)));
 
 interface AbciResponse {
@@ -70,7 +74,7 @@ async function slot<T>(fn: () => Promise<T>): Promise<T> {
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** GNOWEB is the gnoweb site for links to realm pages (the local gnodev web in development). */
-export const GNOWEB = import.meta.env.VITE_GNOWEB ?? (import.meta.env.DEV ? `${window.location.protocol}//${window.location.hostname}:8911` : "https://gno.land");
+export const GNOWEB = NET.gnoweb;
 
 /** qeval runs `pkg.expr` read-only and returns the raw typed result, e.g. `("…" string)`. */
 export async function qeval(pkg: RealmPath, expr: string): Promise<string> {
@@ -91,14 +95,14 @@ interface Query {
   readonly fail: (e: unknown) => void;
 }
 let queued: Query[] = [];
-// Off for the rest of the visit once the RPC answers a batch with anything but an array.
+// Off for the rest of the visit once a batch fails as a whole (network, any HTTP error, not an array).
 let batching = true;
 
 function qevalOnce(pkg: RealmPath, expr: string): Promise<string> {
   return new Promise<AbciResponse | undefined>((done, fail) => {
     // Queries issued in the same tick (a catalog load) share a few requests.
     if (queued.length === 0) queueMicrotask(flush);
-    queued.push({ data: toBase64(`${pkg}.${expr}`), done, fail });
+    queued.push({ data: utf8Base64(`${pkg}.${expr}`), done, fail });
   }).then((r) => {
     const base = r?.result?.response?.ResponseBase;
     if (!base) throw new Error("RPC unreachable");
@@ -125,15 +129,17 @@ async function send(qs: readonly Query[]): Promise<void> {
       // A hung node must not hold one of the few request slots forever; a batch gets the time of its queries.
       signal: AbortSignal.timeout(TIMEOUT_MS * qs.length),
     });
-    if (!res.ok) throw new Error(`RPC returned ${res.status}`);
+    if (!res.ok) throw new Error(`RPC returned ${String(res.status)}`);
     reply = await res.json();
     if (qs.length > 1 && !Array.isArray(reply)) throw new Error("RPC does not batch");
   } catch (e) {
     if (qs.length === 1) {
+      // A throttled, failing or slow node: the query fails and qeval backs off and retries it.
       qs[0]?.fail(e);
       return;
     }
-    // A batch that fails as a whole (refused, too large, cut off): one query per request from now on.
+    // A batch that fails as a whole (network, 4xx, 5xx, not an array): one query per
+    // request for the rest of the visit, these retried one by one.
     batching = false;
     queued.push(...qs);
     flush();
@@ -172,8 +178,7 @@ export function gnoAddress(a: string): string {
 // API per docs.adena.app and onbloc/adena-wallet src/inject.ts.
 
 /** RPC the wallet itself must reach (the dev proxy /rpc is only for the page). */
-export const WALLET_RPC =
-  import.meta.env.VITE_WALLET_RPC ?? (CHAIN_ID === "dev" ? `http://${window.location.hostname}:27157` : "https://rpc.onyx.testnets.gno.land:443");
+export const WALLET_RPC = NET.walletRpc;
 const CHAIN_NAME = CHAIN_ID === "dev" ? "GnoRadio devnet" : `gno.land ${CHAIN_ID}`;
 
 interface AdenaResponse<T> {
@@ -253,6 +258,8 @@ function fail(res: AdenaResponse<unknown>): never {
 export const isCancel = (e: unknown): boolean => e instanceof AdenaError && e.code === 4000;
 
 export const hasAdena = (): boolean => window.adena !== undefined;
+/** isPhone: Adena has no phone app yet, so a phone can listen but not sign. */
+export const isPhone = (): boolean => /Android|iPhone|iPad/i.test(navigator.userAgent);
 
 function adena(): AdenaWallet {
   if (!window.adena) throw new Error("Install the Adena wallet to sign actions.");

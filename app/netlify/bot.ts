@@ -1,26 +1,25 @@
-// The GnoRadio robot's key, shared by its functions. It only calls functions
-// that give it no power over funds or settings (radio.Sync, optional),
-// and signs certificates without paying: artist verification (catalog.Claim)
-// and dedications (radio.QueueWithNote). Env: BOT_MNEMONIC (never committed),
-// BOT_SIGNING_KEY, BOT_RPC (defaults to onyx).
-import { GnoJSONRPCProvider, GnoWallet } from "@gnolang/gno-js-client";
-import { TransactionEndpoint } from "@gnolang/tm2-js-client";
+// The GnoRadio robot's key, shared by its functions. It holds no account and
+// sends no transaction: it reads the chain and signs certificates the user
+// submits from their own wallet, artist verification (catalog.Claim) and
+// dedications (radio.QueueWithNote), so GnoRadio pays no gas. Env:
+// BOT_SIGNING_KEY, BOT_RPC (defaults to the site's network, lib/network.ts).
+import { serverChainId, serverRPC, set } from "../src/lib/network";
+import { REALMS, runtimeEnv } from "../src/lib/realms";
+import { qeval, qevalRaw } from "./cards";
+import { tooMany } from "./limit";
 
-export const provider = (): Promise<GnoJSONRPCProvider> =>
-  GnoJSONRPCProvider.create(process.env["BOT_RPC"] ?? "https://rpc.onyx.testnets.gno.land:443");
+/** chain reads a realm expression's string result through the robot's RPC (BOT_RPC, else the site's network). */
+const rpc = (): string => set(process.env["BOT_RPC"]) ?? serverRPC();
+export const chain = (realm: string, expr: string): Promise<string> => qeval(rpc(), realm, expr);
+/** chainRaw is chain without the string unquoting (an int64 answer). */
+export const chainRaw = (realm: string, expr: string): Promise<string> => qevalRaw(rpc(), realm, expr);
 
-// The whole gas limit is charged at the chain price (auth/gasprice: 1 ugnot
-// per 1000 gas on onyx and mainnet), so callers keep limits tight.
-
-/** botCall signs one call with the robot key; false when no key is set on this server. */
-export async function botCall(p: GnoJSONRPCProvider, pkg: string, fn: string, args: string[], gas: bigint): Promise<boolean> {
-  const mnemonic = process.env["BOT_MNEMONIC"];
-  if (!mnemonic) return false;
-  const bot = await GnoWallet.fromMnemonic(mnemonic);
-  bot.connect(p);
-  await bot.callMethod(pkg, fn, args, TransactionEndpoint.BROADCAST_TX_COMMIT, undefined, undefined, { gas_wanted: gas, gas_fee: `${String(gas / 1000n)}ugnot` });
-  return true;
-}
+/**
+ * certificate is the exact text the realm signs over (catalog.ClaimMessage, radio.NoteMessage), built here
+ * from this site's chain and namespace: the robot compares the realm's answer with it and signs nothing else.
+ */
+export const certificate = (kind: "claim" | "note", ...fields: readonly (string | number)[]): string =>
+  [`gnoradio-${kind}`, serverChainId(), REALMS.data, ...fields.map(String)].join("|");
 
 // Ed25519 seed of the robot's certificates (32 bytes, hex). It signs
 // catalog.ClaimMessage and radio.NoteMessage, so its public key must be set
@@ -42,31 +41,13 @@ function sameSite(req: Request): boolean {
   const site = process.env["URL"];
   if (!site) return process.env["NETLIFY_DEV"] === "true";
   const origin = req.headers.get("origin");
-  return origin !== null && URL.canParse(origin) && new URL(origin).host === new URL(site).host;
+  // The site's main URL, and this deploy's own (deploy previews, branch deploys).
+  const hosts = [site, process.env["DEPLOY_PRIME_URL"], process.env["DEPLOY_URL"]].filter((u): u is string => !!u && URL.canParse(u)).map((u) => new URL(u).host);
+  return origin !== null && URL.canParse(origin) && hosts.includes(new URL(origin).host);
 }
 
 export const reply = (status: number, body: object): Response => Response.json(body, { status });
 
-// ponytail: in memory, per function instance. Netlify runs several instances
-// under load, so the real ceiling is perMinute × instances, and a botnet with
-// many IPs is not stopped. Netlify's config.rateLimit or a shared store
-// (Netlify Blobs) when that matters.
-const hits = new Map<string, number[]>();
-
-function tooMany(ip: string, perMinute: number): boolean {
-  const now = Date.now();
-  if (hits.size > 10_000) hits.clear(); // bounded memory, at the cost of a reset
-  const recent = (hits.get(ip) ?? []).filter((t) => now - t < 60_000);
-  recent.push(now);
-  hits.set(ip, recent);
-  return recent.length > perMinute;
-}
-
-/**
- * refuse turns away what the app never sends before any outbound call: another
- * method or site (Origin is a CSRF check only: curl sets it at will), a large
- * body, more than perMinute calls from one client IP. null lets the call through.
- */
 const MAX_BODY = 4096;
 
 /** readBody parses a JSON request body read up to MAX_BODY bytes (a chunked body has no content-length to check); null when larger or not JSON. */
@@ -86,11 +67,17 @@ export async function readBody(req: Request): Promise<unknown> {
   try { return JSON.parse(text + decoder.decode()) as unknown; } catch { return null; }
 }
 
+/**
+ * refuse turns away what the app never sends before any outbound call: another
+ * method or site (Origin is a CSRF check only: curl sets it at will), a large
+ * body, more than perMinute calls from one client IP. null lets the call through.
+ */
 export function refuse(req: Request, perMinute: number): Response | null {
   if (req.method !== "POST") return reply(405, { error: "POST only" });
   if (!sameSite(req)) return reply(403, { error: "forbidden" });
   if (Number(req.headers.get("content-length") ?? 0) > MAX_BODY) return reply(413, { error: "invalid request" });
-  // Netlify sets this header itself: a client cannot choose it.
-  if (tooMany(req.headers.get("x-nf-client-connection-ip") ?? "", perMinute)) return reply(429, { error: "Too many tries. Wait a minute and try again." });
+  if (tooMany(req, perMinute)) return reply(429, { error: "Too many tries. Wait a minute and try again." });
+  // A deployed site without its namespace would read (and certify for) gno.land/r/gnoradio, which anyone may register.
+  if (process.env["NETLIFY_DEV"] !== "true" && process.env["URL"] && !runtimeEnv("VITE_GNORADIO_NS")) return reply(503, { error: "The robot is not configured on this site." });
   return null;
 }

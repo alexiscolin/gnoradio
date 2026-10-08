@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { Icon } from "../components/Icons";
+import { track } from "../lib/analytics";
 import { ago } from "../components/ActivityFeed";
 import { Crumbs, Proof, ShareButton, Stats } from "../components/common";
 import { hhmm } from "../components/PickNext";
@@ -12,7 +14,7 @@ import { useNames } from "../lib/names";
 import type { Catalog, Navigate } from "../lib/types";
 
 /** ListenerView is a listener's public page: what they programmed on the radio and what it earned them. */
-export function ListenerView({ cat, go, address, me }: { readonly cat: Catalog; readonly go: Navigate; readonly address: string; readonly me: string }) {
+export function ListenerView({ cat, go, address, me, openPick }: { readonly cat: Catalog; readonly go: Navigate; readonly address: string; readonly me: string; readonly openPick: (station: number) => void }) {
   const name = useNames([address])(address);
   const [curator, setCurator] = useState<Curator | null>(null);
   const [picks, setPicks] = useState<readonly RadioPick[]>([]);
@@ -52,9 +54,15 @@ export function ListenerView({ cat, go, address, me }: { readonly cat: Catalog; 
       </div>
       <a className="mono muted small addr-link" href={gnowebOf({ k: "listener", address })} target="_blank" rel="noreferrer" title="This listener on gno.land">{address} ↗</a>
       <div className="actions inline">
-        <ShareButton title={name} refBy={me} />
+        <ShareButton title={name} refBy={me} {...(curator?.picks ? { text: `${plural(curator.picks, "pick")} on air on GnoRadio. Tune in, it's free.` } : {})} />
         {address === me && <button className="btn" onClick={() => { go({ k: "me" }); }}>Me</button>}
       </div>
+      {address !== me && (
+        <div className="feat-ctas listener-ctas">
+          <button className="cta red" onClick={() => { track("cta", { page: "listener", at: "head", to: "stations" }); go({ k: "stations", live: 0 }); }}>Tune in <Icon name="arrow-right" size={16} className="nudge" /></button>
+          <button className="cta blue" onClick={() => { track("cta", { page: "listener", at: "head", to: "pick" }); openPick(0); }}>Pick a track too <Icon name="arrow-right" size={16} className="nudge" /></button>
+        </div>
+      )}
 
       <h3 className="sub">Curator</h3>
       <Stats empty="No pick on air yet." items={[

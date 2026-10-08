@@ -7,7 +7,7 @@ import { arr, type Infer, num, obj, str } from "./guard";
 import { isAlbum, isArtist, isEvent, isGenres, isInfo, isPlaylist, isStations, isTrack } from "./schemas";
 
 /** CACHE_VERSION: bump it when a stored record's schema or meaning changes; a release that keeps them keeps the visitors' cache. */
-export const CACHE_VERSION = 1;
+export const CACHE_VERSION = 3;
 
 /** Store holds one value; the browser one is IndexedDB, tests pass an in-memory one. */
 export interface Store {

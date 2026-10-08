@@ -81,6 +81,20 @@ test("2b. deep links render", async ({ page }) => {
   }
 });
 
+test("2c. an unknown path says so, with a way home; the phone tab bar shows all seven tabs", async ({ page, mobile }) => {
+  await open(page, "/nowhere-here");
+  await expect(page).toHaveURL(/\/nowhere-here$/);
+  await expect(page).toHaveTitle("Not found · GnoRadio");
+  await page.getByRole("button", { name: "Back to Listen" }).click();
+  await expect(page).toHaveURL("/");
+  if (!mobile) return;
+  const width = page.viewportSize()?.width ?? 0;
+  for (const label of ["Listen", "Stations", "Library", "Community", "Concerts", "Contribute", "Me"]) {
+    const box = await nav(page).getByRole("button", { name: label, exact: true }).boundingBox();
+    expect(box && box.x >= 0 && box.x + box.width <= width + 0.5, `${label} fits`).toBe(true);
+  }
+});
+
 test("3. radio: Listen tunes in with the jingle, stations switch, media session follows", async ({ page, mobile, jingles }) => {
   await open(page);
   let p = await player(page, mobile);
@@ -204,33 +218,47 @@ test("6. a dedication on air shows as a ticker in the player", async ({ page, mo
   const stations = await rpc.stations();
   const scheds = await Promise.all(stations.map((s) => rpc.schedule(s.id)));
   const withNote = scheds.flatMap((s) => s.entries.filter((e) => e.note).map((e) => ({ station: s.station, now: s.now, e })));
-  test.skip(withNote.length === 0, "the devnet seed has no dedication left on any schedule: reseed it");
+  // Dedications fold out of the schedule as they age: with none left, one is put on the track on air (below).
+  const first = scheds[0];
+  const onAir = first?.entries[0];
+  const fallback = first && onAir ? { station: first.station, now: first.now, e: { ...onAir, note: "Happy birthday Ana", by: TEST1 } } : undefined;
   const airing = withNote.find(({ now, e }) => e.start <= now && e.end > now);
-  const pick = airing ?? withNote[0];
+  const pick = airing ?? withNote[0] ?? fallback;
+  expect(pick, "no station has a schedule on this devnet").toBeDefined();
   if (!pick) return;
   const { station, e } = pick;
   if (!airing) {
     // The seeded dedication airs later: move it onto the track on air now, in the schedule the page reads.
     test.info().annotations.push({ type: "note", description: `dedication "${e.note}" airs later on station ${String(station)}: moved onto the track on air` });
-    await page.route("**/rpc", async (route) => {
-      const body = route.request().postDataJSON() as { params?: { data?: string } } | null;
-      const expr = Buffer.from(body?.params?.data ?? "", "base64").toString();
-      if (!expr.includes(`ScheduleJSON(${String(station)},`)) return route.fallback();
-      const res = await route.fetch();
-      const json = (await res.json()) as { result: { response: { ResponseBase: { Data: string } } } };
-      const base = json.result.response.ResponseBase;
+    // The app batches its reads (a JSON-RPC array): patch the schedule's answer wherever it sits.
+    interface Query { id?: number; params?: { data?: string } }
+    interface Answer { id?: number; result: { response: { ResponseBase: { Data: string } } } }
+    const isSched = (q: Query) => Buffer.from(q.params?.data ?? "", "base64").toString().includes(`ScheduleJSON(${String(station)},`);
+    const patch = (base: { Data: string }) => {
       const raw = Buffer.from(base.Data, "base64").toString();
       const sched = JSON.parse(JSON.parse(/^\((".*") string\)$/s.exec(raw)?.[1] ?? '""') as string) as { now: number; entries: { start: number; end: number; note: string; by: string; queued: boolean }[] };
       const on = sched.entries.find((x) => x.start <= sched.now && x.end > sched.now);
       if (on) Object.assign(on, { note: e.note, by: e.by || TEST1, queued: true });
       base.Data = Buffer.from(`(${JSON.stringify(JSON.stringify(sched))} string)`).toString("base64");
+    };
+    await page.route("**/rpc", async (route) => {
+      const body = route.request().postDataJSON() as Query | Query[] | null;
+      const qs = Array.isArray(body) ? body : body ? [body] : [];
+      if (!qs.some(isSched)) return route.fallback();
+      const res = await route.fetch();
+      const json = (await res.json()) as Answer | Answer[];
+      const answers = Array.isArray(json) ? json : [json];
+      qs.forEach((q, i) => {
+        const ans = Array.isArray(json) ? answers.find((x) => x.id === q.id) : answers[i];
+        if (isSched(q) && ans) patch(ans.result.response.ResponseBase);
+      });
       await route.fulfill({ response: res, json });
     });
   }
   await open(page, `/live/${String(station)}`);
   const p = await player(page, mobile);
   await expect(p.getByRole("note", { name: `Dedication: ${e.note}` })).toBeVisible();
-  await expect(p.getByRole("note")).toContainText(e.note);
+  await expect(p.getByRole("note")).toContainText(e.note ?? "");
 });
 
 test("7. listener page: readable name and gnoweb address link", async ({ page }) => {

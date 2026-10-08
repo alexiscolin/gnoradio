@@ -1,22 +1,29 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { SearchPick } from "../components/SearchPick";
 import { hhmm } from "../components/PickNext";
 import { useNames } from "../lib/names";
 import { ActivityFeed, FeedItem, ago } from "../components/ActivityFeed";
-import { Head, Proof, Stats, Who } from "../components/common";
-import { codeURL, gnowebOf, realmPage, txURL } from "../lib/links";
+import { Empty, Head, Proof, Stats, Who, jumpTo } from "../components/common";
+import { CancelConcert } from "./Detail";
+import { CHECK_IN } from "../lib/concerts";
+import { giftProblem } from "../lib/rules";
+import { ProofMark } from "../components/Verify";
+import { codeURL, gnowebOf, realmPage, ticketPage, txURL } from "../lib/links";
 import { Icon } from "../components/Icons";
 import { Shape } from "../components/Shapes";
 import { Qr } from "../components/Qr";
 import { MineLinks } from "./Collection";
 import { viewToPath } from "../lib/router";
-import { type RadioPick, loadPicks, loadTicketsOf, loadUser } from "../lib/community";
-import { ALL_STATIONS, type Curator, MAX_PROMO, type Promo, type TopCurators, collectable, loadCurator, loadPromo, loadTopCurators, useSponsored } from "../lib/incentives";
+import { DOOR_CODE, OPENS_BEFORE, type RadioPick, loadPicks, loadTicketsOf, loadUser, useEvents } from "../lib/community";
+import { ALL_STATIONS, type Curator, MAX_PROMO, PICK_PAY, type Promo, type TopCurators, collectable, loadCurator, loadPromo, loadTopCurators, useSponsored } from "../lib/incentives";
 import { DEFAULT_GOAL, UGNOT, gnot, plural } from "../lib/format";
+import { COSTS } from "../lib/legal";
+import { PROMO_ASK } from "../lib/features";
 import type { Activity, Catalog, Navigate, SupportInfo, UserInfo } from "../lib/types";
 import type { Actions, HideKind } from "../player/useActions";
 import type { Saved } from "../lib/saved";
+
+const REFRESH_BATCH = 50; // radio.maxRefreshBatch
 
 interface Base {
   readonly cat: Catalog;
@@ -45,7 +52,7 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
   const maxTips = Math.max(1, ...artists.map((a) => a.tips));
   return (
     <section>
-      <Head a="Community" note="Listeners program the radio and keep it on air. Every pick, like and tip below is a public transaction." />
+      <Head a="Community" note="Listeners program the radio and support it. Every pick, like and tip below is a public transaction." />
       <Proof page={gnowebOf({ k: "community" })} code={codeURL("support")} />
 
       <div className="program">
@@ -68,7 +75,7 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
         </div>
         <div>
           <h3 className="sub">Top curators · this week</h3>
-          <p className="muted small">One point per pick, one per tip while it plays. Curators earn the artist's promo share of those tips.</p>
+          <p className="muted small">One point per pick, one per tip while it plays. When the artist set a promo share, the picker receives it on those tips.</p>
           {curators.length === 0 && <p className="muted">Nobody yet this week. Pick a track to top the chart.</p>}
           <ol className="top">
             {curators.map((c, i) => (
@@ -81,9 +88,9 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
       <div className="treasury">
         <div className="treasury-txt">
           <span className="lbl">GnoRadio treasury · {support.month || "this month"}</span>
-          <span className="big">{gnot(support.monthTotal)}<span className="muted"> / {gnot(goal)}</span></span>
-          <div className="bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Monthly running costs covered"><i style={{ width: `${String(pct)}%` }} /></div>
-          <span className="muted small">{plural(support.supporters, "supporter")} · {gnot(support.total)} since launch. Funds the project's work; GnoRadio pays nothing to run.</span>
+          <span className="big">{support.monthTotal > 0 ? <>{gnot(support.monthTotal)}<span className="muted"> / {gnot(goal)}</span></> : <>{gnot(goal)}<span className="muted"> goal this month</span></>}</span>
+          <div className="bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Share of the monthly goal reached"><i style={{ width: `${String(pct)}%` }} /></div>
+          <span className="muted small">{support.supporters > 0 ? `${plural(support.supporters, "supporter")} · ${gnot(support.total)} since launch.` : "No supporter yet: be the first."} Funds the project's work. {COSTS}</span>
           <button className="cta" onClick={onSupport}><Shape g="square" size={12} /> Support GnoRadio</button>
         </div>
       </div>
@@ -99,7 +106,7 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
           <div className="bars">
             {artists.map((a) => (
               <button key={a.id} onClick={() => { go({ k: "artist", id: a.id }); }}>
-                <span>{a.name}</span>
+                <span>{a.name}<ProofMark a={a} /></span>
                 <i style={{ width: `${String(Math.max(4, (a.tips / maxTips) * 100))}%` }} />
                 <b className="mono">{gnot(a.tips)}</b>
               </button>
@@ -122,12 +129,16 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
 function PromoSetting({ current, onSave }: { readonly current: number; readonly onSave: (pct: number) => void }) {
   const [pct, setPct] = useState(current);
   return (
-    <div className="program">
+    <div className={`program${current === 0 ? " promo-ask" : ""}`}>
       <Shape g="quarter" size={22} />
-      <div>
-        <b>Promo share for curators: {current}%</b>
-        <span className="muted small">Of each tip on your tracks, this part goes to the listener who picked it on air and whoever shared the link. 0 to {MAX_PROMO}%, shown to tippers before they sign.</span>
-      </div>
+      {current === 0 ? (
+        <div><b>Reward your curators?</b><span className="muted small">{PROMO_ASK}</span></div>
+      ) : (
+        <div>
+          <b>Promo share for curators: {current}%</b>
+          <span className="muted small">Of each tip on your tracks, this part goes to the listener who picked it on air and whoever shared the link. 0 to {MAX_PROMO}%, shown to tippers before they sign.</span>
+        </div>
+      )}
       <div className="row2">
         <label><span className="sr">Promo share</span>
           <select className="station-select" value={pct} onChange={(e) => { setPct(Number(e.target.value)); }}>
@@ -150,25 +161,27 @@ function PromoBudget({ artist, me, actions }: { readonly artist: number; readonl
   const [amount, setAmount] = useState("5");
   const [pay, setPay] = useState("");
   useEffect(() => { loadPromo(artist).then(setB, () => { setB(null); }); }, [artist, actions.pending]);
-  const refund = Number(pay || (b ? b.pay / UGNOT : 0.03));
+  const refund = Number(pay || (b ? b.pay / UGNOT : PICK_PAY.def));
+  // catalog.FundPromo refuses less than one refund (the default one on a new budget).
+  const minFund = Math.max(0.1, (b?.pay ?? PICK_PAY.def * UGNOT) / UGNOT);
   return (
     <div className="program">
       <Shape g="square" size={22} />
       <div>
         <b>Promo budget: {gnot(b?.free ?? 0)}{b?.reserved ? ` · ${gnot(b.reserved)} reserved` : ""}</b>
         <span className="muted small">
-          Listeners can pick your tracks for free: after a pick has played in full, you refund them {gnot(b?.pay ?? 30_000)} (about what a pick costs).
-          {b && b.picks > 0 ? ` ${plural(b.picks, "pick")} refunded so far, ${gnot(b.paid)}.` : ""} Several wallets of one person can still take up to the daily limits: that is the cost of the promotion. Withdraw what is not reserved at any time.
+          Refund listeners who pick your tracks: after a pick has played in full, you refund them {gnot(b?.pay ?? PICK_PAY.def * UGNOT)} ({gnot(PICK_PAY.def * UGNOT)} by default, enough that a sponsored pick costs the listener nothing).
+          {b && b.picks > 0 ? ` ${plural(b.picks, "pick")} refunded so far, ${gnot(b.paid)}.` : ""} At most {plural(b?.perDay ?? 10, "sponsored pick")} a day, so no script drains it fast; several wallets of one person can still take that many: that is the cost of the promotion. Withdraw what is not reserved at any time.
         </span>
       </div>
       <div className="row2">
         <label><span className="sr">Amount to add, GNOT</span><input className="mono" inputMode="decimal" value={amount} onChange={(e) => { setAmount(e.target.value); }} size={5} /></label>
-        <button className="cta" disabled={!(Number(amount) >= 0.1)} onClick={() => { actions.fundPromo(Math.round(Number(amount) * UGNOT)); }}>Add GNOT</button>
+        <button className="cta" disabled={!(Number(amount) >= minFund)} title={`At least ${String(minFund)} GNOT: one refund`} onClick={() => { actions.fundPromo(Math.round(Number(amount) * UGNOT)); }}>Add GNOT</button>
       </div>
       <div className="row2">
         <label><span className="sr">Refund per pick, GNOT</span>
           <select className="station-select" value={refund} onChange={(e) => { setPay(e.target.value); }}>
-            {[0, 0.01, 0.02, 0.03, 0.04, 0.05].map((v) => <option key={v} value={v}>{v === 0 ? "Paused" : `${String(v)} GNOT per pick`}</option>)}
+            {[0, PICK_PAY.min, 0.05, 0.1, 0.15, PICK_PAY.def, 0.3, 0.4, PICK_PAY.max].map((v) => <option key={v} value={v}>{v === 0 ? "Paused" : `${String(v)} GNOT per pick`}</option>)}
           </select>
         </label>
         <button className="cta ghost" disabled={!b || Math.round(refund * UGNOT) === b.pay} onClick={() => { actions.setPromoPay(Math.round(refund * UGNOT), b?.perDay ?? 0); }}>Save</button>
@@ -187,8 +200,11 @@ export function Me({ cat, go, actions, saved, openPick }: Base & { readonly acti
   const address = s.status === "connected" || s.status === "wrong-network" ? s.address : "";
   const [user, setUser] = useState<UserInfo | null>(null);
   const [tickets, setTickets] = useState<{ id: number; event: number; serial: number; attended: boolean }[]>([]);
+  // A ticket for a cancelled or past concert is not in the upcoming list: its own event is read.
+  const ticketEvents = useEvents(cat, tickets.map((tk) => tk.event));
   const [curator, setCurator] = useState<Curator | null>(null);
   const [door, setDoor] = useState(0); // the ticket whose QR is shown big
+  const [code, setCode] = useState(""); // the door code the staff's screen shows after scanning the QR
   const sponsored = useSponsored(address, actions.pending);
   const show = useNames(address ? [address] : []);
   useEffect(() => {
@@ -197,6 +213,10 @@ export function Me({ cat, go, actions, saved, openPick }: Base & { readonly acti
     loadCurator(address).then(setCurator, () => { setCurator(null); });
     loadTicketsOf(address).then(setTickets, () => { setTickets([]); });
   }, [address]);
+
+  // Show at the door: the QR first; the staff scans it and their screen shows a door code, which
+  // the wallet signs in tickets.Present (CheckIn needs it, with that code, from the last 10 minutes).
+  const showAtDoor = (id: number) => { setCode(""); setDoor(id); };
 
   const connect = () => void actions.wallet.connectWallet();
   // A wallet-only section: its title, a Connect link and one greyed line while no wallet is on.
@@ -226,7 +246,7 @@ export function Me({ cat, go, actions, saved, openPick }: Base & { readonly acti
         <button onClick={() => { go({ k: "contribute", path: "listener" }); }}>Make a playlist</button>
       </div>
       <nav className="chips me-nav" aria-label="Sections">
-        {ME_SECTIONS.map((t) => <button key={t} className="chip" onClick={() => { document.getElementById(anchor(t))?.scrollIntoView({ behavior: "smooth" }); }}>{t.replace(/^My (.)/, (_, c: string) => c.toUpperCase())}</button>)}
+        {ME_SECTIONS.map((t) => <button key={t} className="chip" onClick={() => { jumpTo(anchor(t)); }}>{t.replace(/^My (.)/, (_, c: string) => c.toUpperCase())}</button>)}
       </nav>
 
       {/* Saves and likes can run into the thousands: they open in Your library, under Library. */}
@@ -248,7 +268,7 @@ export function Me({ cat, go, actions, saved, openPick }: Base & { readonly acti
               <button className="cta" disabled={actions.pending !== ""} onClick={() => { actions.collect(p.station, p.start); }}>Collect {gnot(p.amount)}</button>
             </p>
           ))}
-          <p className="muted small">While your pick plays, each tip to its artist sends you their promo share. Tips through links you share pay you too, straight to your wallet (not counted here). Paid by tippers, never by GnoRadio.</p>
+          <p className="muted small">While your pick plays, each tip to its artist sends you their promo share. Tips through links you share pay you the promo share too, when the artist set one, straight to your wallet (not counted here). Paid by tippers, never by GnoRadio.</p>
         </>
       )}
 
@@ -261,34 +281,46 @@ export function Me({ cat, go, actions, saved, openPick }: Base & { readonly acti
 
       {section("My tickets", "Your concert tickets show up here.")}
       {address && myArtist && (
-        <p className="more-links">
-          <a href={txURL("tickets", "CreateEvent")} target="_blank" rel="noreferrer">Announce a concert <Icon name="external" size={12} /></a>
-          <a href={txURL("tickets", "CheckIn")} target="_blank" rel="noreferrer">Check in a ticket at the door <Icon name="external" size={12} /></a>
-        </p>
+        <>
+          <p className="more-links">
+            <a href={txURL("tickets", "CreateEvent")} target="_blank" rel="noreferrer">Announce a concert (form on gno.land) <Icon name="external" size={12} /></a>
+          </p>
+          <p className="muted small">{CHECK_IN}</p>
+          {cat.events.filter((e) => e.artist === myArtist.id && !e.cancelled).map((e) => (
+            <div key={e.id} className="line my-concert">
+              <span><b>{e.title}</b> <span className="muted">· {e.venue} · {e.sold}/{e.capacity} sold</span></span>
+              <CancelConcert e={e} actions={actions} />
+            </div>
+          ))}
+        </>
       )}
-      {address && (tickets.length === 0 ? <p className="muted">No ticket yet.</p> : (
+      {address && (tickets.length === 0 ? <Empty text="No ticket yet."><button className="link small" onClick={() => { go({ k: "concerts" }); }}>Find a concert <Icon name="arrow-right" size={14} className="nudge" /></button></Empty> : (
         <div className="tickets">
           {tickets.map((tk) => {
-            const e = cat.events.find((x) => x.id === tk.event);
+            const e = ticketEvents.get(tk.event) ?? undefined;
             return (
               <article key={tk.id} className="ticket">
-                <div><span className="lbl light">Admit one · #{tk.serial}</span><b>{e?.title ?? `Concert ${String(tk.event)}`}</b><span className="muted small">{tk.attended ? "I was there" : "Valid"}</span></div>
+                <div>
+                  <span className="lbl light">Admit one · #{tk.serial}</span><b>{e?.title ?? `Concert ${String(tk.event)}`}</b>
+                  {tk.attended || e?.cancelled
+                    ? <span className="muted small">{tk.attended ? "I was there" : "Cancelled: ask the artist for a refund"}</span>
+                    : <span className="ticket-row">
+                      <button className="link small" disabled={actions.pending !== ""} onClick={() => { showAtDoor(tk.id); }}>Show at the door</button>
+                      <GiveTicket ticket={tk.id} me={address} actions={actions} onGiven={() => { setTickets((l) => l.filter((x) => x.id !== tk.id)); }} />
+                      <a className="small muted" href={ticketPage(tk.id)} target="_blank" rel="noreferrer" aria-label={`View ticket #${String(tk.serial)} on gno.land, opens a new tab`}>On gno.land <Icon name="external" size={12} className="nudge-out" /></a>
+                    </span>}
+                </div>
                 {tk.attended || e?.cancelled
                   ? <div className="stub"><Shape g={tk.attended ? "circle" : "triangle"} size={26} /></div>
-                  : <button className="stub" aria-label={`Show the QR code of ticket #${String(tk.serial)}`} onClick={() => { setDoor(tk.id); }}><Qr text={doorURL(tk.id, address)} size={64} label="" /></button>}
+                  : <button className="stub" aria-label={`Show ticket #${String(tk.serial)} at the door`} disabled={actions.pending !== ""} onClick={() => { showAtDoor(tk.id); }}><Qr text={doorURL(tk.id, address)} size={64} label="" /></button>}
               </article>
             );
           })}
         </div>
       ))}
 
-      {door !== 0 && createPortal(
-        <dialog className="qr-sheet" open aria-label="Ticket QR code" onClick={() => { setDoor(0); }}>
-          <Qr text={doorURL(door, address)} size={280} label={`QR code of ticket ${String(door)}`} />
-          <b>Show this at the door</b>
-          <span className="muted small">The artist scans it to check you in. Tap to close.</span>
-        </dialog>,
-        document.body, // above the player and tab bar, whatever stacking the page has
+      {door !== 0 && (
+        <DoorSheet door={door} start={ticketEvents.get(tickets.find((t) => t.id === door)?.event ?? 0)?.start ?? 0} address={address} code={code} setCode={setCode} actions={actions} onClose={() => { setDoor(0); }} />
       )}
 
       {section("My support", "What you give to artists and the artists you follow show up here.")}
@@ -330,12 +362,76 @@ export function Me({ cat, go, actions, saved, openPick }: Base & { readonly acti
   );
 }
 
+/**
+ * DoorSheet shows a ticket's QR big, in a modal dialog (top layer: above the
+ * player and the tab bar); Esc, the close button or a tap outside close it.
+ */
+function DoorSheet({ door, start, address, code, setCode, actions, onClose }: {
+  readonly door: number; readonly start: number; readonly address: string; readonly code: string; readonly setCode: (c: string) => void; readonly actions: Actions; readonly onClose: () => void;
+}) {
+  const ref = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const d = ref.current;
+    if (d && !d.open && typeof d.showModal === "function") d.showModal();
+    return () => { d?.close(); };
+  }, []);
+  return (
+    <dialog ref={ref} className="qr-sheet" aria-label="Ticket QR code" onCancel={(e) => { e.preventDefault(); onClose(); }} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <button className="x qr-close" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
+      <Qr text={doorURL(door, address)} size={280} label={`QR code of ticket ${String(door)}`} />
+      <b>Show this at the door</b>
+      <span className="muted small">The artist scans it and their screen shows a door code. Enter it and sign: they check you in within 10 minutes.</span>
+      {Date.now() / 1000 < start - OPENS_BEFORE
+        ? <span className="small" role="status">Not yet: check-in opens 12 hours before the concert.</span>
+        : <div className="row2">
+        <label className="field">Door code<input className="mono" inputMode="numeric" maxLength={8} value={code} onChange={(e) => { setCode(e.target.value.replace(/\D/g, "")); }} /></label>
+        <button className="cta" disabled={!DOOR_CODE.test(code) || actions.pending !== ""} onClick={() => { actions.present(door, code, () => { setCode(""); }); }}>
+          {actions.pending === `present:${String(door)}` ? "Confirm in Adena…" : "Sign"}
+        </button>
+      </div>}
+    </dialog>
+  );
+}
+
+/** GiveTicket gives a ticket to another wallet (tickets.TransferTicket), after the realm's checks on the address. */
+function GiveTicket({ ticket, me, actions, onGiven }: { readonly ticket: number; readonly me: string; readonly actions: Actions; readonly onGiven: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [to, setTo] = useState("");
+  if (!open) return <button className="link small" disabled={actions.pending !== ""} onClick={() => { setOpen(true); }}>Give</button>;
+  const problem = giftProblem(to.trim(), me);
+  return (
+    <span className="give">
+      <label className="field">Give to<input className="mono" value={to} placeholder="g1…" spellCheck={false} autoCapitalize="off" aria-invalid={to !== "" && problem !== ""} onChange={(e) => { setTo(e.target.value); }} /></label>
+      {to !== "" && problem && <span className="small" role="alert">{problem}</span>}
+      <span className="row2">
+        <button className="cta yellow" disabled={problem !== "" || actions.pending !== ""} onClick={() => { actions.giveTicket(ticket, to, onGiven); }}>
+          {actions.pending === `give:${String(ticket)}` ? "Confirm in Adena…" : "Give ticket"}
+        </button>
+        <button className="cta ghost" onClick={() => { setOpen(false); setTo(""); }}>Keep</button>
+      </span>
+    </span>
+  );
+}
+
 // A ticket's QR opens its door page, for the holder it was shown by.
 const doorURL = (ticket: number, holder: string) => location.origin + viewToPath({ k: "door", ticket, holder });
 
 // The Me sections, in page order, for the jump links under the actions.
 const ME_SECTIONS = ["My library", "My curator stats", "My playlists", "My tickets", "My support", "Make music"];
 const anchor = (title: string) => `me-${title.replace("My ", "").toLowerCase().replace(/ /g, "-")}`;
+
+/** NotFound stands in for a page that does not exist or is not for this wallet, with a way home. */
+export function NotFound({ go, text }: { readonly go: Navigate; readonly text: string }) {
+  return (
+    <section className="not-found">
+      <Head a="Not here" note={text} />
+      <p className="row2">
+        <button className="cta" onClick={() => { go({ k: "listen" }); }}>Back to Listen</button>
+        <button className="cta ghost" onClick={() => { go({ k: "library", genre: 0 }); }}>Open the Library</button>
+      </p>
+    </section>
+  );
+}
 
 /** Studio is the admin and curator desk. Only shown to the catalog admin. */
 export function Studio({ cat, actions }: Base & { readonly actions: Actions }) {
@@ -344,6 +440,8 @@ export function Studio({ cat, actions }: Base & { readonly actions: Actions }) {
   const [modKind, setModKind] = useState<HideKind>("track");
   const [modId, setModId] = useState(0);
   const [modReason, setModReason] = useState("");
+  const [refreshAt, setRefreshAt] = useState(0); // the next batch of an artist's tracks (radio.RefreshArtist, 50 a call)
+  useEffect(() => { setRefreshAt(0); }, [modId, modKind]);
   const trackItems = useMemo(() => cat.tracks.map((t) => ({ id: t.id, label: t.title, sub: `#${String(t.id)} · ${t.artistName}` })), [cat.tracks]);
   const modItems = useMemo(() => {
     const sub = (id: number, by = "") => `#${String(id)}${by ? ` · ${by}` : ""}`;
@@ -363,11 +461,10 @@ export function Studio({ cat, actions }: Base & { readonly actions: Actions }) {
       <div className="studio">
         <div className="panel">
           <h3><Shape g="quarter" size={14} /> Stations</h3>
-          <p className="muted small">{cat.tracks.length} tracks in the catalog · {cat.pending} waiting to be synced into the stations.</p>
+          <p className="muted small">{cat.tracks.length} tracks in the catalog. Publishing and imports put each track on its stations in the same transaction.</p>
           {cat.pending > 0
-            ? <button className="cta" onClick={actions.sync}>Sync new tracks into the stations</button>
+            ? <button className="cta" onClick={actions.sync}>Sync {cat.pending} tracks into the stations</button>
             : <p className="ok small"><Shape g="circle" size={8} fill="var(--blue)" /> Every track is in its stations.</p>}
-          <p className="muted small">Each Sync adds up to 20 tracks, so one transaction stays cheap; run it again while tracks are waiting.</p>
           <label>Station
             <select value={station} onChange={(e) => { setStation(Number(e.target.value)); }}>
               {cat.stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -399,9 +496,13 @@ export function Studio({ cat, actions }: Base & { readonly actions: Actions }) {
             <button className="cta" disabled={!modId} onClick={() => { actions.hide(modKind, modId, false, ""); }}>Restore</button>
           </div>
           {modKind === "track" && <button className="cta" disabled={!modId} onClick={() => { actions.refreshTrack(modId); }}>Refresh its station slots</button>}
+          {modKind === "artist" && <button className="cta" disabled={!modId} onClick={() => { actions.refreshArtist(modId, refreshAt); setRefreshAt((o) => o + REFRESH_BATCH); }}>Refresh its tracks' station slots{refreshAt > 0 ? ` · next batch from ${String(refreshAt + 1)}` : ""}</button>}
           <p className="muted small">After hiding or restoring a track, Refresh updates its slots in the stations. Hidden content stays on-chain: hidden, not erased.</p>
           <label className="field">Report number<input inputMode="numeric" placeholder="12" value={report} onChange={(e) => { setReport(e.target.value.replace(/\D/g, "")); }} /></label>
-          <button className="cta" disabled={!report} onClick={() => { actions.resolveReport(Number(report)); setReport(""); }}>Resolve report</button>
+          <div className="row2">
+            <button className="cta" disabled={!report} onClick={() => { actions.resolveReport(Number(report)); setReport(""); }}>Resolve report</button>
+            <button className="cta ghost" disabled={!report} onClick={() => { actions.resolveReports(Number(report), 50); setReport(""); }}>Resolve 50 from it</button>
+          </div>
           <p className="muted small"><a href={realmPage("home", "moderation")} target="_blank" rel="noreferrer">Open reports on gnoweb</a> · each listener can have 5 open reports.</p>
         </div>
         <div className="panel">

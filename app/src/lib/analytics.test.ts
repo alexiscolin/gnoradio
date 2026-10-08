@@ -4,7 +4,10 @@ import { clean, scrub } from "./analytics";
 describe("analytics scrubbing", () => {
   it("never lets an address, a name, a key or a ref link out", () => {
     expect(scrub("https://gnoradio.app/listener/indigo-g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5?ref=g1jg8mtutu9khhfwc4nxmuhcpftf0pajdhfvsqf5"))
-      .toBe("https://gnoradio.app/listener/indigo-g1…");
+      .toBe("https://gnoradio.app/listener/…");
+    expect(scrub("@alice · GnoRadio")).toBe("@… · GnoRadio");
+    expect(scrub("Coral Vinyl 4F · GnoRadio")).toBe("nickname… · GnoRadio");
+    expect(scrub("https://gnoradio.app/listener/alice/x")).toBe("https://gnoradio.app/listener/…/x");
     expect(scrub("picked by nym-alexiscolin000")).toBe("picked by nym-…");
     expect(scrub(`key ${"ab".repeat(32)}`)).toBe("key hex…");
   });

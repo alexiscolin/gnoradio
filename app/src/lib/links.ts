@@ -17,6 +17,10 @@ export const txURL = (r: Realm, func: string): string => `${GNOWEB}${pathOf(r)}$
 /** sourceURL opens a realm's file on gnoweb ($source), the code that actually runs. */
 export const sourceURL = (r: Realm, file?: string): string => `${GNOWEB}${pathOf(r)}$source${file ? `&file=${file}` : ""}`;
 
+/** eventPage and ticketPage are a concert and a ticket rendered by the home realm on gnoweb. */
+export const eventPage = (id: number): string => realmPage("home", `event/${String(id)}`);
+export const ticketPage = (id: number): string => realmPage("home", `ticket/${String(id)}`);
+
 /** gnowebOf maps an app screen to the matching page of the home realm on gnoweb. */
 export function gnowebOf(v: View): string {
   switch (v.k) {
@@ -28,18 +32,21 @@ export function gnowebOf(v: View): string {
     case "listener":
       return realmPage("home", `listener/${v.address}`);
     case "stations":
-      return realmPage("home", "stations");
+      return realmPage("home", v.live === undefined ? "stations" : `station/${String(v.live)}`);
     case "collection":
       return realmPage("home", "catalog");
     case "library":
       return realmPage("home", v.genre ? `catalog?g=${String(v.genre)}` : "catalog");
     case "concerts":
-    case "door":
       return realmPage("home", "concerts");
+    case "door":
+      return ticketPage(v.ticket);
     case "community":
       return realmPage("home", "charts");
     case "about":
+    case "features":
     case "legal":
+    case "notfound":
       return realmPage("home", "about");
     case "contribute":
       return realmPage("home", "join");
@@ -51,7 +58,7 @@ export function gnowebOf(v: View): string {
 }
 
 /** The file holding each user-facing action, for "Read the code" links. */
-export const CODE = {
+const CODE = {
   tip: ["catalog", "social.gno"],
   support: ["catalog", "support.gno"],
   like: ["catalog", "social.gno"],
