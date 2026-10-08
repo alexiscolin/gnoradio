@@ -36,7 +36,7 @@ export function featuresPage(index: string, site: string): string {
     { "@context": "https://schema.org", "@type": "WebPage", name: FEATURES_META.title, description: FEATURES_META.description, url },
     {
       "@context": "https://schema.org", "@type": "VideoObject", name: "GnoRadio in a minute", description: VIDEO.caption,
-      thumbnailUrl: `${site}${VIDEO.poster}`, contentUrl: `${site}${VIDEO.src}`, duration: `PT${String(VIDEO.seconds)}S`, uploadDate: UPLOADED,
+      thumbnailUrl: VIDEO.poster, contentUrl: VIDEO.src, duration: `PT${String(VIDEO.seconds)}S`, uploadDate: UPLOADED,
     },
     // Listening is free (no wallet, no account): the app's offer is 0.
     { "@context": "https://schema.org", "@type": "WebApplication", name: "GnoRadio", url: site, applicationCategory: "MultimediaApplication", operatingSystem: "Web", offers: { "@type": "Offer", price: "0", priceCurrency: "USD" } },
@@ -52,7 +52,7 @@ export function featuresPage(index: string, site: string): string {
     tag("name", "twitter:description", FEATURES_META.description),
   ];
   const head = `<link rel="canonical" href="${url}" />`
-    + `<meta property="og:video" content="${site}${VIDEO.src}" /><meta property="og:video:type" content="video/mp4" />`
+    + `<meta property="og:video" content="${VIDEO.src}" /><meta property="og:video:type" content="video/mp4" />`
     + `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`;
   return steps.reduce((h, f) => f(h), index)
     .replace(/<title>[^<]*<\/title>/, () => `<title>${esc(FEATURES_META.title)}</title>`)

@@ -52,7 +52,6 @@
     "node_modules/@fontsource/geist/files/geist-latin-ext-600-normal.woff",
   ]
 
-
 # PostHog EU behind the site's own path (lib/analytics.ts api_host), its
 # extensions under /e/static: a blocker sees no third party, the CSP needs none.
 # Only what posthog-js uses with our options goes through: the library's own
@@ -113,12 +112,3 @@
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
 
-# Jingles and the promo video are fixed files, not hashed: a week, then revalidated.
-[[headers]]
-  for = "/jingles/*"
-  [headers.values]
-    Cache-Control = "public, max-age=604800"
-[[headers]]
-  for = "/promo*"
-  [headers.values]
-    Cache-Control = "public, max-age=604800"

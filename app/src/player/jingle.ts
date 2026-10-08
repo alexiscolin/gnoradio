@@ -1,5 +1,7 @@
-// Station jingles (public/jingles, see NOTICE): played on tuning into a live
-// station only, never in the library or when the app opens.
+// Station jingles (archive.org item gnoradio-jingles, CC BY 4.0, see NOTICE): served by
+// archive.org, not by the site, to keep Netlify's bandwidth for the app itself. Played on
+// tuning into a live station only, never in the library or when the app opens.
+const JINGLES = "https://archive.org/download/gnoradio-jingles";
 
 // Main's jingle follows the music on air: the variant closest to the genre playing
 // (Rock and Metal keep the original, the most energetic).
@@ -14,8 +16,8 @@ const MAIN_BY_GENRE: Readonly<Record<string, string>> = {
 /** jingleURL is a station's jingle file, named after the station ("R&B & Soul" → rnb-and-soul.mp3); Main's follows genre, the genre on air. */
 export const jingleURL = (station: string, genre = ""): string =>
   station === "Main"
-    ? `/jingles/${MAIN_BY_GENRE[genre] ?? "main"}.mp3`
-    : `/jingles/${station.toLowerCase().replace("r&b", "rnb").replace("lo-fi", "lofi").replaceAll("&", "and").replaceAll("'", "").replace(/\s+/g, "-")}.mp3`;
+    ? `${JINGLES}/${MAIN_BY_GENRE[genre] ?? "main"}.mp3`
+    : `${JINGLES}/${station.toLowerCase().replace("r&b", "rnb").replace("lo-fi", "lofi").replaceAll("&", "and").replaceAll("'", "").replace(/\s+/g, "-")}.mp3`;
 
 /** tail resolves once the jingle is within s seconds of its end (or ended, or failed). */
 export const tail = (j: HTMLAudioElement, s: number): Promise<void> =>

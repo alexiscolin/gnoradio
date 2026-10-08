@@ -184,7 +184,7 @@ describe("usePlayer live, player fixes", () => {
     await act(() => vi.advanceTimersByTimeAsync(1100)); // the hourly tick (every second) starts its jingle
     paused.length = 0;
     act(() => { result.current.playList([1], 0); });
-    expect(paused.some((a) => a.src.includes("/jingles/"))).toBe(true);
+    expect(paused.some((a) => a.src.includes("/gnoradio-jingles/"))).toBe(true);
   });
 });
 

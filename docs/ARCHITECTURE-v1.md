@@ -561,10 +561,13 @@ Quotas, with N pointers in B = N / 100 buckets (worst case: every bucket holds b
 - Audius: the metadata calls above (6,000 a month for N = 5,000) carry GnoRadio's key, under
   its 500,000. Plays go from the browser to api.audius.co with `app_name` only, so the key's
   quota does not grow with the audience.
-- Netlify, free plan: a meta answer is about 23 KB (about 7 KB gzipped) for 100 tracks, kept 6
-  hours by the browser. A session reads the buckets its screens show (3 to 6, 20 to 40 KB):
-  10,000 listeners × 2 sessions a day ≈ 0.8 GB a day, 24 GB a month, under the 100 GB. Function
-  runs: under 400 a day (meta and stream refreshes), far under 125,000 a month.
+- Netlify, legacy free plan (100 GB a month, a hard limit): a meta answer is about 7 KB gzipped
+  for 100 tracks, kept 6 hours. The app itself is about 0.4 MB gzipped on a first visit (hashed
+  assets, cached a year). Audio never goes through Netlify: archive.org, Audius or Jamendo serve
+  it, and so do the station jingles and the promo video (archive.org items `gnoradio-jingles` and
+  `gnoradio-promo`). A session is then about 0.5 MB on a first visit and well under that after:
+  100 GB is roughly 200,000 sessions a month (about 6,500 a day). Past that, Netlify Pro.
+  Function runs: under 400 a day (meta and stream refreshes), far under 125,000 a month.
 
 Open: whether a stream through Jamendo's storage host counts against the API quota (the
 redirect is cached either way).

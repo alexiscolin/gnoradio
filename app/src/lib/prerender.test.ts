@@ -29,7 +29,7 @@ describe("featuresPage", () => {
     expect(ld.map((x) => x["@type"])).toEqual(["WebPage", "VideoObject", "WebApplication"]);
     expect(JSON.stringify(ld[2])).toContain('"price":"0"');
     expect(ld[1]?.duration).toBe("PT57S");
-    expect(ld[1]?.contentUrl).toBe("https://site.example/promo.mp4");
+    expect(ld[1]?.contentUrl).toBe("https://archive.org/download/gnoradio-promo/promo.mp4");
   });
   it("puts every feature in the body, one h1, before the app takes over", () => {
     expect(doc.querySelectorAll("h1")).toHaveLength(1);

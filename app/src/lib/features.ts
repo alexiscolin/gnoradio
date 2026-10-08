@@ -69,8 +69,9 @@ export const HERO = {
 } as const;
 
 export const VIDEO = {
-  src: "/promo.mp4",
-  poster: "/promo-poster.jpg",
+  // archive.org item gnoradio-promo (CC BY 4.0): served by archive.org, not by the site.
+  src: "https://archive.org/download/gnoradio-promo/promo.mp4",
+  poster: "https://archive.org/download/gnoradio-promo/promo-poster.jpg",
   seconds: 57,
   caption: "GnoRadio in a minute: tune in, pick what plays next, tip the artist.",
   music: { title: "New Again", artist: "Josh Woodward", site: "https://www.joshwoodward.com", license: "CC-BY-4.0" },
