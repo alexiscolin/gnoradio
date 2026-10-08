@@ -51,9 +51,9 @@ describe("parseBucket", () => {
 
 describe("bucketOf", () => {
   it("reads one page from the chain: the pointers of the bucket's ids, hidden tracks and other buckets left out", async () => {
-    expect(await bucketOf("https://rpc.test", 1)).toEqual(["audius:Ab1", "audius:Off", "jamendo:42", "jamendo:66"]);
-    expect(await bucketOf("https://rpc.test", 2)).toEqual(["audius:Nope"]); // ids 200-205
-    expect(await bucketOf("https://rpc.test", 3)).toEqual([]); // past the last id
+    expect(await bucketOf("https://rpc.test", 1)).toEqual({ refs: ["audius:Ab1", "audius:Off", "jamendo:42", "jamendo:66"], full: true });
+    expect(await bucketOf("https://rpc.test", 2)).toEqual({ refs: ["audius:Nope"], full: false }); // ids 200-205
+    expect(await bucketOf("https://rpc.test", 3)).toEqual({ refs: [], full: false }); // past the last id
     expect(net.mock.calls.every(([u]) => u === "https://rpc.test")).toBe(true); // the chain only
   });
 });
@@ -151,5 +151,14 @@ describe("jamendo limits", () => {
     expect(calls.map((u) => new URL(u).searchParams.get("id")?.split(/[+ ]/).length)).toEqual([50, 10]);
     net.mockImplementation(() => Promise.resolve(Response.json({ headers: { status: "failed" }, results: [] })));
     await expect(metaOf(["jamendo:1"])).rejects.toThrow();
+  });
+
+  it("asks again when Jamendo says success with no results (it does, at random), and fails after three", async () => {
+    const empty = () => Promise.resolve(Response.json({ headers: { status: "success" }, results: [] }));
+    net.mockImplementationOnce(empty).mockImplementationOnce(() => Promise.resolve(Response.json(JAMENDO)));
+    expect((await metaOf(["jamendo:42"])).meta["jamendo:42"]?.title).toBe("Sunrise");
+    net.mockImplementation(empty);
+    await expect(metaOf(["jamendo:42"])).rejects.toThrow();
+    expect(net.mock.calls.length).toBe(5); // 2, then 3
   });
 });

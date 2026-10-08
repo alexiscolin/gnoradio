@@ -7,7 +7,7 @@
 // buckets) and any other parameter is refused (docs/ARCHITECTURE-v1.md, section 6).
 //
 //   GET /api/meta?bucket=3        →  { "audius:D7KyD": {…} | null, … }  (a failed platform's refs are left out)
-import { bucketOf, metaOf, parseBucket, REF } from "../refs";
+import { bucketOf, metaOf, parseBucket } from "../refs";
 import { rateLimit, tooMany } from "../limit";
 import { serverRPC } from "../../src/lib/network";
 
@@ -30,10 +30,11 @@ export default async (req: Request): Promise<Response> => {
   try {
     const bucket = parseBucket(url.searchParams);
     if (bucket === null) return json(400, { error: "bucket: the number of one bucket of 100 track ids, and no other parameter" });
-    const refs = (await bucketOf(serverRPC(), bucket)).filter((r) => REF.test(r));
-    if (refs.length === 0) return json(200, {}, META);
+    const { refs, full } = await bucketOf(serverRPC(), bucket);
+    // The last bucket still grows: kept a minute, so new pointers are named soon after their import.
+    if (refs.length === 0) return json(200, {}, full ? META : SHORT);
     const { meta, partial } = await metaOf(refs);
-    return json(200, meta, partial ? SHORT : META);
+    return json(200, meta, partial || !full ? SHORT : META);
   } catch {
     return json(502, { error: "The music source did not answer, try again later." }, SHORT); // never echoes a key
   }

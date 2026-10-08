@@ -55,10 +55,18 @@ export async function jamendo(ids: string[]): Promise<Map<string, RefMeta & { au
   const client = runtimeEnv("JAMENDO_CLIENT_ID");
   if (!client) throw new Error("JAMENDO_CLIENT_ID is not set"); // an error (never cached), not "unknown tracks"
   const chunks = Array.from({ length: Math.ceil(ids.length / JAMENDO_IDS) }, (_, i) => ids.slice(i * JAMENDO_IDS, (i + 1) * JAMENDO_IDS));
-  const pages = await Promise.all(chunks.map((c) => getJSON<{ headers?: { status?: string }; results?: JamendoTrack[] }>(
-    `https://api.jamendo.com/v3.0/tracks/?client_id=${encodeURIComponent(client)}&format=json&limit=${String(JAMENDO_IDS)}&audioformat=mp32&id=${c.join("+")}`)));
-  // Jamendo answers errors with HTTP 200 and headers.status "failed": an error, not "unknown tracks".
-  if (pages.some((j) => j.headers?.status !== "success")) throw new Error("upstream jamendo failed");
+  // Jamendo answers errors with HTTP 200 and headers.status "failed", and now and then "success" with no
+  // results at all for ids it knows (checked live: the same call gives 50, then 0): both are an error, tried
+  // three times, never "unknown tracks".
+  const page = async (c: string[]) => {
+    for (let i = 0; i < 3; i++) {
+      const j = await getJSON<{ headers?: { status?: string }; results?: JamendoTrack[] }>(
+        `https://api.jamendo.com/v3.0/tracks/?client_id=${encodeURIComponent(client)}&format=json&limit=${String(JAMENDO_IDS)}&audioformat=mp32&id=${c.join("+")}`);
+      if (j.headers?.status === "success" && (j.results?.length ?? 0) > 0) return j;
+    }
+    throw new Error("upstream jamendo failed");
+  };
+  const pages = await Promise.all(chunks.map(page));
   return new Map(pages.flatMap((j) => j.results ?? []).map((t) => {
     const audio = httpsOn(t.audio, /(^|\.)jamendo\.com$/);
     return [String(t.id), {
@@ -95,13 +103,15 @@ export async function metaOf(refs: string[]): Promise<{ meta: Record<string, Ref
 }
 
 /** bucketOf reads the chain for the pointers among the track ids of bucket n (ids n*100 to n*100+99, as the app
- * cuts them): one page read after a count read, hidden tracks left out. Only these are ever asked of a platform. */
-export async function bucketOf(rpc: string, n: number): Promise<string[]> {
+ * cuts them): one page read after a count read, hidden tracks left out. Only these are ever asked of a platform.
+ * full is false for the last bucket, which new tracks still join. */
+export async function bucketOf(rpc: string, n: number): Promise<{ refs: string[]; full: boolean }> {
   const total = (JSON.parse(await qeval(rpc, REALMS.catalog, "TracksJSON(0, 1)")) as { total: number }).total;
   const lo = Math.max(1, n * MAX_IDS), hi = Math.min(n * MAX_IDS + MAX_IDS - 1, total);
-  if (lo > hi) return [];
+  const full = n * MAX_IDS + MAX_IDS - 1 <= total;
+  if (lo > hi) return { refs: [], full };
   const page = JSON.parse(await qeval(rpc, REALMS.catalog, `TracksJSON(${String(total - hi)}, ${String(hi - lo + 1)})`)) as { tracks: { id: number; audio: string }[] };
-  return [...new Set(page.tracks.filter((t) => t.id >= lo && t.id <= hi && REF.test(t.audio)).map((t) => t.audio))].sort();
+  return { refs: [...new Set(page.tracks.filter((t) => t.id >= lo && t.id <= hi && REF.test(t.audio)).map((t) => t.audio))].sort(), full };
 }
 
 /** parseBucket reads ?bucket=N as the only query param, a canonical number (no sign, zeros or fraction); null otherwise. */
