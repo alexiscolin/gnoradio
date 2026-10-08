@@ -50,11 +50,13 @@ describe("text rules mirror the realm", () => {
 });
 
 describe("media", () => {
-  it("accepts ipfs, ar and audius, and wants a sha256 over https", () => {
+  it("accepts ipfs, ar, audius and jamendo, and wants a sha256 over https", () => {
     expect(mediaProblem("Audio", `ipfs://${"b".repeat(59)}`, "", true)).toBe("");
     expect(mediaProblem("Audio", `ar://${"a".repeat(43)}`, "", true)).toBe("");
     expect(mediaProblem("Audio", "audius:x5dg3", "", true)).toBe("");
     expect(mediaProblem("Cover", "audius:x5dg3", "", false)).toMatch(/only valid for audio/);
+    expect(mediaProblem("Audio", "jamendo:1886257", "", true)).toBe("");
+    expect(mediaProblem("Audio", "jamendo:18/86", "", true)).toMatch(/only valid for audio/);
     expect(mediaProblem("Audio", "https://archive.org/a.mp3", "", true)).toMatch(/needs the file's sha256/);
     expect(mediaProblem("Audio", "https://archive.org/a.mp3", SHA, true, true)).toBe("");
     expect(mediaProblem("Audio", "https://evil.example/a.mp3", SHA, true, false)).toMatch(/not allowed/);

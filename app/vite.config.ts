@@ -83,5 +83,7 @@ export default defineConfig({
     allowedHosts: [".ts.net", "localhost"],
     proxy: { "/rpc": { target: "http://127.0.0.1:27157", changeOrigin: true, rewrite: (p) => p.replace(/^\/rpc/, "") } },
   },
-  test: { environment: "jsdom", include: ["src/**/*.test.{ts,tsx}", "netlify/**/*.test.ts"], setupFiles: ["src/test/setup.ts"], restoreMocks: true },
+  test: { environment: "jsdom", include: ["src/**/*.test.{ts,tsx}", "netlify/**/*.test.ts"], setupFiles: ["src/test/setup.ts"], restoreMocks: true,
+    // The tests never see a developer's analytics key from .env.local.
+    env: { VITE_POSTHOG_KEY: "" } },
 });

@@ -14,6 +14,7 @@ describe("audioURLs", () => {
     expect(audioURLs({ audio: "ipfs://bafy123" })).toEqual(["https://ipfs.io/ipfs/bafy123", "https://dweb.link/ipfs/bafy123", "https://cloudflare-ipfs.com/ipfs/bafy123"]);
     expect(audioURLs({ audio: "ar://abc" })).toEqual(["https://arweave.net/abc"]);
     expect(audioURLs({ audio: "audius:x5dg3" })).toEqual(["https://api.audius.co/v1/tracks/x5dg3/stream?app_name=GnoRadio"]);
+    expect(audioURLs({ audio: "jamendo:1886257" })).toEqual(["/api/jamendo/1886257"]);
     expect(audioURLs({ audio: "https://archive.org/download/a/b.mp3" })).toEqual(["https://archive.org/download/a/b.mp3"]);
   });
 });

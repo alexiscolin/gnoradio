@@ -96,12 +96,12 @@ export function mediaProblem(field: string, uri: string, sha: string, audio: boo
     const id = uri.slice(5);
     return id.length === 43 && URL_CHARS.test(id) ? "" : `${field} ar:// needs a 43-character transaction id`;
   }
-  if (uri.startsWith("audius:")) return audio && /^[A-Za-z0-9]{1,24}$/.test(uri.slice(7)) ? "" : `${field} audius:<trackId> is only valid for audio`;
+  if (/^(audius|jamendo):/.test(uri)) return audio && /^(audius|jamendo):[A-Za-z0-9]{1,32}$/.test(uri) ? "" : `${field} audius:<id> or jamendo:<id> is only valid for audio`;
   if (uri.startsWith("https://")) {
     if (!validHTTPS(uri) || hostAllowed === false) return `${field} host is not allowed (ask the admin to add it)`;
     return sha === "" ? `${field} over https needs the file's sha256` : "";
   }
-  return `${field} must be ipfs://, ar://, audius: or an allowed https:// link`;
+  return `${field} must be ipfs://, ar://, audius:, jamendo: or an allowed https:// link`;
 }
 
 export interface SplitRow {

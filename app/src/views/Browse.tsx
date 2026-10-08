@@ -22,6 +22,7 @@ import { codeURL, gnowebOf } from "../lib/links";
 import { MineLinks } from "./Collection";
 import type { Actions } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
+import { useWant } from "../lib/refs";
 
 interface ViewProps {
   readonly cat: Catalog;
@@ -164,6 +165,8 @@ function Mark({ text, q }: { readonly text: string; readonly q: string }) {
 
 const ORDERS: readonly (readonly [TrackOrder, string])[] = [["mix", "Mix of the day"], ["liked", "Most liked"], ["tipped", "Most tipped"], ["new", "Newest"]];
 
+const NONE: readonly never[] = [];
+
 /** Library leads with a search and genre filters, then the tracks. */
 export function Library({ cat, player, go, genre, actions, saved }: ViewProps & { readonly genre: number; readonly actions: Actions; readonly saved: Saved & { readonly ids: readonly number[] } }) {
   const [raw, setRaw] = useState("");
@@ -180,6 +183,7 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
     window.addEventListener(SEARCH_EVENT, onOpen);
     return () => { window.removeEventListener("keydown", onKey); window.removeEventListener(SEARCH_EVENT, onOpen); };
   }, []);
+  useWant(q ? cat.tracks : NONE); // a search reads every pointer's title
   // A search index built once per catalog: folded (lowercase, no accents) strings.
   const index = useMemo(() => ({
     tracks: cat.tracks.map((t) => ({ t, k: fold(`${t.title} ${t.artistName} ${t.credits}`) })),

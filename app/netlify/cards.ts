@@ -6,6 +6,7 @@ import { nickname } from "../src/lib/nickname";
 import { isAddress, unquote } from "../src/lib/proof";
 import { REALMS, SAFE } from "../src/lib/realms";
 import { FEATURES_META, FEATURES_NAME } from "../src/lib/seo";
+import { metaOf, REF } from "./refs";
 
 export interface Card {
   /** path is the card's canonical page, its image lives at /og<path>.png. */
@@ -46,6 +47,18 @@ export async function qevalRaw(rpc: string, realm: string, expr: string): Promis
 export const qeval = async (rpc: string, realm: string, expr: string): Promise<string> => unquote(await qevalRaw(rpc, realm, expr));
 const read = async <T>(rpc: string, realm: string, expr: string): Promise<T> => JSON.parse(await qeval(rpc, realm, expr)) as T;
 
+/**
+ * named gives an Audius or Jamendo pointer (no title on chain) its title,
+ * artist and Jamendo cover from the platform (Audius artwork keeps og.mts's
+ * own path), or the platform's name when it does not answer.
+ */
+async function named(t: Track): Promise<Track> {
+  if (t.title !== "" || !REF.test(t.audio)) return t;
+  const m = await metaOf([t.audio]).then((r) => r[t.audio], () => null);
+  const platform = t.audio.startsWith("jamendo:") ? "Jamendo" : "Audius";
+  return { ...t, title: m && m.title !== "" ? m.title : `${platform} track`, artistName: m && m.artist !== "" ? m.artist : `${platform} artist`, cover: platform === "Jamendo" ? m?.artwork ?? "" : t.cover };
+}
+
 /** art is the track's real cover, as Cover.tsx resolves it: its own cover, else its Audius artwork. */
 const art = (t: Track): string => t.cover || (t.audio.startsWith("audius:") ? t.audio : "");
 const seed = (t: Track): string => `${String(t.id)}${t.title}`;
@@ -57,7 +70,7 @@ export async function cardOf(rpc: string, path: string): Promise<Card | null> {
   // An id goes into a Gno expression and the canonical path: always as a plain number
   // (TrackJSON(012) would read octal 10), so /track/012 is track 12's card.
   const id = canonicalId(/(?:^|-)(\d{1,9})$/.exec(arg)?.[1]);
-  const track = (n: number | string) => read<Track>(rpc, REALMS.catalog, `TrackJSON(${String(n)})`);
+  const track = (n: number | string) => read<Track>(rpc, REALMS.catalog, `TrackJSON(${String(n)})`).then(named);
   // An artist's, album's or playlist's lists keep its hidden tracks, whose TrackJSON fails: the card goes without.
   const listed = (n: number) => track(n).catch(() => null);
   switch (kind) {

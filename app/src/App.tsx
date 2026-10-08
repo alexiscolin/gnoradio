@@ -10,6 +10,7 @@ import { PickNext } from "./components/PickNext";
 import { Splash } from "./components/Splash";
 import { SupportSheet, type SupportTarget } from "./components/SupportSheet";
 import { loadCatalog, type Touched, touchedBy, viewName } from "./lib/catalog";
+import { useNamedRefs } from "./lib/refs";
 import { EMPTY_SUPPORT, loadActivity, loadFees, loadSupport } from "./lib/community";
 import { FeesContext } from "./lib/fees";
 import { errorMessage } from "./lib/format";
@@ -41,7 +42,9 @@ const codeURLFor = (t: SupportTarget) => codeURL(t.kind === "tip" ? "tip" : "sup
 const EARLY: ReadonlySet<View["k"]> = new Set(["listen", "stations", "library"]);
 
 export default function App() {
-  const [cat, setCat] = useState<Catalog | null>(null);
+  const [chainCat, setCat] = useState<Catalog | null>(null);
+  // Audius and Jamendo pointers named from their platform as screens show them (lib/refs.ts).
+  const cat = useNamedRefs(chainCat);
   const [loadError, setLoadError] = useState("");
   // Old #/ links still open the right screen; the URL is rewritten to a path below.
   const [view, setView] = useState<View>(() => pathToView(window.location.hash.startsWith("#/") ? window.location.hash : window.location.pathname));

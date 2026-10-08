@@ -1,0 +1,80 @@
+// Titles, artists and covers of the Audius and Jamendo tracks GnoRadio points
+// to (the chain keeps only audius:<id> / jamendo:<id>): read live from the two
+// platforms, whose API terms allow session caching only. Used by /api/meta and
+// by the link previews (cards.ts). Fixed hosts only: api.audius.co and
+// api.jamendo.com; the stream and artwork URLs they return are checked too.
+import { runtimeEnv } from "../src/lib/realms";
+
+/** RefMeta is what the app shows for a pointer; streamable false hides the track. */
+export interface RefMeta {
+  title: string;
+  artist: string;
+  artistId: string;
+  artwork: string;
+  permalink: string;
+  streamable: boolean;
+}
+
+export const MAX_IDS = 100;
+export const REF = /^(audius|jamendo):([A-Za-z0-9]{1,32})$/;
+const httpsOn = (u: unknown, host: RegExp): string => (typeof u === "string" && /^https:\/\/[^/?#]+/.test(u) && host.test(new URL(u).hostname) ? u : "");
+
+interface AudiusTrack { id: string; title?: string; permalink?: string; is_streamable?: boolean; artwork?: Record<string, string>; user?: { id?: string; name?: string } }
+interface JamendoTrack { id: string | number; name?: string; artist_name?: string; artist_id?: string | number; image?: string; album_image?: string; shareurl?: string; audio?: string }
+
+async function getJSON<T>(url: string, headers: Record<string, string> = {}): Promise<T> {
+  const r = await fetch(url, { headers, signal: AbortSignal.timeout(8000) });
+  if (!r.ok) throw new Error(`upstream ${String(r.status)}`);
+  return (await r.json()) as T;
+}
+
+/** audius reads up to 100 tracks in one call (GET /v1/tracks?id=…&id=…). */
+async function audius(ids: string[]): Promise<Map<string, RefMeta>> {
+  const key = runtimeEnv("AUDIUS_API_KEY");
+  const q = ids.map((id) => `id=${encodeURIComponent(id)}`).join("&");
+  const j = await getJSON<{ data?: AudiusTrack[] }>(`https://api.audius.co/v1/tracks?${q}&app_name=GnoRadio`, key ? { "x-api-key": key } : {});
+  return new Map((j.data ?? []).map((t) => [t.id, {
+    title: t.title ?? "", artist: t.user?.name ?? "", artistId: t.user?.id ?? "",
+    artwork: httpsOn(t.artwork?.["480x480"], /./), permalink: t.permalink ? `https://audius.co${t.permalink}` : "",
+    streamable: t.is_streamable !== false,
+  }]));
+}
+
+/** jamendo reads up to 100 tracks in one call (id=1+2+3); its audio URL is for /api/jamendo only. */
+export async function jamendo(ids: string[]): Promise<Map<string, RefMeta & { audio: string }>> {
+  const client = runtimeEnv("JAMENDO_CLIENT_ID");
+  if (!client) return new Map();
+  const j = await getJSON<{ results?: JamendoTrack[] }>(
+    `https://api.jamendo.com/v3.0/tracks/?client_id=${encodeURIComponent(client)}&format=json&limit=${String(MAX_IDS)}&audioformat=mp32&id=${ids.join("+")}`);
+  return new Map((j.results ?? []).map((t) => {
+    const audio = httpsOn(t.audio, /(^|\.)jamendo\.com$/);
+    return [String(t.id), {
+      title: t.name ?? "", artist: t.artist_name ?? "", artistId: String(t.artist_id ?? ""),
+      artwork: httpsOn([t.album_image, t.image].find(Boolean), /(^|\.)jamendo\.com$/), permalink: httpsOn(t.shareurl, /(^|\.)jamendo\.com$/),
+      streamable: audio !== "", audio,
+    }];
+  }));
+}
+
+/** metaOf answers the refs it was given, null for one the platform does not know (or no longer serves). */
+export async function metaOf(refs: string[]): Promise<Record<string, RefMeta | null>> {
+  const by = { audius: [] as string[], jamendo: [] as string[] };
+  for (const r of refs) {
+    const m = REF.exec(r);
+    if (m?.[1] === "audius" || m?.[1] === "jamendo") by[m[1]].push(m[2] ?? "");
+  }
+  const [a, j] = await Promise.all([by.audius.length ? audius(by.audius) : new Map(), by.jamendo.length ? jamendo(by.jamendo) : new Map()]);
+  const out: Record<string, RefMeta | null> = {};
+  for (const id of by.audius) out[`audius:${id}`] = (a.get(id) as RefMeta | undefined) ?? null;
+  for (const id of by.jamendo) {
+    const m = j.get(id) as (RefMeta & { audio: string }) | undefined;
+    out[`jamendo:${id}`] = m ? { title: m.title, artist: m.artist, artistId: m.artistId, artwork: m.artwork, permalink: m.permalink, streamable: m.streamable } : null;
+  }
+  return out;
+}
+
+/** parseIDs reads ?ids=a,b: valid refs only, at most MAX_IDS, de-duplicated; null when any is malformed. */
+export function parseIDs(raw: string | null): string[] | null {
+  const ids = [...new Set((raw ?? "").split(",").filter(Boolean))];
+  return ids.length >= 1 && ids.length <= MAX_IDS && ids.every((r) => REF.test(r)) ? ids : null;
+}

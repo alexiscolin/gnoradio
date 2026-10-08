@@ -18,8 +18,9 @@ import { PlayButton } from "../components/PlayButton";
 import { UNAVAILABLE, isDead, usePlayable } from "../lib/playable";
 import { Shape } from "../components/Shapes";
 import { VerifyPanel, VerifyStatus, tippable, useClaim } from "../components/Verify";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { SupportTarget } from "../components/SupportSheet";
+import { useWant } from "../lib/refs";
 
 const artistCrumb = (cat: Catalog, id: number): Crumb => ({ label: cat.artists.get(id)?.name ?? "Artist", to: { k: "artist", id } });
 
@@ -333,6 +334,7 @@ export function Concerts({ cat, go, player, actions }: { readonly cat: Catalog; 
 export function TrackView({ cat, player, go, id, actions, openSupport, openPick }: DetailProps & { readonly actions: Actions; readonly openSupport: (t: SupportTarget) => void; readonly openPick: (station: number, track?: number) => void }) {
   const [editing, setEditing] = useState(false);
   usePlayable();
+  useWant(useMemo(() => [{ id }], [id]));
   const t = cat.byId.get(id);
   if (!t) return <Unavailable kind="track" id={id} go={go} actions={actions} cat={cat} />;
   const a = cat.artists.get(t.artist);

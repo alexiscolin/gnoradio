@@ -16,6 +16,7 @@ import { collectable, usePickOnAir, useSponsored } from "../lib/incentives";
 import { gnot } from "../lib/format";
 import { Empty, MakeMusic, NOTHING_ON_AIR, ShareButton, Who } from "./common";
 import { gnowebOf } from "../lib/links";
+import { useWant } from "../lib/refs";
 
 interface Props {
   readonly cat: Catalog;
@@ -66,6 +67,7 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
   const st = cat.stations.find((s) => s.id === p.station);
   const stationName = st?.name ?? "Main";
   const upNext = p.entries.filter((e) => e.start > chainNow).slice(0, 2);
+  useWant(useMemo(() => [...(t ? [t] : []), ...upNext.map((e) => ({ id: e.track }))], [t, upNext]));
   // On the radio, the track on air may be a listener's pick: credit them.
   const onAir = live ? p.entries.find((e) => e.start <= chainNow && e.end > chainNow && e.track === p.current) : undefined;
   // Report is for listeners: not the author, and once per dedication (each report costs a fee).

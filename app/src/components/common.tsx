@@ -2,7 +2,7 @@ import { track } from "../lib/analytics";
 import { withRef } from "../lib/incentives";
 import { isAddress } from "../lib/proof";
 import { Icon } from "./Icons";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { clock, licenseLabel } from "../lib/format";
 import { UNAVAILABLE, checkWhenSeen, isDead, usePlayable } from "../lib/playable";
 import { viewToPath } from "../lib/router";
@@ -12,6 +12,7 @@ import { type Actions, DEPOSIT } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
 import { Cover } from "./Cover";
 import { type Glyph, Shape } from "./Shapes";
+import { useWant } from "../lib/refs";
 
 export function Head({ a, b, note, right }: { readonly a: string; readonly b?: string; readonly note?: ReactNode; readonly right?: ReactNode }) {
   return (
@@ -61,7 +62,8 @@ const ROWS_PAGE = 100;
 export const deadProps = (t: Track | undefined) => (isDead(t) ? { disabled: true, title: UNAVAILABLE } : {});
 
 /** rightsLabel is how a track's rights read in a list. */
-export const rightsLabel = (t: Track): string => (t.origin === "audius" ? "Audius" : licenseLabel(t.license));
+export const rightsLabel = (t: Track): string =>
+  t.origin === "audius" ? "via Audius" : t.origin === "jamendo" ? `${licenseLabel(t.license)} · via Jamendo` : licenseLabel(t.license);
 
 /** sharedValue is the value every track has in common, or "" when they differ. */
 export function sharedValue(tracks: readonly Track[], of: (t: Track) => string): string {
@@ -81,6 +83,7 @@ export function TrackRows({ tracks, player, actions, saved }: { readonly tracks:
   const [shown, setShown] = useState(ROWS_PAGE);
   const left = tracks.length - shown;
   usePlayable();
+  useWant(useMemo(() => tracks.slice(0, shown), [tracks, shown]));
   return (
     <div className="rows">
       {tracks.slice(0, shown).map((t, i) => {
@@ -126,6 +129,7 @@ export function TrackRows({ tracks, player, actions, saved }: { readonly tracks:
 export function TrackCards({ tracks, player, meta }: { readonly tracks: readonly Track[]; readonly player: Player; readonly meta: (t: Track) => string }) {
   const ids = tracks.map((t) => t.id);
   usePlayable();
+  useWant(tracks);
   return (
     <div className="grid">
       {tracks.map((t, i) => (

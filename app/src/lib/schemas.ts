@@ -1,7 +1,7 @@
 import { arr, bool, type Infer, num, obj, oneOf, opt, str } from "./guard";
 
 // The domain types are derived from these guards (bottom of file): one source of truth.
-const origin = oneOf("artist", "curated", "audius");
+const origin = oneOf("artist", "curated", "audius", "jamendo");
 
 export const isTrack = obj({
   id: num, artist: num, artistName: str, claimed: bool, origin, title: str, genre: num, duration: num, license: str, cmo: str,
