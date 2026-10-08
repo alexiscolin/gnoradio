@@ -68,7 +68,7 @@ const displayName = (addr: string): string => { const n = names.get(addr); retur
 
 /** useNames loads the names of addrs and returns a display function (displayName). */
 export function useNames(addrs: readonly string[]): (addr: string) => string {
-  useSyncExternalStore((l) => { listeners.add(l); return () => { listeners.delete(l); }; }, () => version);
+  useSyncExternalStore((l) => { listeners.add(l); return () => { listeners.delete(l); }; }, () => version, () => version);
   const key = addrs.join(",");
   useEffect(() => { void loadNames(key ? key.split(",") : []); }, [key]);
   return displayName;

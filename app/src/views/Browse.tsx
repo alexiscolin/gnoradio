@@ -60,6 +60,12 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
           <span className="bar"><i style={{ width: `${String(Math.min(100, (support.monthTotal / goal) * 100))}%` }} /></span>
           <span className="small">{support.monthTotal > 0 ? `of ${gnot(goal)} this month` : `Goal: ${gnot(goal)} this month`}{support.supporters > 0 ? ` · ${plural(support.supporters, "supporter")}` : ""}</span>
         </button>}
+        {!fees && <button className="block-yellow" onClick={() => { go({ k: "contribute", path: "artist" }); }}>
+          <span className="lbl">For artists</span>
+          <span className="big">Make music</span>
+          <span className="small">Publish your tracks: they join the radio in the same transaction. Tips go 100% to you, 0% to GnoRadio.</span>
+          <span className="go">Publish <Icon name="arrow-right" size={16} className="nudge" /></span>
+        </button>}
       </div>
       {cat.tracks.length > 0 && <button className="bethedj" onClick={() => { openPick(0); }}>
         <Icon name="on-air" size={48} className="bethedj-icon" />

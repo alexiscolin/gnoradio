@@ -128,7 +128,7 @@ const subscribe = (f: () => void) => { subscribers.add(f); return () => { subscr
  * (the page's main play buttons); allDead is true only when every one is known dead.
  */
 export function usePlayable(tracks: readonly Media[] = []): { readonly allDead: boolean } {
-  useSyncExternalStore(subscribe, () => version);
+  useSyncExternalStore(subscribe, () => version, () => version);
   useEffect(() => { tracks.forEach(check); }, [tracks]); // check is a no-op once a status is known
   return { allDead: tracks.length > 0 && tracks.every(isDead) };
 }

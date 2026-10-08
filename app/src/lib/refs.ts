@@ -123,7 +123,7 @@ const subscribe = (f: () => void) => { listeners.add(f); return () => { listener
 
 /** useNamedRefs is the chain's catalog with its pointers named, renamed as meta arrives. */
 export function useNamedRefs(cat: Catalog | null): Catalog | null {
-  const v = useSyncExternalStore(subscribe, () => version);
+  const v = useSyncExternalStore(subscribe, () => version, () => version);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- v: the meta in memory changed
   return useMemo(() => (cat ? nameRefs(cat) : null), [cat, v]);
 }

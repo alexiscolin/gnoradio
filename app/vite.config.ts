@@ -6,28 +6,29 @@ import { sitemap } from "./src/lib/seo";
 import react from "@vitejs/plugin-react";
 
 // In dev, /api/<name> runs the Netlify function netlify/functions/<name>.mts
-// (the robot: verify, dedication) against the local devnet. Secrets go in
-// .env.local: BOT_SIGNING_KEY (the robot key) and OPENAI_API_KEY; without them
-// the functions only report what they would do.
+// (the robot: verify, dedication; meta: Audius and Jamendo pointers) against the
+// local devnet. Secrets go in .env.local: BOT_SIGNING_KEY, OPENAI_API_KEY,
+// AUDIUS_API_KEY, JAMENDO_CLIENT_ID; without them the functions only report what
+// they would do.
 function robot(): Plugin {
   return {
     name: "gnoradio-robot",
     configureServer(server) {
-      const env = loadEnv("development", process.cwd(), ["BOT_", "OPENAI_"]);
+      const env = loadEnv("development", process.cwd(), ["BOT_", "OPENAI_", "AUDIUS_", "JAMENDO_"]);
       process.env.BOT_RPC ??= "http://127.0.0.1:27157";
       // Local only: the robot functions accept calls without a site URL, as under `netlify dev`.
       process.env.NETLIFY_DEV ??= "true";
-      for (const k of ["BOT_SIGNING_KEY", "OPENAI_API_KEY"]) if (env[k]) process.env[k] ??= env[k];
-      for (const name of ["verify", "dedication"]) {
-        server.middlewares.use(`/api/${name}`, (req, res) => {
+      for (const k of ["BOT_SIGNING_KEY", "OPENAI_API_KEY", "AUDIUS_API_KEY", "JAMENDO_CLIENT_ID"]) if (env[k]) process.env[k] ??= env[k];
+      for (const [route, name] of [["verify", "verify"], ["dedication", "dedication"], ["meta", "meta"], ["jamendo", "meta"]] as const) {
+        server.middlewares.use(`/api/${route}`, (req, res) => {
           const chunks: Buffer[] = [];
           req.on("data", (c: Buffer) => chunks.push(c));
           req.on("end", () => {
             void (async () => {
               const mod = (await server.ssrLoadModule(`/netlify/functions/${name}.mts`)) as { default: (r: Request) => Promise<Response> };
-              const out = await mod.default(new Request(`http://dev/api/${name}`, { method: req.method ?? "GET", body: req.method === "POST" ? Buffer.concat(chunks) : null }));
+              const out = await mod.default(new Request(`http://dev${req.originalUrl ?? `/api/${route}`}`, { method: req.method ?? "GET", body: req.method === "POST" ? Buffer.concat(chunks) : null }));
               res.statusCode = out.status;
-              res.setHeader("content-type", "application/json");
+              for (const h of ["content-type", "location", "cache-control"]) { const v = out.headers.get(h); if (v) res.setHeader(h, v); }
               res.end(await out.text());
             })().catch((e: unknown) => { res.statusCode = 500; res.end(JSON.stringify({ error: String(e) })); });
           });
