@@ -66,10 +66,11 @@
    "kind": "creator",
    "id": "Kevin MacLeod",
    "genre": 16,
-   "status": "to_review",
+   "status": "approved",
    "max_items": 60,
-   "notes": "Only CC BY items pass the filter (36 items are BY-ND). Very recognisable library music: dose it.",
-   "max_tracks": 60
+   "notes": "Only CC BY items pass the filter (36 items are BY-ND). Very recognisable library music: dose it. Samplers/compilations excluded (owner).",
+   "max_tracks": 60,
+   "exclude_title_re": "sampler|collection|best of|greatest|volume|vol\\.|compilation|album"
   },
   {
    "source": "archive",
@@ -152,49 +153,767 @@
    "max_tracks": 60
   },
   {
+   "source": "archive",
+   "kind": "items",
+   "id": "Broke For Free",
+   "artist": "Broke For Free",
+   "genre": 1,
+   "status": "approved",
+   "ids": [
+    "Slam_Funk-7603",
+    "Directionless_EP-8295",
+    "Grass_Hop-10919",
+    "Something_EP-9563"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Revolution Void",
+   "artist": "Revolution Void",
+   "genre": 1,
+   "status": "approved",
+   "ids": [
+    "RevolutionVoid-ThePoliticsOfDesire",
+    "RevolutionVoid-InvisibleWalls2011",
+    "Effects_of_Elevation-7872"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Kai Engel",
+   "artist": "Kai Engel",
+   "genre": 3,
+   "status": "approved",
+   "ids": [
+    "SCL115",
+    "SCL125",
+    "SCL155",
+    "jamendo-180180"
+   ],
+   "genre_overrides": {
+    "SCL155": 16,
+    "jamendo-180180": 16
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Lee Rosevere",
+   "artist": "Lee Rosevere",
+   "genre": 3,
+   "status": "approved",
+   "ids": [
+    "Ding-A-Ling-8294",
+    "lee-rosevere-promise",
+    "WM074_900"
+   ],
+   "genre_overrides": {
+    "Ding-A-Ling-8294": 15,
+    "lee-rosevere-promise": 8
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Goto80",
+   "artist": "Goto80",
+   "genre": 1,
+   "status": "approved",
+   "ids": [
+    "Goto80-Ximplef",
+    "The_Ferret_Show-13047"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Timecrawler 82",
+   "artist": "Timecrawler 82",
+   "genre": 2,
+   "status": "approved",
+   "ids": [
+    "timecrawler82--osaka-lights",
+    "jamendo-178033",
+    "jamendo-199619"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Stellardrone",
+   "artist": "Stellardrone",
+   "genre": 3,
+   "status": "approved",
+   "ids": [
+    "Stellardrone-LightYears",
+    "Stellardrone-InventTheUniverse-CC-BY",
+    "jamendo-122870"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Aquatone",
+   "artist": "Aquatone",
+   "genre": 3,
+   "status": "approved",
+   "ids": [
+    "aquatone-mental-images",
+    "aquatone-alpha-song",
+    "aquatone-autumn"
+   ],
+   "genre_overrides": {
+    "aquatone-mental-images": 1,
+    "aquatone-alpha-song": 1
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Vortex Mechanic",
+   "artist": "Vortex Mechanic",
+   "genre": 3,
+   "status": "approved",
+   "ids": [
+    "vortex-mechanic-fluctuation-of-thoughts",
+    "vortex-mechanic-questions-to-eternity"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Alexandr Zhelanov",
+   "artist": "Alexandr Zhelanov",
+   "genre": 16,
+   "status": "approved",
+   "ids": [
+    "futuristicambient1",
+    "RiseOfSpirit"
+   ],
+   "genre_overrides": {
+    "futuristicambient1": 3,
+    "RiseOfSpirit": 16
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Shoki Recordings",
+   "artist": "Shoki Recordings",
+   "genre": 4,
+   "status": "approved",
+   "ids": [
+    "shoki006",
+    "shoki005g",
+    "shoki011af"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Dub Terminator",
+   "artist": "Dub Terminator",
+   "genre": 7,
+   "status": "approved",
+   "ids": [
+    "Watch_Your_Dubstep_-_EP-4741"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Alaclair Ensemble",
+   "artist": "Alaclair Ensemble",
+   "genre": 9,
+   "status": "approved",
+   "ids": [
+    "499-11230",
+    "This_Is_America-11173"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Kellee Maize",
+   "artist": "Kellee Maize",
+   "genre": 9,
+   "status": "approved",
+   "ids": [
+    "KelleeMaizeSelection",
+    "Aligned_Archetype-13248",
+    "Age_of_Feminine-13285"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Tricky Diesel",
+   "artist": "Tricky Diesel",
+   "genre": 8,
+   "status": "approved",
+   "ids": [
+    "Give_Me_a_Beat-13303"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Brad Sucks",
+   "artist": "Brad Sucks",
+   "genre": 11,
+   "status": "approved",
+   "ids": [
+    "bs-out-of-it-remastered",
+    "bs-i-dont-know-what-im-doing-remastered",
+    "bs-guess-whos-a-mess-remastered",
+    "Out_Of_It-3406"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "The Freak Fandango Orchestra",
+   "artist": "The Freak Fandango Orchestra",
+   "genre": 11,
+   "status": "approved",
+   "ids": [
+    "Love_death_and_a_drunken_monkey-10394",
+    "Tales_Of_A_Dead_Fish-10405"
+   ],
+   "genre_overrides": {
+    "Tales_Of_A_Dead_Fish-10405": 17
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Cullah",
+   "artist": "Cullah",
+   "genre": 11,
+   "status": "approved",
+   "ids": [
+    "E-MC_Cullah-18176"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Voyageurs",
+   "artist": "Voyageurs",
+   "genre": 11,
+   "status": "approved",
+   "ids": [
+    "Nude_Vegas-8364",
+    "TRIGRAMS-8365",
+    "FREAK_CAVE-9697"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Indie bands",
+   "artist": "Indie bands",
+   "genre": 11,
+   "status": "approved",
+   "ids": [
+    "Safe_and_Sound_EP-10796",
+    "We_Be_Geese-13242",
+    "Black_Bears-7725",
+    "Underwater-11663",
+    "Almost-9248"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Cloudkicker",
+   "artist": "Cloudkicker",
+   "genre": 12,
+   "status": "approved",
+   "ids": [
+    "A_New_Heavenly_Body-9232",
+    "CloudkickerBeacons",
+    "CloudkickerLetYourselfBeHuge"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Come Taste The Misery",
+   "artist": "Come Taste The Misery",
+   "genre": 12,
+   "status": "approved",
+   "ids": [
+    "jamendo-194093",
+    "jamendo-194483"
+   ],
+   "genre_overrides": {
+    "jamendo-194093": 11,
+    "jamendo-194483": 11
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Quantum Jazz",
+   "artist": "Quantum Jazz",
+   "genre": 14,
+   "status": "approved",
+   "ids": [
+    "End_of_Line-11636",
+    "01-intro_202201",
+    "01-hand-in-space"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Jazz Friends",
+   "artist": "Jazz Friends",
+   "genre": 14,
+   "status": "approved",
+   "ids": [
+    "JazzFriendsSelection",
+    "jamendo-118676"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Sugar Mama Blues",
+   "artist": "Sugar Mama Blues",
+   "genre": 14,
+   "status": "approved",
+   "ids": [
+    "jamendo-148417",
+    "jamendo-286571",
+    "jamendo-165296"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Peter Rudenko",
+   "artist": "Peter Rudenko",
+   "genre": 16,
+   "status": "approved",
+   "ids": [
+    "15_Etudes-11839",
+    "Incomplete-12589"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Kimiko Ishizaka",
+   "artist": "Kimiko Ishizaka",
+   "genre": 16,
+   "status": "approved",
+   "ids": [
+    "OpenGoldbergVariations",
+    "The_Open_Goldberg_Variations-11823",
+    "OpenWell-TemperedClavier_Book_I"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Dexter Britain",
+   "artist": "Dexter Britain",
+   "genre": 16,
+   "status": "approved",
+   "ids": [
+    "Creative_Commons_Selection-11312",
+    "Creative_Commons_Volume_5-13062"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Zander Noriega",
+   "artist": "Zander Noriega",
+   "genre": 16,
+   "status": "approved",
+   "ids": [
+    "ZanderNoriegaDarkerWaves"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Hayvanlar Alemi",
+   "artist": "Hayvanlar Alemi",
+   "genre": 17,
+   "status": "approved",
+   "ids": [
+    "666-2250",
+    "Hayvanlar_Alemi_Tatilde-1865",
+    "Visions_of_a_Psychedelic_Ankara-5566"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Claudio Nunez",
+   "artist": "Claudio Nunez",
+   "genre": 17,
+   "status": "approved",
+   "ids": [
+    "WM108",
+    "Apariencias_Desnudas_Naked_Appearances-6759"
+   ],
+   "genre_overrides": {
+    "WM108": 14
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "marcello correa e castro",
+   "artist": "marcello correa e castro",
+   "genre": 18,
+   "status": "approved",
+   "ids": [
+    "jamendo-153512",
+    "jamendo-153622"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Fonkdongo",
+   "artist": "Fonkdongo",
+   "genre": 20,
+   "status": "approved",
+   "ids": [
+    "Demondongod-6234",
+    "Fonkdongo_Vs_Bzmbzdim-11831"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "DuBoLoGy",
+   "artist": "DuBoLoGy",
+   "genre": 19,
+   "status": "approved",
+   "ids": [
+    "Dub_Lab-10191"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Robodub",
+   "artist": "Robodub",
+   "genre": 19,
+   "status": "approved",
+   "ids": [
+    "Durbar_Dub-16564",
+    "Robodub-12414",
+    "Up_and_Down-14717"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Muflon Dub Sound System",
+   "artist": "Muflon Dub Sound System",
+   "genre": 19,
+   "status": "approved",
+   "ids": [
+    "jamendo-118381",
+    "jamendo-133052"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Sir John",
+   "artist": "Sir John",
+   "genre": 19,
+   "status": "approved",
+   "ids": [
+    "jamendo-255656",
+    "jamendo-263723"
+   ],
+   "genre_overrides": {
+    "jamendo-255656": 19,
+    "jamendo-263723": 19
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Disco Romancin'",
+   "artist": "Disco Romancin'",
+   "genre": 20,
+   "status": "approved",
+   "ids": [
+    "TDC043",
+    "TDCDV004",
+    "TDCDV003"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "UltraCat",
+   "artist": "UltraCat",
+   "genre": 20,
+   "status": "approved",
+   "ids": [
+    "Disco_High-7879"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Pierlo",
+   "artist": "Pierlo",
+   "genre": 20,
+   "status": "approved",
+   "ids": [
+    "Olivetti_Prodest-7908"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Ergo Phizmiz",
+   "artist": "Ergo Phizmiz",
+   "genre": 1,
+   "status": "approved",
+   "ids": [
+    "headphonica.hpcd073",
+    "badpanda088"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Tours",
+   "artist": "Tours",
+   "genre": 1,
+   "status": "approved",
+   "ids": [
+    "Enthusiast-12325"
+   ],
+   "genre_overrides": {
+    "Enthusiast-12325": 1
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Ambient Samurai",
+   "artist": "Ambient Samurai",
+   "genre": 3,
+   "status": "approved",
+   "ids": [
+    "jamendo-118100",
+    "jamendo-576812"
+   ],
+   "genre_overrides": {
+    "jamendo-118100": 16
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "HELLFIRE SNAKE",
+   "artist": "HELLFIRE SNAKE",
+   "genre": 12,
+   "status": "approved",
+   "ids": [
+    "jamendo-131519"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Jonathan Coulton",
+   "artist": "Jonathan Coulton",
+   "genre": 15,
+   "status": "approved",
+   "ids": [
+    "smoking-monkey"
+   ],
+   "genre_overrides": {},
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Tryad",
+   "artist": "Tryad",
+   "genre": 1,
+   "status": "approved",
+   "ids": [
+    "pandacd-87-listen",
+    "pandacd-88-public-domain"
+   ],
+   "genre_overrides": {
+    "pandacd-88-public-domain": 13
+   },
+   "notes": "Whitelisted by item identifier (licence checked per item)."
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Floating Mind",
+   "genre": 4,
+   "status": "approved",
+   "max_items": 15,
+   "max_tracks": 60,
+   "notes": "Minimal techno netlabel releases (monoKraK); BY-SA / NC-SA 3.0/4.0 only."
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Miquel Parera Jaques",
+   "genre": 3,
+   "status": "approved",
+   "max_items": 20,
+   "max_tracks": 40,
+   "notes": "Ambient / experimental (TEFE, nx releases)."
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Lele Rambelli",
+   "genre": 20,
+   "status": "approved",
+   "max_items": 15,
+   "max_tracks": 60,
+   "notes": "Jamendo mirrors on archive.org; only BY / BY-NC-SA 3.0 items pass."
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Lobo Loco",
+   "genre": 8,
+   "status": "approved",
+   "max_items": 12,
+   "max_tracks": 40,
+   "notes": "Only items with a BY / BY-SA / NC / NC-SA licenseurl."
+  },
+  {
+   "source": "archive",
+   "kind": "creator",
+   "id": "Soft and Furious",
+   "genre": 8,
+   "status": "approved",
+   "max_items": 10,
+   "max_tracks": 30,
+   "notes": "CC0 items only.",
+   "only_licenses": [
+    "CC0-1.0"
+   ]
+  },
+  {
+   "source": "archive",
+   "kind": "items",
+   "id": "Soft and Furious (items)",
+   "artist": "Soft And Furious",
+   "genre": 8,
+   "status": "approved",
+   "ids": [
+    "soft-and-furious-diving-in-the-self"
+   ],
+   "only_licenses": [
+    "CC0-1.0"
+   ],
+   "notes": "CC0 only."
+  },
+  {
    "source": "ccmixter",
    "kind": "query",
    "id": "tags=editorial_pick&lic=by",
    "genre": 9,
-   "status": "approved",
+   "status": "paused",
    "max_items": 150,
-   "notes": "Editors' picks. Hotlinking is blocked (403 without ccmixter Referer): every track needs a mirror (IPFS/CDN) before import. Usually no artwork: the realm draws an SVG cover."
-  },
-  {
-   "source": "audius",
-   "kind": "handle",
-   "id": "attlas",
-   "genre": 1,
-   "status": "to_review",
-   "max_items": 15,
-   "notes": "Verified producer, original works (no remix_of, no cover fields) seen in API."
-  },
-  {
-   "source": "audius",
-   "kind": "handle",
-   "id": "slowmagic",
-   "genre": 1,
-   "status": "to_review",
-   "max_items": 15,
-   "notes": "Verified, originals seen in trending. Check each title for edits."
-  },
-  {
-   "source": "audius",
-   "kind": "handle",
-   "id": "RAC",
-   "genre": 13,
-   "status": "to_review",
-   "max_items": 15,
-   "notes": "Verified, originals. Check each title for remixes of third parties."
-  },
-  {
-   "source": "audius",
-   "kind": "handle",
-   "id": "Lookas",
-   "genre": 1,
-   "status": "to_review",
-   "max_items": 15,
-   "notes": "Verified, originals seen in trending."
+   "notes": "Editors' picks. Hotlinking is blocked (403 without ccmixter Referer): every track needs a mirror (IPFS/CDN) before import. Usually no artwork: the realm draws an SVG cover. PAUSED: mp3s cannot be hotlinked (owner decision)."
   }
  ]
 }

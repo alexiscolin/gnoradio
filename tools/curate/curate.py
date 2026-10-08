@@ -39,8 +39,12 @@ GENRES = {1: "Electronica", 2: "Synthwave", 3: "Ambient", 4: "Techno", 5: "House
 TARGET_PER_GENRE = 80
 
 MIN_SEC, MAX_SEC = 90, 600
-MIN_KBPS = 128      # hard floor (many good archive.org releases are VBR ~130-190 kbps)
+LONG_GENRES = {3, 16}   # Ambient and Cinematic & Classical may run to 15:00
+LONG_MAX_SEC = 900
+MIN_KBPS = 160      # quality gate: estimated size*8/length
 WARN_KBPS = 192     # below this the candidate is flagged low_bitrate for the reviewer
+AUDIO_FORMATS = ("MP3", "OGG VORBIS")  # archive.org format names accepted (case-insensitive)
+LIC_VERSIONS = {"3.0", "4.0"}          # CC0 has its own 1.0 rule; no 2.0/2.5, no jurisdiction ports
 
 # Audius genre (or, for a broad electronic genre, tag) -> GnoRadio genre id
 # (first match wins; checked on lowercase, so "trap" precedes "rap" and "dubstep" precedes "dub").
@@ -102,6 +106,12 @@ def save(path, data):
     os.replace(tmp, path)
 
 
+def unknown_size_ok(fmt):
+    """Size missing so kbps is unknown: trust VBR MP3 or a stated 192+ kbps format; else reject as 'unknown size'."""
+    m = re.search(r"(\d+)\s*kbps", fmt or "", re.I)
+    return "VBR" in (fmt or "").upper() or bool(m and int(m.group(1)) >= 192)
+
+
 def clock(sec):
     sec = int(round(sec))
     return "%d:%02d" % (sec // 60, sec % 60)
@@ -144,8 +154,10 @@ def spdx_license(url):
         spdx = "CC-" + code.upper() + "-" + ver
     else:
         return None, "excluded license CC " + code.upper()
+    if ver not in LIC_VERSIONS:
+        return None, "licence version " + ver
     if port:
-        spdx += "-" + port.upper()
+        return None, "jurisdiction port " + port
     return spdx, None
 
 
@@ -334,6 +346,19 @@ def archive_seed(seed, max_items, stats):
            'licenseurl:http*creativecommons.org\\/licenses\\/by-nc-sa\\/* OR '
            'licenseurl:http*creativecommons.org\\/publicdomain\\/zero\\/*)')
     excl = "-collection:(audio_bookspoetry OR librivoxaudio OR oldtimeradio OR radioprograms OR podcasts OR non_quality_audio)"
+    if seed["kind"] == "items":
+        out = []
+        for ident in seed["ids"]:
+            try:
+                meta = http_json("https://archive.org/metadata/" + urllib.parse.quote(ident))
+                if not meta.get("metadata"):
+                    raise ValueError("item not found")
+            except Exception as e:  # noqa: BLE001
+                stats["errors"].append("%s: %s" % (ident, e))
+                continue
+            stats["items"] += 1
+            out.extend(archive_item(seed, ident, meta, stats))
+        return out
     if seed["kind"] == "creator":
         q = 'creator:"%s" AND mediatype:audio AND %s AND %s' % (seed["id"], lic, excl)
     else:
@@ -363,8 +388,17 @@ def archive_item(seed, ident, meta, stats):
     spdx, why = spdx_license(m.get("licenseurl"))
     if not spdx:
         stats["rejected"][why] = stats["rejected"].get(why, 0) + 1
+        stats.setdefault("rejected_items", []).append((ident, why))
         return []
-    item_artist = first(m.get("creator")) or seed["id"]
+    if seed.get("only_licenses") and spdx not in seed["only_licenses"]:
+        stats["rejected"]["licence not wanted"] = stats["rejected"].get("licence not wanted", 0) + 1
+        stats.setdefault("rejected_items", []).append((ident, "licence " + spdx + " not in seed's only_licenses"))
+        return []
+    xr = seed.get("exclude_title_re")
+    if xr and re.search(xr, str(m.get("title", "")), re.I):
+        stats.setdefault("rejected_items", []).append((ident, "excluded title: " + str(m.get("title"))))
+        return []
+    item_artist = first(m.get("creator")) or seed.get("artist") or seed["id"]
     files = meta.get("files", [])
     names = {f.get("name") for f in files}
     cover = None
@@ -379,21 +413,30 @@ def archive_item(seed, ident, meta, stats):
         cover = "https://archive.org/services/img/" + ident
     source_url = "https://archive.org/details/" + ident
     out = []
+    genre = seed.get("genre_overrides", {}).get(ident, seed["genre"])
+    max_sec = LONG_MAX_SEC if genre in LONG_GENRES else MAX_SEC
+    # One file per track: an original mp3/ogg wins; else a derivative mp3, then a derivative ogg.
+    best = {}
     for f in files:
-        fmt = (f.get("format") or "")
-        if "MP3" not in fmt:
+        fmt = (f.get("format") or "").upper()
+        fmt = "MP3" if "MP3" in fmt else "OGG VORBIS" if "OGG VORBIS" in fmt else None  # "VBR MP3", "128Kbps MP3"
+        if not fmt:
             continue
+        deriv = f.get("source") == "derivative"
+        stem = os.path.splitext(f.get("original") or f["name"])[0] if deriv else os.path.splitext(f["name"])[0]
+        rank = (1 if deriv else 0, 0 if fmt == "MP3" else 1)
+        if stem not in best or rank < best[stem][0]:
+            best[stem] = (rank, f)
+    for _, f in sorted(best.values(), key=lambda x: x[1]["name"]):
         name = f["name"]
-        # Prefer original MP3s; take a derivative MP3 only when the original is FLAC/OGG/WAV.
-        if f.get("source") == "derivative":
-            orig = f.get("original")
-            if orig and orig.lower().endswith(".mp3"):
-                continue
         sec = parse_len(f.get("length"))
         size = int(f.get("size") or 0)
         kbps = int(size * 8 / sec / 1000) if sec and size else None
-        if sec is None or not (MIN_SEC <= sec <= MAX_SEC):
+        if sec is None or not (MIN_SEC <= sec <= max_sec):
             stats["rejected"]["duration"] = stats["rejected"].get("duration", 0) + 1
+            continue
+        if kbps is None and not unknown_size_ok(f.get("format")):
+            stats["rejected"]["unknown size"] = stats["rejected"].get("unknown size", 0) + 1
             continue
         if kbps is not None and kbps < MIN_KBPS:
             stats["rejected"]["bitrate<%d" % MIN_KBPS] = stats["rejected"].get("bitrate<%d" % MIN_KBPS, 0) + 1
@@ -405,7 +448,7 @@ def archive_item(seed, ident, meta, stats):
             notes.append("no artwork: realm SVG cover")
         out.append(candidate(
             source="archive", seed=seed["id"], source_id="%s/%s" % (ident, name), title=title, artist=artist,
-            genre=seed["genre"], duration=clock(sec), seconds=round(sec, 1), license=spdx,
+            genre=genre, duration=clock(sec), seconds=round(sec, 1), license=spdx,
             license_url=m.get("licenseurl"), audio="https://archive.org/download/%s/%s" % (ident, urllib.parse.quote(name)),
             cover=cover, source_url=source_url,
             attribution=attribution(title, artist, spdx, "archive.org"),
@@ -460,12 +503,16 @@ def ccmixter_row(seed, r, stats):
         return None
     info = mp3.get("file_format_info") or {}
     sec = parse_len(info.get("ps"))
-    if sec is None or not (MIN_SEC <= sec <= MAX_SEC):
+    max_sec = LONG_MAX_SEC if seed["genre"] in LONG_GENRES else MAX_SEC
+    if sec is None or not (MIN_SEC <= sec <= max_sec):
         stats["rejected"]["duration"] = stats["rejected"].get("duration", 0) + 1
         return None
     size = int(mp3.get("file_rawsize") or 0)
     kbps = int(size * 8 / sec / 1000) if size else None
-    if kbps is not None and kbps < MIN_KBPS:
+    if kbps is None:
+        stats["rejected"]["unknown size"] = stats["rejected"].get("unknown size", 0) + 1
+        return None
+    if kbps < MIN_KBPS:
         stats["rejected"]["bitrate<%d" % MIN_KBPS] = stats["rejected"].get("bitrate<%d" % MIN_KBPS, 0) + 1
         return None
     title = r.get("upload_name", "").strip()
@@ -580,6 +627,8 @@ def cmd_fetch(a):
             known.add(k)
             cands.append(c)
             added += 1
+        for ident, why in stats.get("rejected_items", []):
+            print("  rejected item %s: %s" % (ident, why))
         report.append((s["source"], s["id"], stats["items"], added, stats["rejected"], stats["errors"][:3]))
         print("%-9s %-24s items=%-4d added=%-4d rejected=%s%s" % (
             s["source"], s["id"][:24], stats["items"], added, stats["rejected"],
@@ -608,52 +657,56 @@ def cmd_hash(a):
             continue
         if c["audio"] in cache:
             c.update(cache[c["audio"]])
-            continue
-        if done >= a.max:
-            break
+    todo = [c for c in cands if c["source"] != "audius" and not c.get("audio_sha256")][:a.max]
+
+    def one(c):
         headers = {"User-Agent": UA}
         if c["source"] == "ccmixter":
             headers["Referer"] = c["source_url"]  # server-side mirror fetch; hotlinking from the app stays blocked
-        req = urllib.request.Request(c["audio"], headers=headers)
-        h = hashlib.sha256()
-        size = 0
-        try:
-            with urllib.request.urlopen(req, timeout=120) as r:
-                while True:
-                    chunk = r.read(1 << 16)
-                    if not chunk:
-                        break
-                    h.update(chunk)
-                    size += len(chunk)
-        except Exception as e:  # noqa: BLE001
-            print("hash failed %s: %s" % (c["audio"], e))
-            continue
-        res = {"audio_sha256": h.hexdigest(), "bytes": size}
-        if ff:
+        got = digest_url(c["audio"], headers)
+        if not got:
+            return c, None
+        res = {"audio_sha256": got[0], "bytes": got[1]}
+        if ff and "lufs60" not in c:  # the loud step already measured most tracks: no second download
             res["lufs"] = lufs(ff, c["audio"], headers)
-        cache[c["audio"]] = res
-        c.update(res)
-        done += 1
-        print("%s  %s  %d bytes%s" % (res["audio_sha256"][:16], c["title"][:40], size,
-                                       ("  %s LUFS" % res.get("lufs")) if ff else ""))
+        return c, res
+
+    # ponytail: 8 parallel downloads, a polite ceiling for archive.org; raise it only if they allow it.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
+        for n, (c, res) in enumerate(pool.map(one, todo), 1):
+            if res is None:
+                continue
+            cache[c["audio"]] = res
+            c.update(res)
+            print("%s  %s  %d bytes" % (res["audio_sha256"][:16], c["title"][:40], res["bytes"]))
+            if n % 50 == 0:  # a crash loses at most 50 downloads
+                save(os.path.join(HERE, "hashes.json"), cache)
     save(os.path.join(HERE, "hashes.json"), cache)
     save(os.path.join(HERE, "candidates.json"), cands)
     if not ff:
         print("ffmpeg not found: LUFS skipped (brew install ffmpeg to enable)")
 
 
-def sha256_url(url, headers):
+def digest_url(url, headers):
+    """(sha256 hex, bytes) of the file at url, None if it could not be read."""
     h = hashlib.sha256()
+    size = 0
     try:
         with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=120) as r:
             while True:
                 chunk = r.read(1 << 16)
                 if not chunk:
-                    return h.hexdigest()
+                    return h.hexdigest(), size
                 h.update(chunk)
+                size += len(chunk)
     except Exception as e:  # noqa: BLE001
         print("hash failed %s: %s" % (url, e))
         return None
+
+
+def sha256_url(url, headers):
+    got = digest_url(url, headers)
+    return got[0] if got else None
 
 
 def lufs(ff, url, headers):
@@ -665,6 +718,49 @@ def lufs(ff, url, headers):
         return float(m[-1]) if m else None
     except Exception:  # noqa: BLE001
         return None
+
+
+def loud_sample(ff, c):
+    """ebur128 on the first 60 s: one HTTP range request, piped to ffmpeg. Returns (LUFS, true peak dBTP)."""
+    kbps = c.get("kbps") or 320
+    n = int(60 * kbps * 1000 / 8 * 1.15) + 65536
+    req = urllib.request.Request(c["audio"], headers={"User-Agent": UA, "Range": "bytes=0-%d" % n})
+    try:
+        with urllib.request.urlopen(req, timeout=60) as r:
+            data = r.read(n + 1)
+        p = subprocess.run([ff, "-hide_banner", "-nostats", "-i", "pipe:0", "-t", "60", "-af", "ebur128=peak=true",
+                            "-f", "null", "-"], input=data, capture_output=True, timeout=120)
+        err = p.stderr.decode("utf-8", "replace")
+        i = re.findall(r"I:\s+(-?[0-9.]+) LUFS", err)
+        tp = re.findall(r"Peak:\s+(-?[0-9.]+) dBFS", err)
+        return (float(i[-1]) if i else None), (float(tp[-1]) if tp else None)
+    except Exception:  # noqa: BLE001
+        return None, None
+
+
+def cmd_loud(a):
+    """Sampled loudness / clipping check. Flags only (notes), never drops: true peak >= -0.1 dBTP is clipping risk,
+    integrated > -9 LUFS is crushed, < -30 LUFS is too quiet."""
+    ff = shutil.which("ffmpeg")
+    if not ff:
+        sys.exit("ffmpeg not found")
+    cands = load(os.path.join(HERE, "candidates.json"), [])
+    todo = [c for c in cands if c["source"] == "archive" and "lufs60" not in c]
+    def one(c):
+        c["lufs60"], c["tp60"] = loud_sample(ff, c)
+        flags = []
+        if c["tp60"] is not None and c["tp60"] >= -0.1:
+            flags.append("clipping risk")
+        if c["lufs60"] is not None and c["lufs60"] > -9:
+            flags.append("very loud")
+        if c["lufs60"] is not None and c["lufs60"] < -30:
+            flags.append("very quiet")
+        c["loud_flags"] = flags
+    with concurrent.futures.ThreadPoolExecutor(4) as ex:
+        list(ex.map(one, todo))
+    save(os.path.join(HERE, "candidates.json"), cands)
+    done = [c for c in cands if c.get("lufs60") is not None]
+    print("loudness: %d sampled, %d measured, %d flagged" % (len(todo), len(done), sum(1 for c in done if c["loud_flags"])))
 
 
 def cmd_batch(a):
@@ -811,6 +907,7 @@ def main():
     f.add_argument("--seed", help="fetch a single seed id (status ignored)")
     f.add_argument("--max-items", type=int, help="cap per seed (items for archive, tracks otherwise)")
     f.add_argument("--include-review", action="store_true", help="also fetch seeds with status to_review")
+    sub.add_parser("loud", help="sampled loudness/clipping check (ffmpeg, first 60 s)")
     h = sub.add_parser("hash")
     h.add_argument("--max", type=int, default=20)
     b = sub.add_parser("batch")
@@ -822,7 +919,7 @@ def main():
     d.add_argument("--per-artist", type=int, default=6, help="tracks per artist")
     d.add_argument("--batch", type=int, default=85, help="tracks per devseed.Run call (gas)")
     a = p.parse_args()
-    {"fetch": cmd_fetch, "hash": cmd_hash, "batch": cmd_batch, "devseed": cmd_devseed}[a.cmd](a)
+    {"fetch": cmd_fetch, "hash": cmd_hash, "batch": cmd_batch, "loud": cmd_loud, "devseed": cmd_devseed}[a.cmd](a)
 
 
 if __name__ == "__main__":

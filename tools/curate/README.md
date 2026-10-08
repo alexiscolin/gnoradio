@@ -13,20 +13,22 @@ cd tools/curate
 python3 curate.py fetch                      # "approved" seeds only
 python3 curate.py fetch --include-review     # + "to_review" seeds
 python3 curate.py fetch --seed "Komiku"      # a single seed (status ignored)
+python3 curate.py loud                       # ebur128 on the first 60 s (HTTP range), flags clipping / loudness, never drops
 python3 curate.py hash --max 50              # sha256 (+ LUFS with ffmpeg) of non-Audius files
 python3 -m http.server 8077                  # then open http://localhost:8077/review.html
 python3 curate.py batch                      # approved.json → import_batch.json
 python3 curate.py batch --dry-run            # check every row against the realm rules, write nothing
 ```
 
-1. **`seeds.json`**: the allowlist. Each seed gives a source (`archive`, `ccmixter`, `audius`), an artist, a collection or a query, a default genre (1 to 20) and a status:
+1. **`seeds.json`**: the allowlist. Each seed gives a source (`archive`, `ccmixter`, `audius`), an artist, a collection or a query, a default genre (1 to 20) and a status (archive kind `items` whitelists item identifiers: `ids`, optional `genre_overrides`, `only_licenses`; `exclude_title_re` skips titles):
    - `approved`: listened to, fetch it;
    - `to_review`: check before use (originality, quality);
    - `paused`: ignored.
 2. **`fetch`** reads the metadata through the official APIs and filters:
-   - **licence**: CC0, CC BY, BY-SA, BY-NC or BY-NC-SA (normalised to SPDX, national ports included, for example `CC-BY-NC-3.0-DE`); ND is refused;
-   - **length**: 1:30 to 10:00;
-   - **bitrate**: at least 128 kbps, flagged "low bitrate" under 192;
+   - **licence**: CC0, CC BY, BY-SA, BY-NC or BY-NC-SA, versions 3.0 and 4.0 only (no ND, no 2.5/2.0/1.0, no jurisdiction ports);
+   - **length**: 1:30 to 10:00 (Ambient and Cinematic up to 15:00);
+   - **format**: mp3 or ogg;
+   - **bitrate**: at least 160 kbps (size×8/length), flagged "low bitrate" under 192; unknown size passes only for VBR MP3 or a stated 192+ kbps format;
    - **for Audius**: no remix, cover, stem or gated track, and a cover image is required.
 
    The result goes to `candidates.json`, in the `ImportTrack` format.
