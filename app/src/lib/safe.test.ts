@@ -18,6 +18,8 @@ describe("safe URLs", () => {
   });
   it("resolves nothing for an unsafe reference", () => {
     expect(mediaURLs("javascript:alert(1)")).toEqual([]);
+    expect(mediaURLs("jamendo:42", 205)).toEqual(["/api/stream/205"]); // by track id: the chain says which Jamendo track
+    expect(mediaURLs("jamendo:42")).toEqual([]); // never by a client-chosen platform id
   });
 });
 

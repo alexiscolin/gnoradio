@@ -67,7 +67,7 @@ const PIXEL = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQ
 /**
  * offline keeps the suite off the internet: remote audio becomes a silent WAV (Range
  * honoured, so seeking works), remote images a pixel, any other remote call a 404,
- * /api/meta an empty answer.
+ * /api/meta?bucket=N an empty answer.
  */
 async function offline(page: Page) {
   await page.route((u) => u.origin !== ORIGIN, async (route) => {
@@ -89,7 +89,7 @@ async function offline(page: Page) {
     });
   });
   // Audius and Jamendo pointers: no platform answer, so they keep their placeholder names.
-  await page.route("**/api/meta?*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
+  await page.route("**/api/meta?bucket=*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
 }
 
 // ---- Fixtures ----

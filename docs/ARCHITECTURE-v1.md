@@ -541,33 +541,48 @@ devnet fixtures (main minus noop, a batch of 25, `z_gas_import25_*` vs `z_gas_re
 `tools/deploy/import.py` sizes its gas on a simulated full batch (60.8M for one line, 735M for
 25), so pointers always fit.
 
-The app reads titles, names and covers through `/api/meta` (`app/netlify/refs.ts`), only for
-the tracks a screen shows: one request per bucket of 100 on-chain track ids (the same URL for
-every visitor; a new import adds a bucket), up to 3 at a time, kept in memory for the session
-(an LRU of 10,000), never in the stored catalog. A search asks for every bucket once.
+The app reads titles, names and covers through `/api/meta?bucket=N` (`app/netlify/functions/meta.mts`),
+only for the tracks a screen shows: one request per bucket of 100 on-chain track ids (ids
+100·N to 100·N+99; the same URL for every visitor), up to 3 at a time, kept in memory for the
+session (an LRU of 10,000), never in the stored catalog. A search asks for every bucket once.
 
-Quotas, with N pointers in B = N / 100 buckets (worst case: every bucket holds both platforms):
+The platform calls are bounded by what is on chain, not by what a client asks for. The function
+reads the chain (a count, then one `TracksJSON` page of the bucket), keeps the pointers it
+finds (hidden tracks are not there), and asks Audius and Jamendo for those only. Any other query
+parameter is a 400, so the cache keys are a finite set: one per bucket (`netlify-vary: query=bucket`).
+`/api/stream/<track id>` reads the track on chain and redirects only when its audio is a
+`jamendo:` pointer; anything else is a 404 with no platform call. Link previews (`cards.ts`,
+`og.mts`) never call the platforms: a pointer's card says "Audius track" / "Jamendo track".
 
-- `/api/meta` sits behind Netlify's durable cache (one copy for every edge): a bucket is fetched
-  from the platforms at most once per 6 hours, then served stale for a day while one call
-  refreshes it. At most 4 · B function runs a day, each one Audius call and one Jamendo call:
-  N = 5,000 gives 200 runs a day, 6,000 calls a month per platform, **whatever the audience**
-  (10,000 daily listeners only read the cache).
-- Jamendo streams: `/api/jamendo/<id>` answers with a redirect to the track's stream, kept 30
-  days in the durable cache: at most one API call per Jamendo track a month (5,000).
-  Jamendo takes at most 50 ids a call (checked live on 2026-10-08: 100 is refused), so a bucket
-  of 100 costs two Jamendo calls. Jamendo total for N = 5,000: about 17,000 a month, under its
-  35,000 (it stays under up to about 10,000 Jamendo pointers: 2.4 N + N ≤ 35,000).
-- Audius: the metadata calls above (6,000 a month for N = 5,000) carry GnoRadio's key, under
-  its 500,000. Plays go from the browser to api.audius.co with `app_name` only, so the key's
-  quota does not grow with the audience.
+Quotas. B is the number of distinct id/100 buckets that hold at least one pointer (not N / 100:
+buckets are cut over ids shared with curated and artist tracks, so importing pointers in one
+contiguous run keeps B near N / 100). The platforms' terms allow session caching only, so the
+shared copies are short: `/api/meta` is fresh 1 hour in Netlify's durable cache (one copy for every
+edge), then served stale for 5 minutes while one call refreshes it; the browser keeps it 5 minutes.
+A stream redirect is kept 1 hour at the CDN (not durable) and 5 minutes in the browser.
+
+- `/api/meta`: at most one function run per bucket per hour, 24 · B a day (about 720 · B a
+  month), each one chain read, one Audius call (up to 100 ids) and, for Jamendo, one call per 50
+  Jamendo pointers of the bucket (a full bucket: 2). That ceiling needs every bucket requested
+  every hour, all month; real traffic only asks the buckets a screen shows. N = 5,000 in B = 50
+  buckets: at most 36,000 runs and 36,000 Audius calls a month (Audius: 500,000), and for
+  Jamendo up to 72,000 calls if all 5,000 were Jamendo and every bucket stayed warm around the
+  clock, over its 35,000. Jamendo alone fits at about 2,400 pointers on that worst case (B = 24,
+  2 calls · 720 · 24 = 34,560); beyond that the real figure depends on traffic, to be watched in
+  the Jamendo dashboard. When Jamendo refuses, `/api/meta` still answers Audius (a partial
+  answer, cached a minute at most) and the Jamendo pointers stay unnamed until it answers again.
+- Jamendo streams: at most one API call per Jamendo track per hour while it is played (the
+  redirect is not kept longer, so a removed track stops within the hour), plus one chain read.
+- Function runs: 24 · B (meta) plus the streams played (one per track per hour, at most), far
+  under 125,000 a month for B = 50 (36,000) with a few thousand plays.
+- Audius plays go from the browser to api.audius.co with `app_name` only, so the key's quota
+  does not grow with the audience.
 - Netlify, legacy free plan (100 GB a month, a hard limit): a meta answer is about 7 KB gzipped
-  for 100 tracks, kept 6 hours. The app itself is about 0.4 MB gzipped on a first visit (hashed
+  for 100 tracks, kept an hour. The app itself is about 0.4 MB gzipped on a first visit (hashed
   assets, cached a year). Audio never goes through Netlify: archive.org, Audius or Jamendo serve
   it, and so do the station jingles and the promo video (archive.org items `gnoradio-jingles` and
   `gnoradio-promo`). A session is then about 0.5 MB on a first visit and well under that after:
   100 GB is roughly 200,000 sessions a month (about 6,500 a day). Past that, Netlify Pro.
-  Function runs: under 400 a day (meta and stream refreshes), far under 125,000 a month.
 
 Open: whether a stream through Jamendo's storage host counts against the API quota (the
 redirect is cached either way).

@@ -270,7 +270,7 @@ export const loadSchedule = (station: number, horizon = 3600): Promise<Schedule>
   qjson(REALMS.radio, `ScheduleJSON(${String(station)}, ${String(horizon)})`, isSchedule);
 
 /** audioURLs resolves an on-chain audio reference to URLs an <audio> element plays, best first. */
-export const audioURLs = (t: Pick<Track, "audio">): string[] => mediaURLs(t.audio);
+export const audioURLs = (t: Pick<Track, "id" | "audio">): string[] => mediaURLs(t.audio, t.id);
 
 /** How a track list is ordered: a daily mix, or by likes, tips or age. */
 export type TrackOrder = "mix" | "liked" | "tipped" | "new";

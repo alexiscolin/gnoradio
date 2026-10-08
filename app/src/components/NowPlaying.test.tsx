@@ -34,3 +34,31 @@ describe("NowPlaying dedication", () => {
     expect(document.querySelector(".dedic.still")).toBeNull();
   });
 });
+
+describe("NowPlaying support link", () => {
+  const withTrack = (t: Record<string, unknown>, artist: Record<string, unknown>) => {
+    const tr = { ...track, ...t };
+    const c = { ...cat, tracks: [tr], byId: new Map([[1, tr]]), artists: new Map([[1, { id: 1, owner: "", name: "Ana", verified: false, source: "", ...artist }]]) } as unknown as Catalog;
+    const go = vi.fn();
+    render(<NowPlaying cat={c} player={player} actions={actions} saved={{ has: () => false, toggle: () => undefined }} open={false} onClose={() => undefined} go={go} openPick={() => undefined} openSupport={() => undefined} />);
+    return go;
+  };
+
+  it("has no link for an Audius pointer before its meta arrives, but the button to the artist page", () => {
+    const go = withTrack({ origin: "audius", audio: "audius:Ab1", source: "", artistName: "Audius artist" }, {});
+    expect(document.querySelector("a.support")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Support Ana: tips open once they verify their profile" })); // starts with the visible word
+    expect(go).toHaveBeenCalledWith({ k: "artist", id: 1 });
+  });
+
+  it("links a pointer to its platform once there is a real URL, Audius and Jamendo alike", () => {
+    withTrack({ origin: "audius", audio: "audius:Ab1", source: "https://audius.co/nt/x" }, {});
+    expect(screen.getByRole("link", { name: "Support on Audius" }).getAttribute("href")).toBe("https://audius.co/nt/x");
+    cleanup();
+    withTrack({ origin: "jamendo", audio: "jamendo:42", source: "https://www.jamendo.com/track/42" }, {});
+    expect(screen.getByRole("link", { name: "Support on Jamendo" }).getAttribute("href")).toBe("https://www.jamendo.com/track/42");
+    cleanup();
+    withTrack({ origin: "jamendo", audio: "jamendo:42", source: "" }, {});
+    expect(document.querySelector("a.support")).toBeNull();
+  });
+});

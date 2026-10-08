@@ -88,8 +88,8 @@ export function ArtistView({ cat, player, go, id, actions, openSupport }: Detail
           <i className="dot" />
         </h1>
         <span className="count">
-          <span className="muted small">{paid ? (a.tips > 0 ? "Received in tips" : "No tip yet") : a.kind === "audius" ? "Streamed from" : a.kind === "curated" ? "Curated CC artist" : "On GnoRadio"}</span>
-          <b className={paid && a.tips === 0 ? "first" : undefined}>{paid ? (a.tips > 0 ? gnot(a.tips) : `Be the first to support ${a.name}`) : a.kind === "audius" ? "Audius" : a.kind === "curated" ? "CC" : plural(tracks.length, "track")}</b>
+          <span className="muted small">{paid ? (a.tips > 0 ? "Received in tips" : "No tip yet") : a.kind === "audius" || a.kind === "jamendo" ? "Streamed from" : a.kind === "curated" ? "Curated CC artist" : "On GnoRadio"}</span>
+          <b className={paid && a.tips === 0 ? "first" : undefined}>{paid ? (a.tips > 0 ? gnot(a.tips) : `Be the first to support ${a.name}`) : a.kind === "audius" ? "Audius" : a.kind === "jamendo" ? "Jamendo" : a.kind === "curated" ? "CC" : plural(tracks.length, "track")}</b>
           <span className="muted small">{plural(a.followers, "follower")}</span>
         </span>
       </div>
@@ -98,7 +98,7 @@ export function ArtistView({ cat, player, go, id, actions, openSupport }: Detail
         {tracks.length > 0 && <PlayButton label="Play all" tracks={tracks} onClick={() => { player.playList(tracks.map((t) => t.id), 0); }} />}
         {paid && tracks[0] && <SupportCTA artist={a} onClick={() => { if (tracks[0]) openSupport({ kind: "tip", track: tracks[0], artist: a }); }} />}
         <FollowButton artist={a.id} followers={a.followers} actions={actions} />
-        {a.source && <a className="btn" href={a.source} target="_blank" rel="noreferrer">{a.kind === "audius" ? "On Audius" : "Source"}</a>}
+        {a.source && <a className="btn" href={a.source} target="_blank" rel="noreferrer">{a.kind === "audius" ? "On Audius" : a.kind === "jamendo" ? "On Jamendo" : "Source"}</a>}
         <ShareButton title={a.name} refBy={walletOf(actions)} />
       </div>
       <div className="artist-meta">

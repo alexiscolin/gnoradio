@@ -6,7 +6,6 @@ import { nickname } from "../src/lib/nickname";
 import { isAddress, unquote } from "../src/lib/proof";
 import { REALMS, SAFE } from "../src/lib/realms";
 import { FEATURES_META, FEATURES_NAME } from "../src/lib/seo";
-import { metaOf, REF } from "./refs";
 
 export interface Card {
   /** path is the card's canonical page, its image lives at /og<path>.png. */
@@ -14,7 +13,7 @@ export interface Card {
   readonly kicker: string;
   readonly title: string;
   readonly by: string;
-  /** art is the real cover's media reference (https, ipfs, ar, audius:), "" for the generated one. */
+  /** art is the real cover's media reference (https, ipfs, ar), "" for the generated one. */
   readonly art: string;
   /** seed picks the generated composition, as Cover.tsx does: `${id}${title}` of the track. */
   readonly seed: string;
@@ -48,19 +47,18 @@ export const qeval = async (rpc: string, realm: string, expr: string): Promise<s
 const read = async <T>(rpc: string, realm: string, expr: string): Promise<T> => JSON.parse(await qeval(rpc, realm, expr)) as T;
 
 /**
- * named gives an Audius or Jamendo pointer (no title on chain) its title,
- * artist and Jamendo cover from the platform (Audius artwork keeps og.mts's
- * own path), or the platform's name when it does not answer.
+ * named gives an Audius or Jamendo pointer (no title on chain) the platform's
+ * name as title and artist. A preview never calls the platforms: they are read
+ * for /api/meta (bounded by the chain, an hour of cache) and nothing else.
  */
-async function named(t: Track): Promise<Track> {
-  if (t.title !== "" || !REF.test(t.audio)) return t;
-  const m = await metaOf([t.audio]).then((r) => r[t.audio], () => null);
+function named(t: Track): Track {
+  if (t.title !== "" || !/^(audius|jamendo):/.test(t.audio)) return t;
   const platform = t.audio.startsWith("jamendo:") ? "Jamendo" : "Audius";
-  return { ...t, title: m && m.title !== "" ? m.title : `${platform} track`, artistName: m && m.artist !== "" ? m.artist : `${platform} artist`, cover: platform === "Jamendo" ? m?.artwork ?? "" : t.cover };
+  return { ...t, title: `${platform} track`, artistName: `${platform} artist`, cover: "" };
 }
 
-/** art is the track's real cover, as Cover.tsx resolves it: its own cover, else its Audius artwork. */
-const art = (t: Track): string => t.cover || (t.audio.startsWith("audius:") ? t.audio : "");
+/** art is the track's real cover, as Cover.tsx resolves it: its own cover (a pointer has none: the generated one). */
+const art = (t: Track): string => t.cover;
 const seed = (t: Track): string => `${String(t.id)}${t.title}`;
 const LISTEN = "Listen on GnoRadio";
 

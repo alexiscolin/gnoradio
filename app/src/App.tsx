@@ -12,7 +12,7 @@ import { SupportSheet, type SupportTarget } from "./components/SupportSheet";
 import { loadCatalog, type Touched, touchedBy, viewName } from "./lib/catalog";
 import { useNamedRefs } from "./lib/refs";
 import { EMPTY_SUPPORT, loadActivity, loadFees, loadSupport } from "./lib/community";
-import { changesFees, FeesContext, NO_FEES } from "./lib/fees";
+import { changesFees, FeesContext, retryDelay, UNKNOWN_FEES } from "./lib/fees";
 import { errorMessage } from "./lib/format";
 import type { Call } from "./lib/gno";
 import { sessionRef } from "./lib/incentives";
@@ -59,7 +59,7 @@ export default function App() {
   const closeSheet = useCallback(() => { setSheet(false); }, []);
   const [activity, setActivity] = useState<readonly Activity[]>([]);
   const [support, setSupport] = useState<SupportInfo>(EMPTY_SUPPORT);
-  const [fees, setFees] = useState(NO_FEES); // no fee until the realm says so
+  const [fees, setFees] = useState(UNKNOWN_FEES); // no fee, and nothing drawn from it, until the realm answers
   const [now, setNow] = useState(() => Date.now() / 1000);
   const [splash, setSplash] = useState<"on" | "leaving" | "done">("on");
   const [intro, setIntro] = useState(false); // panels rise in once, under the lifting poster
@@ -76,11 +76,20 @@ export default function App() {
     setNow(Date.now() / 1000);
   }, []);
 
-  // Read on mount and after the admin's own fee or treasury transaction; an RPC error keeps the last value.
+  // Read on mount and after the admin's own fee or treasury transaction; an RPC error retries (5 s, doubling to a minute) and keeps the last value.
+  const feeTimer = useRef(0);
+  const feeFails = useRef(0);
   const readFees = useCallback(() => {
-    void loadFees().then((f) => { setFees((prev) => (prev.support === f.support && prev.ticketFee === f.ticketFee ? prev : f)); }, () => undefined);
+    window.clearTimeout(feeTimer.current);
+    void loadFees().then((f) => {
+      feeFails.current = 0;
+      setFees((prev) => (prev.known !== false && prev.support === f.support && prev.ticketFee === f.ticketFee ? prev : f));
+    }, () => {
+      feeFails.current++;
+      feeTimer.current = window.setTimeout(readFees, retryDelay(feeFails.current));
+    });
   }, []);
-  useEffect(() => { readFees(); }, [readFees]);
+  useEffect(() => { readFees(); return () => { window.clearTimeout(feeTimer.current); }; }, [readFees]);
 
   const loadSeq = useRef(0);
   const booting = useRef(true); // the first full catalog load is still running

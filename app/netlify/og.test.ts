@@ -154,10 +154,9 @@ describe("cover", () => {
     expect(dims(new TextEncoder().encode("<svg/>"))).toBeNull();
   });
 
-  it("reads Audius artwork, but not from a local or numeric host", async () => {
-    expect(await cover("audius:Ab1")).toMatch(/^data:image\/png;base64,/);
-    net.mockResolvedValueOnce(Response.json({ data: { artwork: { "480x480": "https://10.0.0.1/content/Qm/480x480.jpg" } } }));
+  it("never fetches a pointer's artwork from Audius: the generated cover stands", async () => {
     expect(await cover("audius:Ab1")).toBe("");
+    expect(net.mock.calls.some(([u]) => u.includes("audius.co"))).toBe(false);
   });
 });
 

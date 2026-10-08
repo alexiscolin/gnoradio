@@ -223,14 +223,15 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
               <button className="act support" aria-label={`Support ${artist.name}`} title={`Support ${artist.name} · GnoRadio takes nothing`} onClick={() => { openSupport({ kind: "tip", track: t, artist, station: live ? p.station : undefined, picker }); }}>
                 <Shape g="square" size={12} fill="var(--ink)" /><span>Support</span>
               </button>
-            ) : t.origin === "audius" ? (
-              <a className="act support ext" href={firstNonEmpty(artist?.source, t.source)} target="_blank" rel="noreferrer" aria-label="Support on Audius" title={`Support on Audius · tips here open when ${t.artistName} verifies their profile`}>
+            ) : (t.origin === "audius" || t.origin === "jamendo") && firstNonEmpty(artist?.source, t.source) !== "" ? (
+              // A link only once there is a real URL (the platform's page arrives with /api/meta): an empty href opens this page again.
+              <a className="act support ext" href={firstNonEmpty(artist?.source, t.source)} target="_blank" rel="noreferrer" aria-label={`Support on ${t.origin === "jamendo" ? "Jamendo" : "Audius"}`} title={`Support on ${t.origin === "jamendo" ? "Jamendo" : "Audius"} · tips here open when ${t.artistName} verifies their profile`}>
                 <Shape g="square" size={12} fill="var(--ink)" /><span>Support</span><Icon name="external" size={12} />
               </a>
             ) : artist ? (
               // Not verified yet: the row keeps its third button, which leads to the artist's page
               // (it says how tips open) instead of leaving a gap.
-              <button className="act support soon" aria-label={`Tips to ${artist.name} open once they verify their profile`} title={`Tips open once ${artist.name} verifies their profile`} onClick={() => { go({ k: "artist", id: artist.id }); }}>
+              <button className="act support soon" aria-label={`Support ${artist.name}: tips open once they verify their profile`} title={`Tips open once ${artist.name} verifies their profile`} onClick={() => { go({ k: "artist", id: artist.id }); }}>
                 <Shape g="square" size={12} fill="var(--mute)" /><span>Support</span>
               </button>
             ) : null}

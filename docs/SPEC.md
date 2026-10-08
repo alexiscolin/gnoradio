@@ -19,7 +19,7 @@ Tracks come from four origins, mixed in the same genres, albums, playlists and s
 | Published by | the artist (their wallet) | the admin (curated import) | the admin (selection) |
 | Legal basis | the artist's statement | CC0 / CC BY / CC BY-SA / CC BY-NC / CC BY-NC-SA | Audius Open Music License §1.2; Jamendo's CC licence per track (no ND), its API non-commercial |
 | On chain | everything | everything | only the platform id (`audius:<id>`, `jamendo:<id>`), genre, duration, licence: no title, name, cover or link (their API terms allow **session caching only**) |
-| Audio | `ipfs://`, `ar://`, `https://` + sha256 | source link + sha256, copy allowed | streamed from the platform (Audius API; Jamendo through `/api/jamendo/<id>`, a cached redirect) |
+| Audio | `ipfs://`, `ar://`, `https://` + sha256 | source link + sha256, copy allowed | streamed from the platform (Audius API; Jamendo through `/api/stream/<track id>`, a redirect kept an hour) |
 | Shown | from the chain | from the chain | read live by the app (`/api/meta`); gnoweb says "Audius track" / "Jamendo track" |
 | Attribution | artist | artist, license, source | artist, licence, "via Audius" / "via Jamendo", link to the track |
 | Tips | yes, to the artist + collaborators (minus the promo share the artist chose, see Listener rewards), once verified | no, "Claim this profile" | no, "Claim this profile" |

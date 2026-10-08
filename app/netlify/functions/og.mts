@@ -10,7 +10,6 @@ import { Resvg, initWasm } from "@resvg/resvg-wasm";
 import { type Card, cardOf, version } from "../cards";
 import { rateLimit, tooMany } from "../limit";
 import { esc, fnv } from "../../src/lib/format";
-import { proofPage } from "../../src/lib/proof";
 import { coverHost, mediaURLs } from "../../src/lib/safe";
 import { serverRPC } from "../../src/lib/network";
 
@@ -227,23 +226,13 @@ async function fetchImage(url: string, ok: (u: string) => boolean, signal: Abort
 }
 
 /**
- * cover resolves a card's real cover as Cover.tsx does (https, IPFS, Arweave;
- * Audius artwork through api.audius.co), fetched only from coverHost's hosts.
+ * cover resolves a card's real cover as Cover.tsx does (https, IPFS, Arweave),
+ * fetched only from coverHost's hosts. A pointer's platform artwork is never
+ * fetched here: the preview shows the generated cover.
  */
 export async function cover(ref: string): Promise<string> {
-  if (!ref) return "";
-  const signal = AbortSignal.timeout(4000);
-  if (!ref.startsWith("audius:")) {
-    const url = mediaURLs(ref)[0];
-    return url ? fetchImage(url, coverHost, signal) : "";
-  }
-  const r = await fetch(`https://api.audius.co/v1/tracks/${encodeURIComponent(ref.slice(7))}?app_name=GnoRadio`, { signal });
-  const art = r.ok ? ((await r.json()) as { data?: { artwork?: Record<string, string | undefined> } }).data?.artwork?.["480x480"] ?? "" : "";
-  // ponytail: Audius serves artwork from its content nodes, any operator's host: one named by
-  // api.audius.co (not by the chain) is fetched when it is a public https name (no IP, port or
-  // local name), at that host only. Pin node IPs (as verify.mts notes) if that ever matters.
-  const host = proofPage(art)?.host;
-  return host ? fetchImage(art, (u) => coverHost(u) || proofPage(u)?.host === host, signal) : "";
+  const url = ref && !/^(audius|jamendo):/.test(ref) ? mediaURLs(ref)[0] : undefined;
+  return url ? fetchImage(url, coverHost, AbortSignal.timeout(4000)) : "";
 }
 
 // ---- the card ----

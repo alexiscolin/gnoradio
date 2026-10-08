@@ -298,7 +298,7 @@ only call on the role is the slow `GuardianReplace` above.
 7. Netlify: the variables in [Netlify](#netlify), scope "All". Without `VITE_GNORADIO_NS`
    there, the link previews query `gno.land/r/gnoradio/...` and fall back to the default card.
 8. Move the guardian to its own key (above).
-9. Audius and Jamendo keys (`AUDIUS_API_KEY`, `JAMENDO_CLIENT_ID`) in Netlify, functions only (table above).
+9. Audius and Jamendo keys (`AUDIUS_API_KEY`, `JAMENDO_CLIENT_ID`) in Netlify, functions only (table above). `JAMENDO_CLIENT_ID` is mandatory once Jamendo pointers are imported: without it they stay unnamed and silent (Audius pointers are still named).
 10. Before the public launch: a private contact for notices and data requests (GDPR art. 13, DSA), shown on the Legal page.
 
 ## Upgrading the rules later

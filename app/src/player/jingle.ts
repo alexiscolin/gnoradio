@@ -19,13 +19,25 @@ export const jingleURL = (station: string, genre = ""): string =>
     ? `${JINGLES}/${MAIN_BY_GENRE[genre] ?? "main"}.mp3`
     : `${JINGLES}/${station.toLowerCase().replace("r&b", "rnb").replace("lo-fi", "lofi").replaceAll("&", "and").replaceAll("'", "").replace(/\s+/g, "-")}.mp3`;
 
-/** tail resolves once the jingle is within s seconds of its end (or ended, or failed). */
+/** STALL_MS: a jingle that makes no progress this long (archive.org slow or silent) is given up on, so the music is never held back by it. */
+export const STALL_MS = 3000;
+
+/** tail resolves once the jingle is within s seconds of its end (or ended, or failed, or stalled for STALL_MS: the caller then fades it out and brings the station in). */
 export const tail = (j: HTMLAudioElement, s: number): Promise<void> =>
   new Promise((done) => {
-    const check = () => {
-      if (!j.ended && !j.error && !(j.duration > 0 && j.currentTime >= j.duration - s)) return;
+    let watchdog = 0;
+    const finish = () => {
+      window.clearTimeout(watchdog);
       for (const e of ["timeupdate", "ended", "error"]) j.removeEventListener(e, check);
       done();
+    };
+    const check = () => {
+      if (!j.ended && !j.error && !(j.duration > 0 && j.currentTime >= j.duration - s)) { // still going: it has STALL_MS to show progress
+        window.clearTimeout(watchdog);
+        watchdog = window.setTimeout(finish, STALL_MS);
+        return;
+      }
+      finish();
     };
     for (const e of ["timeupdate", "ended", "error"]) j.addEventListener(e, check);
     check();

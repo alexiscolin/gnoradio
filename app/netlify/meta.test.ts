@@ -56,6 +56,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+describe("a pointer's preview", () => {
+  it("names the platform and never calls it, whether or not it would answer", async () => {
+    for (const [audio, name] of [["audius:Ab1", "Audius"], ["jamendo:42", "Jamendo"]] as const) {
+      rpc.mockImplementation(chain((q) => (q.includes("TrackJSON(14)") ? { id: 14, title: "", artistName: "", cover: "", audio } : undefined)));
+      const t = await tags("/track/14");
+      expect(t.title).toBe(`${name} track · ${name} artist · GnoRadio`);
+      expect(rpc.mock.calls.every(([u]) => u === "https://rpc.test")).toBe(true); // the chain only, no platform
+      rpc.mockClear();
+    }
+  });
+});
+
 describe("meta", () => {
   it("leaves the page untouched for people", async () => {
     expect(await run("/track/12", "Mozilla/5.0 (Macintosh) Firefox/130.0")).toBe(page);

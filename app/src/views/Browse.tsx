@@ -37,7 +37,7 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
   readonly now: number;
   readonly openSupport: (t: SupportTarget) => void;
 }) {
-  const fees = useFees().support;
+  const { support: fees, known } = useFees();
   const main = cat.stations[0];
   const goal = support.goal > 0 ? support.goal : DEFAULT_GOAL;
   const onAir = main ? cat.byId.get(main.now.track) : undefined;
@@ -54,13 +54,13 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
           {onAir && <span className="muted small">Or play any track just for you in the Library.</span>}
           <span className="go">{onAir ? "Listen" : "Make music"} <Icon name="arrow-right" size={16} className="nudge" /></span>
         </button>
-        {fees && <button className="block-yellow" onClick={() => { go({ k: "community" }); }}>
+        {known !== false && fees && <button className="block-yellow" onClick={() => { go({ k: "community" }); }}>
           <span className="lbl">Given to GnoRadio by listeners</span>
           <span className="big">{support.monthTotal > 0 ? gnot(support.monthTotal) : "Be the first"}</span>
           <span className="bar"><i style={{ width: `${String(Math.min(100, (support.monthTotal / goal) * 100))}%` }} /></span>
           <span className="small">{support.monthTotal > 0 ? `of ${gnot(goal)} this month` : `Goal: ${gnot(goal)} this month`}{support.supporters > 0 ? ` · ${plural(support.supporters, "supporter")}` : ""}</span>
         </button>}
-        {!fees && <button className="block-yellow" onClick={() => { go({ k: "contribute", path: "artist" }); }}>
+        {known !== false && !fees && <button className="block-yellow" onClick={() => { go({ k: "contribute", path: "artist" }); }}>
           <span className="lbl">For artists</span>
           <span className="big">Make music</span>
           <span className="small">Publish your tracks: they join the radio in the same transaction. Tips go 100% to you, 0% to GnoRadio.</span>
@@ -259,7 +259,7 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
                   return (
                     <button key={a.id} className="aresult" onClick={() => { go({ k: "artist", id: a.id }); }}>
                       <span className="aresult-glyph" aria-hidden="true"><Shape g={g} size={20} fill={fill} /></span>
-                      <span className="aresult-txt"><b><Mark text={a.name} q={q} /></b><small>{plural(a.tracks.length, "track")}{a.owner ? " · on GnoRadio" : a.kind === "audius" ? " · via Audius" : ""}</small></span>
+                      <span className="aresult-txt"><b><Mark text={a.name} q={q} /></b><small>{plural(a.tracks.length, "track")}{a.owner ? " · on GnoRadio" : a.kind === "audius" ? " · via Audius" : a.kind === "jamendo" ? " · via Jamendo" : ""}</small></span>
                       <Icon name="arrow-right" className="nudge" />
                     </button>
                   );

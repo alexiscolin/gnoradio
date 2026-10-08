@@ -23,15 +23,16 @@ export function safeMedia(u: string): string {
 const IPFS_GATEWAYS = ["https://ipfs.io/ipfs/", "https://dweb.link/ipfs/", "https://cloudflare-ipfs.com/ipfs/"] as const;
 
 /** mediaURLs resolves a media reference to playable URLs, best first (several IPFS gateways). */
-export function mediaURLs(ref: string): string[] {
+export function mediaURLs(ref: string, trackId = 0): string[] {
   const u = safeMedia(ref);
   if (u.startsWith("ipfs://")) return IPFS_GATEWAYS.map((g) => g + u.slice(7));
   if (u.startsWith("ar://")) return [`https://arweave.net/${u.slice(5)}`];
   // Plays go out with app_name only: GnoRadio's API key (server side, /api/meta) is kept for the metadata,
   // so its monthly quota does not grow with the audience.
   if (u.startsWith("audius:")) return [`https://api.audius.co/v1/tracks/${encodeURIComponent(u.slice(7))}/stream?app_name=GnoRadio`];
-  // Jamendo's stream URL comes from its API with GnoRadio's client id: /api/jamendo answers with a cached redirect.
-  if (u.startsWith("jamendo:")) return [`/api/jamendo/${encodeURIComponent(u.slice(8))}`];
+  // Jamendo's stream URL comes from its API with GnoRadio's client id: /api/stream/<track id> reads the track
+  // on chain and answers with a redirect kept an hour. Only a track on chain streams (no id, no source).
+  if (u.startsWith("jamendo:")) return trackId > 0 ? [`/api/stream/${String(trackId)}`] : [];
   return u ? [u] : [];
 }
 

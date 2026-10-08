@@ -38,6 +38,12 @@ describe("empty states", () => {
     noBadText();
   });
 
+  it("Listen draws neither the support nor the Make music block before the fees are known", () => {
+    render(<FeesContext.Provider value={{ support: false, ticketFee: false, known: false }}><Listen cat={empty} player={player} go={vi.fn()} activity={[]} support={EMPTY_SUPPORT} now={0} openSupport={vi.fn()} openPick={vi.fn()} /></FeesContext.Provider>);
+    expect(screen.queryByText("Given to GnoRadio by listeners")).toBeNull();
+    expect(screen.queryByText("For artists")).toBeNull();
+  });
+
   it("Listen offers no support block while GnoRadio takes no fee", () => {
     render(<Listen cat={empty} player={player} go={vi.fn()} activity={[]} support={EMPTY_SUPPORT} now={0} openSupport={vi.fn()} openPick={vi.fn()} />);
     expect(screen.queryByText("Given to GnoRadio by listeners")).toBeNull();
