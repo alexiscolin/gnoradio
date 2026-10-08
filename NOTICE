@@ -29,3 +29,13 @@ Third-party material included in this repository.
    https://github.com/ace-step/ACE-Step-1.5); voices generated with Kokoro-82M
    v1.0 (Apache License 2.0, https://huggingface.co/hexgrad/Kokoro-82M).
    The voices are synthetic.
+
+4. Promo video soundtrack (app/public/promo.mp4)
+
+   "New Again" (instrumental version) by Josh Woodward
+   (https://www.joshwoodward.com), from the album Sandcastles (instrumental),
+   licensed under the Creative Commons Attribution 4.0 International License
+   (CC BY 4.0, https://creativecommons.org/licenses/by/4.0/).
+   Source: https://archive.org/details/josh-woodward-sandcastles-novox
+   Changes: edited on whole bars and levelled. The footage is a screen
+   recording of the GnoRadio app on a local test network.

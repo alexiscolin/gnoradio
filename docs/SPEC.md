@@ -3,7 +3,7 @@
 > A music player **and** a community radio, on-chain on gno.land.
 > The interface is in **English**. Admin = the project owner's personal address.
 > Nothing is deployed on a public network before it passes review on a local devnet.
-> This describes the v0 realms that ship today. A v1 that keeps the data apart from the rules is in progress: [ARCHITECTURE-v1.md](ARCHITECTURE-v1.md).
+> Since release 1 (v1), every record lives in one permanent `data` realm and the rules realms (`catalog/v1`, `radio/v1`, `tickets/v1`, `home/v1`) can be replaced without moving it: [ARCHITECTURE-v1.md](ARCHITECTURE-v1.md). The review notes below (v0.3 to v0.8) are the history of the rules; section 4.5 lists what v1 changed.
 
 ## 1. Product
 
@@ -55,9 +55,9 @@ Status: **0.3** = this work · **dApp** = app side · **0.4+** = later · **✕*
 | Rotation per station, scalable structure (§4.2), stable when tracks are added or removed | 0.3 |
 | Programming by listeners: starts when the current track ends; quotas | 0.3 |
 | Pick at a chosen time (`QueueAt`, 15 min to 24 h, 4 per hour, see v0.8) | 0.8 |
-| Permissionless sync from the catalog to the stations (`Sync`, `Refresh`, `RefreshArtist`) | 0.3 |
+| A published or imported track joins its stations in the same transaction (`radio.PublishTrack`, `radio.ImportTrack`, `radio.ImportTracks` 25 at a time; an import skips New this week, which keeps new releases; `radio.EditTrack` moves a track whose genre or duration changed); permissionless `Sync` (safety net), `Refresh`, `RefreshArtist` | 0.3, on air at publish since v1 |
 | `ScheduleJSON(station)` for the dApp | 0.3 |
-| Main flows like a real radio: sets of 3 to 5 tracks of one genre, transition to a nearby genre along an energy line, a daily clock (calm at night, energy in the evening), never the same artist twice in a row; `Sync` writes the next hour, called every 30 min by the robot (`app/netlify/functions/sync.mts`) | 0.5 |
+| Main flows like a real radio by a daily clock (calm at night, energy in the evening), computed from the clock: each UTC hour it simulcasts one genre station along an energy line (one step below the daypart's target, the target, one step above, or the nearest genre with a live track): it plays exactly what that station plays, its picks included, joined mid-track on the hour (the jingle covers it), with no rotation of its own and no write, robot or `Sync` needed; an edit or publish on the genre station never makes Main jump; listeners' picks on Main play first and air at once, and a genre station's pick it simulcasts shows, tips (the picker's promo share, ranked on the genre station) and is reported as that pick; the hour's genre reads today's live-genre flags, so a genre that goes live (its first track) or empty changes Main's genre from that moment, even within the hour (a switch like the one on the hour; rare: only a genre's first track, or its last one going, does it) (`radio.HourGenre`, `radio/flow.gno`) | 0.5, simulcast since v1 |
 | Station jingles (in the app, on tune-in and at the top of the hour) | dApp |
 | Editorial stations based on a playlist, shows at fixed times | 0.4+ |
 | "New this week" (`NumGenres+1`, the last 300 tracks added) and "Listeners' choice" (`NumGenres+2`, the last 500 distinct tracks picked by listeners through `Queue`/`QueueWithNote`, plus the top likes at each `Sync`) stations: fixed-size ring, once full the oldest slot is reused in place (its track leaves `homes`), the rotation stops growing, constant cost; can be programmed like any station, with no genre check | 0.5 |
@@ -86,9 +86,9 @@ Status: **0.3** = this work · **dApp** = app side · **0.4+** = later · **✕*
 | sha256 of a local audio or cover file (no upload: the artist hosts the file) | dApp |
 | Search over the catalog loaded from the exports | dApp |
 | Catalog cache in the browser (IndexedDB), only what changed is read again | dApp |
-| Session keys (fewer Adena popups, daily spending cap) | dApp |
+| Session keys (fewer Adena popups; the daily cap bounds fees and deposits, not which catalog/radio functions the key may call; never for admin, treasury, owner or guardian addresses) | dApp |
 | Sharing with `?ref=` | dApp |
-| Concerts: search, this week / this month, free, city and day filters; a QR per ticket that opens a door page for check-in | dApp |
+| Concerts: search, this week / this month, free, city and day filters; Show at the door (the holder shows a QR that opens the door page, which shows a fresh door code; the holder signs `tickets.Present` with it; the door page shows who presented it and when, check-in by the artist within 10 minutes; `Present` and check-in close 12 h after the start) | dApp |
 | Audio upload, repeat, volume normalization, embeddable player | 0.4+ |
 
 ## 3. Where each piece of data lives
@@ -105,22 +105,26 @@ Listening never costs anything and never goes through the chain.
 ## 4. On-chain architecture
 
 ```
-gno.land/p/gnoradio/blocks/v0     sum of durations in blocks (rotation)    (pure, tested)
+gno.land/p/gnoradio/blocks/v0     rotation codec (header, groups, blocks)  (pure, tested)
 gno.land/p/gnoradio/svg/v0        SVG drawing (cover, ticket, graphs)      (pure)
-gno.land/p/gnoradio/text/v0       text helpers (keys, JSON, GNOT)          (pure)
-gno.land/p/gnoradio/store/v0      compact encodings (records, buckets)     (pure)
+gno.land/p/gnoradio/text/v0       text helpers (JSON, numbers, URLs, GNOT) (pure)
+gno.land/p/gnoradio/store/v0      string codecs (records, id lists, rows)  (pure)
 gno.land/p/gnoradio/safe/v0       dedication filter                        (pure)
-gno.land/r/gnoradio/catalog/v0    artists, tracks, albums, playlists, likes, follows, tips
-gno.land/r/gnoradio/radio/v0      stations, rotations, programming         (reads catalog)
-gno.land/r/gnoradio/tickets/v0    concerts, GRC721 tickets                 (reads catalog)
-gno.land/r/gnoradio/home/v0       gnoweb site + Info()                     (reads everything)
+gno.land/p/gnoradio/role/v0       two-step role (offer, accept, renounce)  (pure)
+gno.land/r/gnoradio/data          every record, the promo vault, releases  (permanent)
+gno.land/r/gnoradio/tickets/nft   GRC721 tickets                           (permanent)
+gno.land/r/gnoradio/catalog/v1    artists, tracks, albums, playlists, likes, follows, tips
+gno.land/r/gnoradio/radio/v1      stations, rotations, programming         (reads catalog)
+gno.land/r/gnoradio/tickets/v1    concerts, ticket rules                   (reads catalog)
+gno.land/r/gnoradio/home/v1       gnoweb site + Info()                     (reads everything)
 ```
 
-Also in the tree, for v1 and not used by the v0 realms: `p/gnoradio/role/v0`, `r/gnoradio/data` and the `catalog/v1` being written ([ARCHITECTURE-v1.md](ARCHITECTURE-v1.md)).
-
-One-way dependencies: `radio`, `tickets`, `home` import `catalog`; `catalog` imports no realm.
+One-way dependencies: every realm imports `data`; `radio`, `tickets`, `home` import `catalog`;
+`catalog` imports no other rules realm.
 Realms talk to each other through **ids** and getters that return **values** (never pointers).
-Each realm has its own `admin` (set to the deployer, then `TransferAdmin`).
+Each rules realm has its own `admin` (set to the deployer, passed on with `OfferAdmin` /
+`AcceptAdmin`, mirrored in `data` so it survives a release); `data` has an owner and a guardian
+([DEPLOY.md](DEPLOY.md)).
 On a public chain the packages go under the deployer's namespace ([DEPLOY.md](DEPLOY.md)).
 
 ### 4.1 Scaling rules
@@ -152,9 +156,9 @@ Position in the loop at time `t`: `(t − epoch − paused(t)) mod total`, where
 func RegisterArtist(cur realm, name, bio string) int
 func CreateArtist(cur realm, kind, name, bio, source string) int              // admin, unclaimed curated or Audius artist
 func AssignArtist(cur realm, artistID int, owner address)                      // admin, claim
-func PublishTrack(cur realm, title string, genre int, duration, license, cmo, credits, audio, audioSHA, cover, coverSHA, splits, rights string) int
-func ImportTrack(cur realm, artistID int, title string, genre int, duration, license, credits, audio, audioSHA, cover, coverSHA, sourceURL, attribution string) int // admin
-func EditTrack(cur realm, id int, ...)
+func PublishFor(cur realm, caller address, ...) int  // radio writer only: radio.PublishTrack names the signer
+func ImportFor(cur realm, by address, ...) int       // radio writer only, by = the catalog admin
+func EditFor(cur realm, caller address, id int, ...) // radio writer only
 func CreateAlbum(cur realm, artistID int, title, cover, coverSHA string, year int, trackIDs string) int
 func PublishPlaylist(cur realm, title, trackIDs string) int
 func Like(cur realm, trackID int)
@@ -175,7 +179,11 @@ func ArtistOf(owner address) int                       // 0 if no profile
 func ArtistVisible(artistID int) bool
 
 // radio
-func Sync(cur realm, max int) int    // permissionless: adds the catalog's new tracks
+func PublishTrack(cur realm, title string, genre int, duration, license, cmo, credits, audio, audioSHA, cover, coverSHA, splits, rights string) int // on air in the same transaction
+func ImportTrack(cur realm, artistID int, title string, genre int, duration, license, credits, audio, audioSHA, cover, coverSHA, sourceURL, attribution string) int // catalog admin; skips New
+func ImportTracks(cur realm, batch string) int // up to 25 ImportTrack lines, tab-separated fields, one transaction
+func EditTrack(cur realm, id int, title string, genre int, duration, credits, audio, audioSHA, cover, coverSHA string) // a new genre or duration moves it on air
+func Sync(cur realm, max int) int    // permissionless safety net: adds catalog tracks not on the stations yet (none in normal use)
 func RefreshArtist(cur realm, artistID, offset int) int // permissionless: refreshes 50 tracks of an artist, returns the next offset (0 = done)
 func Queue(cur realm, station, trackID int)
 func NowPlaying(station int) (trackID int, offset int64, queued bool)
@@ -184,7 +192,7 @@ func ScheduleJSON(station, horizon int) string
 
 ### 4.4 Funding GnoRadio and activity (v0.3.1)
 
-The artist always keeps 100%; GnoRadio's share is added on top, visibly, and goes to an on-chain treasury.
+A tip goes 100% to the artist and their collaborators, minus the promo share the artist chose; 0% to GnoRadio. GnoRadio's share is added on top, visibly, and goes to an on-chain treasury.
 
 ```go
 // catalog
@@ -197,7 +205,7 @@ func SupportJSON() string   // {"treasury","total","supporters","month":"YYYY-MM
 func ActivityJSON(limit int) string // ≤64, newest first: [{"kind","by","track","artist","amount","at"}]
                                     // kind: publish | like | follow | tip | support | playlist | album | claim
 // radio
-func CuratorQueue(cur realm, stationID, trackID int)              // radio admin: no quotas (duplicate, genre, 30 max kept)
+func CuratorQueue(cur realm, stationID, trackID int)              // radio admin: no per-listener or per-artist quotas (duplicate, genre and queue-size rules still apply)
 func ActivityJSON(limit int) string // ≤64: [{"kind":"queue"|"curator","by","track","station","start","at"}]
 // tickets
 func SetServiceFee(cur realm, ugnot int64)                        // admin, 0..10 GNOT; paid tickets: price + exact fee
@@ -211,7 +219,8 @@ Activity feeds are fixed-size rings of 64 entries: storage does not grow.
 
 ```go
 // catalog
-func ResolveReport(cur realm, id int)        // admin: closes a report; ≤5 open per reporter, maxReports = OPEN reports
+func ResolveReport(cur realm, id int)        // admin: closes a report; ≤5 open per reporter, no global cap (review R28)
+func ResolveReports(cur realm, from, count int) // admin: closes reports from..from+count-1 (1-50) in one call
 func ReleaseName(cur realm, name string)     // admin: frees a reserved name that no visible artist uses
 // radio
 func DropSlot(cur realm, stationID, trackID int) // admin: cuts the rotation slot (duration 0, kept despite Refresh) and removes the track from the queue
@@ -219,12 +228,29 @@ func RestoreSlot(cur realm, stationID, trackID int) // admin: undoes DropSlot
 func Unqueue(cur realm, stationID, trackID int)  // admin: removes the track from the queue
 ```
 
-- Artist names: ASCII letters + Latin-1 accented letters (À–ÿ except × ÷), digits, space, `. ' - &`; reserved under a skeleton (lowercase, accents removed, full width → ASCII). Renaming frees the old name; a hidden artist cannot rename.
+- Artist names: ASCII letters + Latin-1 accented letters (À–ÿ except × ÷), digits, space, `. ' - &`; reserved under a skeleton (lowercase, accents removed, full width → ASCII, look-alikes folded: i/l/1, 0, 3, 4, 5, 7, rn, vv, cl). Names holding gnoradio, moderator, moderation, treasury or administrator, or the word admin, staff or official (as skeletons), are refused. Renaming frees the old name; a hidden artist cannot rename.
 - `SetTreasury` refuses the catalog's address and those of the radio, tickets and home realms. `Like` does not add the same address twice to the "early" badges.
 - Radio: a genre change updates all stations (orphan slot set to 0); a track that is not playable is never aired (`NowPlaying`, `ScheduleJSON`). `Queue`: one track per station per hour per wallet; ≤ 7,200 s of upcoming listener programming per station (`CuratorQueue` exempt).
 - Tickets: an `upcoming` index sorted by date (added on creation, removed on cancellation or hiding); `Upcoming` and `EventsJSON(upcoming=true)` read it (nearest first); ≤ 10 upcoming non-cancelled concerts per artist. `RefreshArtist(artistID)` (open to all) rereads the artist's visibility in the catalog: concerts of a hidden artist leave the index (hidden spam no longer takes up the 1,000-entry scan), those of a restored artist come back.
 
-## 5. Launch catalog (~1,200 tracks)
+### 4.5 Release 1 (v1): data apart from rules
+
+Details, measurements and the threat model: [ARCHITECTURE-v1.md](ARCHITECTURE-v1.md).
+
+- **One data realm.** `r/gnoradio/data` holds every record as string collections (`Get`, `Page`, `Set`, `Batch`) and is never replaced; each rules realm is the only writer of its role's collections. Record layouts are those of the review notes below; the realms keep no typed state, so `p/store`'s `Seq`, `Map` and `IDs` and the persisted `blocks.List` are gone (the codecs stay).
+- **Releases instead of migrations.** The data owner proposes a new set of rules realms (`data.Propose`); each says `Ready`; 72 hours later they become the writers at once, with nothing copied. `data.Pause` replaces `Freeze`; `data.Writer(role)` replaces `SetSuccessor`/`Successor`, `SetRadioRealm` and the sibling realms; the migration readers (`UsersPage`, `LikesPage`, `TippedPage`, `SupportersPage`, `PromoPage`, `RotationPage`, `StatePage`, `StationState`, `FlowState`) are removed.
+- **Roles.** Every admin role is two-step (`OfferAdmin`, `AcceptAdmin`, `RenounceAdmin`) and survives a release; `TransferAdmin` is gone. `data` has an owner and a separate guardian (pause and cancel only). The owner can replace the guardian with `data.GuardianReplace(to)`: `to` takes over 2x the delay (144 h) later, and the guardian cannot cancel it.
+- **Addresses.** Upper-case addresses are refused everywhere (`role.Canonical` in `p/gnoradio/role`).
+- **Door.** `CheckIn(ticketID, code)` needs a `tickets.Present(ticketID, code)` by the current holder, with the same door code (4 to 8 digits, shown by the door page after the scan), from the last 10 minutes (`PresentedAt(ticketID, code)`); both open 12 h before the start and close 12 h after it.
+- **Proof host.** `Claim` takes a proof on a plain host only; `catalog.ProofHost(id)` and `"proofHost"` / `"verified"` in the artist JSON show it next to the ✓; a curated import cannot be verified with a proof on its source host.
+- **Coins.** Promo budgets sit in `data`'s vault; the funder withdraws with `data.VaultWithdraw("catalog/" + 8-digit artist id)`, even while paused. Rules realms end every transaction holding nothing.
+- **Tickets.** The GRC721 tokens live in the permanent `tickets/nft`, which mints and moves only for the tickets realm in force and only from the signing wallet.
+- **Robot certificates** are bound to the data realm's path as well as the chain id.
+- **Tip shares.** The promo share is 0% until the artist sets it; a tipper who picked the track on air pays no share at all, to nobody.
+
+## 5. Launch catalog (~1,200 tracks, at most 1,600)
+
+The sources below total about 1,200 tracks. `tools/curate` aims at up to 80 per station (20 stations, 1,600) as the ceiling; DEPLOY prices both.
 
 **Quality comes from an allowlist, never from an open search.** Internet Archive is used as a stable **host** for chosen artists and labels, not as a discovery source.
 
@@ -246,11 +272,11 @@ Genres (fixed list, `genre` = index): 1 Electronica · 2 Synthwave · 3 Ambient 
 
 ## 6. Budgets (targets)
 
-The gas tests (`TestScaleSmall` / `TestScaleLarge`, `TestScale*` in radio, `gas_test.gno`) print the figures to compare; they do not assert these numbers.
+The gas golden filetests (`z_gas_*` in each realm, written by `tools/gasfix`) record the figures at 5k and 20k tracks; radio's `TestScaleOps1k` checks the hot paths stay flat. They do not assert these targets.
 
 | Action | Max gas | Independent of volume |
 |---|---|---|
-| PublishTrack / ImportTrack | 25 M | yes |
+| PublishTrack / ImportTrack (stations included: +7.0 M at 5k tracks, +7.3 M at 20k, radio `z_gas_publish_*`) | 35 M | yes |
 | Like, Follow, Tip | 15 M | yes |
 | Queue | 20 M | yes (queue ≤ 30) |
 | NowPlaying / rotation (100,000 slots) | 60 M | ~O(n/128) |
@@ -277,7 +303,7 @@ The gas tests (`TestScaleSmall` / `TestScaleLarge`, `TestScale*` in radio, `gas_
 
 ### Review v0.4.2 (gas and deposit)
 
-- **Who pays for `Sync`:** `Sync` is open to all and the storage deposit is paid by the caller, about 0.1 to 0.2 KB per track since v0.4.4 (≈ 0.02 GNOT; a batch of 200 ≈ 4 GNOT). In practice the admin (Studio, batches of 20) runs it after a wave of imports; an artist can also run it to go on air without waiting. The main station no longer keeps an index (track `id` is at slot `id-1`) and a `homes` index (track → genre stations) limits `Refresh`/`RefreshArtist` to the stations that hold the track.
+- **Who pays for `Sync`:** `Sync` is open to all and the storage deposit is paid by the caller, about 0.1 to 0.2 KB per track since v0.4.4 (≈ 0.02 GNOT; a batch of 200 ≈ 4 GNOT). Since v1, publishing and imports put tracks on air; Sync only catches up after a gap. The main station no longer keeps an index (track `id` is at slot `id-1`) and a `homes` index (track → genre stations) limits `Refresh`/`RefreshArtist` to the stations that hold the track.
 - `PublishPlaylist` / `UpdatePlaylist` now only check the id range and duplicates (≈ 4× less gas for 200 tracks); hidden tracks are filtered on read.
 - `EventsJSON(offset, limit, false)` jumps straight to `offset` (offset and limit count stored concerts, hidden ones included) and returns `"next"`.
 - tickets: `ownedCount` removed (written, never read).
@@ -298,13 +324,13 @@ The gas tests (`TestScaleSmall` / `TestScaleLarge`, `TestScale*` in radio, `gas_
 
 ### Review v0.5 (verification, storage, flow)
 
-- **Artist verification with no human** (`catalog/verify.gno`, `docs/VERIFICATION.md`): tips and paid tickets are only for verified artists; proof on a page of the artist's, read by a robot with a limited role, 72 h public delay, `CancelClaim` / `ResetOwner` for the admin; no escrow.
+- **Artist verification by a robot** (the moderator can also verify by assigning a profile, `AssignArtist`; curated imports only that way) (`catalog/verify.gno`, `docs/VERIFICATION.md`): tips and paid tickets are only for verified artists; proof on a page of the artist's, read by a robot with a limited role, 72 h public delay, `CancelClaim` / `ResetOwner` for the admin; no escrow.
 - **Tree storage** (`store/v0`): `Seq`, `Map` and `IDs` sit on a sparse tree with fanout 32 and counters. A write rewrites one leaf and one path (log32 of the number of leaves: 3 levels for 32,000 leaves) instead of the array of all tracks or buckets, which made gas grow with the catalog. Pages at any offset (`Keys`, `IDs.Page`) go down through the counters. Sparse `Map` buckets: sized for 1 M listeners at no cost while they are empty.
 - `updateTop` no longer rewrites the chart when it does not change.
 - **Main flow** (`radio/flow.gno`): see §2 Radio.
-- **Dedications** (`radio.QueueWithNote`, `p/gnoradio/safe/v0`): a pick can carry a 40-character dedication shown on air. Filtering with no human: simple characters, no link or phone number, a multilingual list (LDNOOBW en/fr/es/de/it/pt/nl, CC BY 4.0, strong keywords from gnolang/gno#5178, added insults and hate terms), after normalization (accents, leet, repeated or spaced letters). `ReportNote`: three distinct reports (from listeners who have already made a pick) hide the dedication at once; a first hidden dedication is a warning (strike), a second within 7 days (`muteFor`) suspends the author's dedications for 7 days. `RestoreNote` (admin) only applies to a hidden dedication and removes the strike it gave. To be replaced by `p/gnoland/antispam` when gnolang/gno#5178 is deployed.
+- **Dedications** (`radio.QueueWithNote`, `p/gnoradio/safe/v0`): a pick can carry a 40-character dedication shown on air. Filtering with no human: simple characters, no link or phone number, a multilingual list (LDNOOBW en/fr/es/de/it/pt/nl, CC BY 4.0, strong keywords from gnolang/gno#5178, added insults and hate terms), after normalization (accents, leet, repeated or spaced letters). `ReportNote`: three distinct reports (from listeners with the sponsored-pick reputation: a first pick 7 days old and 3 normal picks in the last two 15-day periods) hide the dedication at once; a first hidden dedication is a warning (strike), a second within 7 days (`muteFor`) suspends the author's dedications for 7 days. `RestoreNote` (admin) only applies to a hidden dedication and removes the strike it gave. To be replaced by `p/gnoland/antispam` when gnolang/gno#5178 is deployed.
 - **Pick priority**: a pick takes the flow's place on air right away (fade in the app) and replaces its next track; after a listener pick in progress, it goes next.
-- **Dedication moderation before the transaction, with no human, free for GnoRadio**: (1) the app sends the text to the robot (`app/netlify/functions/dedication.mts`), which applies the on-chain filter `p/gnoradio/safe` (≈2,000 words and phrases, 20 languages, workarounds) then OpenAI's moderation model (free, multilingual, context-aware, thresholds in `app/src/lib/moderation.ts`); if it passes, the robot signs `radio.NoteMessage(author, station, note, expires)` (Ed25519, 10 min; the realm accepts at most 15); (2) the listener sends `QueueWithNote` with this certificate and pays their gas; the realm checks `safe.Note` and the signature again, refuses otherwise, and the dedication shows at once; with no key or if OpenAI is down, dedications are paused, a pick without a dedication works; (3) three reports (from listeners who have already made a pick) hide it; a second hidden dedication within 7 days turns off the author's dedications for 7 days. The admin can `RestoreNote`, `Unmute`, `SetModBot("")` (turns dedications off). Hidden on the chain = hidden everywhere (app and gnoweb).
+- **Dedication moderation before the transaction, with no human, free for GnoRadio**: (1) the app sends the text to the robot (`app/netlify/functions/dedication.mts`), which applies the on-chain filter `p/gnoradio/safe` (≈2,000 words and phrases, 20 languages, workarounds) then OpenAI's moderation model (free, multilingual, context-aware, thresholds in `app/src/lib/moderation.ts`); if it passes, the robot signs `radio.NoteMessage(author, station, note, expires)` (Ed25519, 10 min; the realm accepts at most 15); (2) the listener sends `QueueWithNote` with this certificate and pays their gas; the realm checks `safe.Note` and the signature again, refuses otherwise, and the dedication shows at once; with no key or if OpenAI is down, dedications are paused, a pick without a dedication works; (3) three reports (from listeners with the sponsored-pick reputation) hide it; a second hidden dedication within 7 days turns off the author's dedications for 7 days (`radio.MutedUntil(addr)`; the robot refuses a muted author with a 422 before calling OpenAI). The admin can `RestoreNote`, `Unmute`, `SetModBot("")` (turns dedications off). Hidden on the chain = hidden everywhere (app and gnoweb).
 
 
 ### Listener rewards (v0.6)
@@ -313,12 +339,11 @@ Picking and sharing pay off, paid by the tippers, never by GnoRadio (everyone pa
 
 ```go
 // catalog (promo.gno)
-func SetPromoShare(cur realm, pct int)   // owning artist: 0..20%, 5% by default; ArtistJSON exposes "promo"
+func SetPromoShare(cur realm, pct int)   // owning artist: 0..20%, 0% until set (v1); ArtistJSON exposes "promo"
 func PromoShare(artistID int) int
 func RadioTip(cur realm, trackID, supportPct int, tipper, picker, ref address, total int64) (toPicker, toRef int64)
-                                         // callable only by the designated radio realm (cur.Previous().PkgPath() == RadioRealm())
-func SetRadioRealm(cur realm, pkgPath string) // admin: radio v1 without a new catalog; adds it to the sibling realms
-func SetSibling(cur realm, pkgPath string, on bool) // admin: GnoRadio realms (v0 and later) are never treasury, referrer or collaborator
+                                         // callable only by the radio realm in force (cur.Previous().PkgPath() == data.Writer("radio"))
+// (v1: RadioTip checks data.Writer("radio"); data.IsGnoRadio replaces SetRadioRealm and SetSibling)
 // radio (curators.gno)
 func TipOnAir(cur realm, stationID, trackID, supportPct int, ref address) // payable, IsUserCall
 func CuratorOf(addr address) Curator     // picks, tips received on air, earnings (ugnot), all time
@@ -348,28 +373,27 @@ func TopCuratorsJSON(stationID int) string // {"station","since","top":[{"addres
 A listener pick costs a fee (~0.01 GNOT) and a storage deposit (up to ~0.1 GNOT, returned by the chain to whoever's transaction frees that storage, rarely the picker). An artist can **refund** it: it is a refund, not a paid play (above the cost, free throwaway wallets would drain the budget). Nothing is paid by GnoRadio.
 
 ```go
-// catalog (sponsor.gno): the GNOT stay in the catalog, counted exactly
+// catalog (sponsor.gno): the GNOT sit in the data realm's vault (v1), account "catalog/<8-digit artist id>"
 func FundPromo(cur realm)                                // payable (ugnot, IsUserCall), verified owning artist, 0.1..1,000,000 GNOT
-func SetPromoPay(cur realm, ugnotPerPick int64, perDay int) // 10,000..50,000 ugnot (0 = pause, 30,000 by default), daily cap 0..100 (0 = none)
-func WithdrawPromo(cur realm, artistID int)              // the funder only, unreserved part; works with artist hidden, not verified, profile taken over, realm frozen
-func PromoReserve / PromoClaim / PromoRelease            // radio realm only (cur.Previous().PkgPath() == RadioRealm())
+func SetPromoPay(cur realm, ugnotPerPick int64, perDay int) // 10,000..500,000 ugnot (0 = pause, 200,000 by default), daily cap 1..100 (0 = the default, 10)
+// data.VaultWithdraw(cur realm, acct string)           // the funder only, unreserved part; works with artist hidden, not verified, profile taken over, GnoRadio paused (v1; was catalog WithdrawPromo)
+func PromoReserve / PromoClaim / PromoRelease            // radio realm in force only (data.Writer("radio")); v1 adds the funding generation
 func PromoOffer(artistID int) int64                      // current refund (0 = none); ArtistJSON "sponsor"
 func PromoJSON(artistID int) string                      // {"artist","funder","balance","reserved","free","pay","perDay","today","funded","paid","picks","offer"}
-func PromoPage(offset, limit int) (keys, vals []string)  // migration / audit; sum of balances == PromoHeld()
 // radio (sponsor.gno)
 func QueueSponsored(cur realm, stationID, trackID int)   // refunded pick, no dedication; a normal pick of the same track is still possible
-func ClaimPickPayout(cur realm, stationID int, start int64) // the picker, one signature, their gas, once the slot has fully aired; works with realm frozen
+func ClaimPickPayout(cur realm, stationID int, start int64) // the picker, one signature, their gas, once the slot has fully aired
 func PickPayoutStatus(addr address, stationID int, start int64) string // "ok" | "airing" | "lapsed" (expired, cancelled or track removed) | "none"
 func SponsoredJSON(addr address) string                  // {"block":"reason or empty","open":[{"station","start","track","end","amount","status"}]}; status = PickPayoutStatus
 func OnAirPay(stationID int) int64                       // label "sponsored pick"; ScheduleJSON "sponsored", UpNext Slot.Pay
 ```
 
-- **Escrow.** `QueueSponsored` reserves the refund in the budget (it leaves the available amount) and keeps a record per wallet and station (only one open at a time). `ClaimPickPayout` checks the record (picker = caller, same `start`), that the planned end has passed, that the track is still playable, then the catalog pays. A slot removed or cut before its end (`Unqueue`, `DropSlot`, `Refresh` of a hidden track) deletes the record and returns the reservation at once. A pick removed before it started also gives back, on the same day as its reservation, the daily counters it had taken (artist cap, 1 per artist and 3 per day for the wallet). Reservations are stored by expiry day: UTC day of (`held` + 7 days), `held` being the planned end at reservation time (`Slot.held`, 5th field of `sponsor`: `at` + duration for a booked pick, `start` + duration at pick time otherwise), never the re-timed end; if unclaimed, they go back to the budget on their own, with no transaction. The app does not guess: `PickPayoutStatus` / `SponsoredJSON` `status`.
-- **Accounting.** `PromoHeld()` = sum of balances = the catalog's GNOT (the catalog keeps no other coin: tips and support go out in the same transaction). `tip` refuses to pay if the realm's balance is below `PromoHeld + total`: a tip can never spend the budgets. No admin function touches the budgets; `Freeze` blocks neither `WithdrawPromo` nor `ClaimPickPayout` (a freeze never makes a refund expire).
+- **Escrow.** `QueueSponsored` reserves the refund in the budget (it leaves the available amount) and keeps a record per wallet and station (only one open at a time). `ClaimPickPayout` checks the record (picker = caller, same `start`) and that the planned end has passed, then the catalog pays, whatever happened to the track since: hiding it never voids a refund the picker earned (review R2/R27). A slot removed before it started (`Unqueue`, `DropSlot`, `Refresh` of a hidden track) deletes the record and returns the reservation at once; a slot cut once on air keeps its record and pays after its planned end. A pick removed before it started also gives back, on the same day as its reservation, the daily counters it had taken (artist cap, 1 per artist and 3 per day for the wallet). Reservations are stored by expiry day: UTC day of (`held` + 7 days), `held` being the planned end at reservation time (`Slot.held`, 5th field of `sponsor`: `at` + duration for a booked pick, `start` + duration at pick time otherwise), never the re-timed end; if unclaimed, they go back to the budget on their own, with no transaction. The app does not guess: `PickPayoutStatus` / `SponsoredJSON` `status`.
+- **Accounting.** The budgets are in `data`'s vault, checked by `banker(data) ≥ data.VaultTotal()`: a tip can never spend them (the catalog keeps no coin: tips and support go out in the same transaction). No admin function touches the budgets; `Freeze` blocks neither `WithdrawPromo` nor `ClaimPickPayout` (a freeze never makes a refund expire). (v1: a pause never blocks `VaultWithdraw`; it blocks `ClaimPickPayout` but stops the vault's clock (`data.VaultDay`), so the claim window runs that much later and no refund lapses during a pause.)
 - **Owner change.** The budget keeps its funder. It only funds new picks if funder = current owner, artist visible and verified. When a new owner funds, the old funder gets their whole balance back (reservations included, which are then cancelled).
-- **Anti-abuse.** The picker is not the owner, not a collaborator (`splits`), not a GnoRadio realm. Reputation: first pick at least 7 days old and 3 normal picks in the last 30 days (two 15-day counters in the curator record: the real window is 15 to 30 days). On air: 1 sponsored pick per artist, station and hour; sponsored airtime ≤ 1,800 s, a quarter of the 2 h that can be programmed. Wallet: 1 per artist and 3 per UTC day (counted at reservation). Artist: optional daily cap. Existing rules apply (1 pick/h/station, no replay within 3 h, 2 upcoming per artist). Wallets of the same person can still take up to the caps: that is the cost of promotion, accepted by the artist when funding.
-- **Not ranked.** A sponsored pick gives no curator points, does not enter Listeners' choice, does not trigger ingestion; it keeps the cooldown (`markPick`). Labelled everywhere: app ("Sponsored pick · paid by [artist]"), gnoweb, `ScheduleJSON` ("sponsored"), activity (`kind:"sponsored"`). `CuratorJSON` exposes `"promo"` (refunds received).
-- **App.** Pick next: a "Free pick: [artist] refunds it (0.03 GNOT)" checkbox, checked by default when available, otherwise the reason; an honest cost line (fee + deposit). Player and Me: a "Collect 0.03 GNOT" button once the pick has aired. Me (verified artist): budget, refund per pick, add, withdraw.
+- **Anti-abuse.** The picker is not the owner, not a collaborator (`splits`), not a GnoRadio realm. Reputation: first pick at least 7 days old and 3 normal picks in the last two 15-day periods (two 15-day counters in the curator record: the real window is 15 to 30 days). On air: 1 sponsored pick per artist, station and hour; sponsored airtime ≤ 1,800 s, a quarter of the 2 h that can be programmed. Wallet: 1 per artist and 3 per UTC day (counted at reservation). Artist: optional daily cap. Existing rules apply (1 pick/h/station, no replay within 3 h, 2 upcoming per artist). Wallets of the same person can still take up to the caps: that is the cost of promotion, accepted by the artist when funding.
+- **Not ranked.** A sponsored pick gives no curator points, does not enter Listeners' choice; it keeps the cooldown (`markPick`). Labelled everywhere: app ("Sponsored pick · paid by [artist]"), gnoweb, `ScheduleJSON` ("sponsored"), activity (`kind:"sponsored"`). `CuratorJSON` exposes `"promo"` (refunds received).
+- **App.** Pick next: a "Free pick: [artist] refunds it" checkbox (0.2 GNOT by default, enough that a sponsored pick costs the listener nothing; 0.01 to 0.5 as the artist sets it), checked by default when available, otherwise the reason; an honest cost line (fee + deposit). Player and Me: a "Collect" button once the pick has aired. Me (verified artist): budget, refund per pick, add, withdraw.
 - Measured gas (`gno test -print-runtime-metrics`, VM cycles without storage writes): `FundPromo` ≈ 2.0 M; `Queue` ≈ 7.7 M; `QueueSponsored` ≈ 6.7 M on the radio side + `PromoReserve` ≈ 3.3 M; `ClaimPickPayout` ≈ 2.5 M + `PromoClaim` ≈ 2.3 M; `WithdrawPromo` ≈ 1.4 M.
 
 ### Picks at a chosen time (v0.8)
@@ -380,12 +404,12 @@ func QueueAt(cur realm, stationID, trackID int, at int64)
 func QueueWithNoteAt(cur realm, stationID, trackID int, at int64, note string, expires int64, sigHex string)
 func QueueSponsoredAt(cur realm, stationID, trackID int, at int64)
 // Queue, QueueWithNote, QueueSponsored call these functions with at = 0; Slot.At = requested time (0: pick for now)
-// ScheduleJSON: "at" per entry and "booked":[{"track","start","end","at","by"}] (all upcoming booked picks, whatever the horizon)
+// ScheduleJSON: "at" and "relay" per entry ("relay": on Main, not Main's own slot but the hour's genre station, simulcast, its picks included) and "booked":[{"track","start","end","at","by"}] (all upcoming booked picks, whatever the horizon, and those that aired in the last hour, until they fold)
 ```
 
-- **Alignment.** The pick starts at the first track boundary from `at`: the end of the rotation track playing at that time, or the end of the listener picks that fill that moment. On Main, at `at` exactly: the current flow track fades out, as for a normal pick, and the flow (`lay`) resumes after; `program`, `ahead` and `NeedsSync` only count the continuous programme from now, a pick booked further ahead does not cut the flow.
+- **Alignment.** The pick starts at the first track boundary from `at`: the end of the rotation track playing at that time, or the end of the listener picks that fill that moment. On Main, at `at` exactly: the simulcast track fades out, as for a normal pick, and the simulcast resumes after it where the genre station is (v1: Main writes no flow and keeps no rotation).
 - **It keeps its time.** A pick for now (and a new booked pick) goes before a booked pick only if it ends at or before that pick's time, otherwise after it. On a genre station, what is inserted before shifts the rotation: `realign` re-times the following booked picks on the new boundary (never before their time, at most one track later), the ones that followed them, and a pick for now that was waiting for the end of a rotation track after a gap (it waits for the new end of that track); the sponsored record and reports follow the `start`. Known limit: `Unqueue`, `DropSlot` and rotation edits do not re-time (the rotation track pauses around it, as around a pick that follows a removed pick).
-- **Rules.** All those of `Queue` (genre, New, 1 waiting pick per listener and station, booked included, 1 h cooldown, 2 per artist, 30 upcoming). The 3 h gap is measured between air times, both ways, against the picks in the schedule: `at` for a booked pick, the computed start for a pick for now (which can wait up to 2 h behind others). `lastPick` keeps these times (a pick for now when queued, with its computed start, updated if `realign` shifts it; a booked pick when it is folded in by `fold`). The 2 h airtime cap only applies to picks for now; booked picks have their own: 4 per station and UTC hour. Sponsored: same rules, quotas measured around `at`; the catalog reservation expires 7 days after `at` + duration (`Slot.held`, 5th field of `sponsor`).
-- **Gas** (VM cycles, `gno test -print-runtime-metrics`, each test run alone): empty station `Queue` +10.8 M, `QueueAt` +10.9 M; full station (29 picks of which 14 booked, all re-timed) `Queue` +18.8 M, `QueueAt` +18.6 M. Bounded by the 30 upcoming slots, independent of the catalog.
-- **App** (Pick next, step 2): "Right away / At a time", times by quarter hour over 24 h in local time with the offset ("21:00 · GMT+2"), sent in UTC; full hours are greyed out; "21:00 · booked"; "On air at 21:00 your time". gnoweb: the booked pick shows in Up next with its time ("booked by").
+- **Rules.** All those of `Queue` (genre, New, 1 waiting pick per listener and station, booked included, 1 h cooldown, 2 per artist, 30 upcoming, 90 listener slots kept per station, aired ones included until they fold an hour after they end). The 3 h gap is measured between air times, both ways, against the picks in the schedule: `at` for a booked pick, the computed start for a pick for now (which can wait up to 2 h behind others). `lastPick` keeps these times (a pick for now when queued, with its computed start, updated if `realign` shifts it; a booked pick when it is folded in by `fold`). The 2 h airtime cap only applies to picks for now; booked picks have their own: 4 per station and UTC hour (aired ones included), and 15 booked picks waiting per station (half the queue). `radio.PickRules()` returns the booked cap last. Sponsored: same rules, quotas measured around `at`; the catalog reservation expires 7 days after `at` + duration (`Slot.held`, 5th field of `sponsor`).
+- **Gas** (VM cycles, `gno test -print-runtime-metrics`, each test run alone): empty station `Queue` +10.8 M, `QueueAt` +10.9 M; full station (29 picks of which 14 booked, all re-timed) `Queue` +18.8 M, `QueueAt` +18.6 M. Bounded by the 30 upcoming slots, independent of the catalog. Full-schedule Queue (measured in `gno test -v` gas, the test with the pick minus the same setup without it, a genre station at the listener-slot cap: 89 listener slots, 60 aired in the last hour, 14 for now, 15 booked, plus the new pick): 41.5M when every slot carries a 40-character dedication, 31.1M with none; at the old cap of 60 slots, 24.0M; an empty station, 9.6M. The cost follows the bytes of the station record (about 3k gas a byte). On chain add what an empty-station Queue costs beyond 9.6M (about 34M measured on the devnet, so about 24M): roughly 55M to 66M, under the app's 70M (Queue) and 80M (QueueWithNote) gas limits, but above the 30M budget for the Queue work itself.
+- **App** (Pick next, step 2): "Right away / At a time", times by quarter hour over 24 h in local time with the offset ("21:00 · GMT+2"), sent in UTC; full hours (4 booked, aired ones included) are greyed out, and booking stops at 15 booked picks on the station; "21:00 · booked"; "On air at 21:00 your time". gnoweb: the booked pick shows in Up next with its time ("booked by").
 
