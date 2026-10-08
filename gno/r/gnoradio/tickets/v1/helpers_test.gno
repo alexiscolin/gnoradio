@@ -62,8 +62,17 @@ func inHours(h int) string {
 	return time.Now().Add(time.Duration(h) * time.Hour).UTC().Format("2006-01-02 15:04")
 }
 
+// treasuryOn gives GnoRadio a treasury (the realm starts with none).
+func treasuryOn(cur realm) {
+	testing.SetRealm(testing.NewUserRealm(catBoss))
+	catalog.SetTreasury(cross(cur), who("treasury"))
+}
+
 // fee sets the service fee as the tickets admin.
 func fee(cur realm, ugnot int64) {
+	if ugnot > 0 {
+		treasuryOn(cur)
+	}
 	testing.SetRealm(testing.NewUserRealm(boss))
 	SetServiceFee(cross(cur), ugnot)
 }

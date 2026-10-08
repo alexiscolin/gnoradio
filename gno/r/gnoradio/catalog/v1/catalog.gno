@@ -10,7 +10,7 @@
 //
 // Three track origins share one catalog:
 //   - "artist":  published by the artist's own wallet, tips enabled;
-//   - "curated": imported by the admin from CC0 / CC BY / CC BY-SA sources;
+//   - "curated": imported by the admin from CC0 / CC BY / CC BY-SA / CC BY-NC / CC BY-NC-SA sources;
 //   - "audius":  selected by the admin from Audius, streamed under the Audius
 //     Open Music License (session cache only, attribution required).
 //
@@ -72,7 +72,8 @@ var genres = [NumGenres + 1]string{"",
 	"Lo-fi Beats", "Hip-hop & Rap", "R&B & Soul", "Rock & Indie", "Metal & Punk", "Pop",
 	"Jazz & Blues", "Folk & Acoustic", "Cinematic & Classical", "World", "Latin", "Reggae & Dub", "Funk & Disco"}
 
-// licenses an artist may pick; curated imports are limited to the first three.
+// licenses an artist may pick; curated imports are limited to CC0, BY, BY-SA, BY-NC and BY-NC-SA
+// (no ND, no reserved rights).
 var licenses = []string{
 	"CC0-1.0", "CC-BY-4.0", "CC-BY-SA-4.0", "CC-BY-ND-4.0",
 	"CC-BY-NC-4.0", "CC-BY-NC-SA-4.0", "CC-BY-NC-ND-4.0", "ALL-RIGHTS-RESERVED",

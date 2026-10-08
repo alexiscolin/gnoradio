@@ -30,6 +30,7 @@ func TestPayRefusesRealms(cur realm, t *testing.T) {
 
 // Rules realms end every transaction holding nothing.
 func TestRulesHoldNothing(cur realm, t *testing.T) {
+	treasuryTo(cur)
 	owner, _, _, id := promoTrack(cur)
 	carol := who("carol")
 	pay := func(n int64) {

@@ -37,6 +37,38 @@ Deploy release 1 right after `data`: from its first block, `data` names
 can. The app then builds with `VITE_GNORADIO_NS=nym-alexiscolin000/gnoradio` (Netlify
 environment, applied to the functions too, so the robot reads the same paths).
 
+## Launch policy: free and non-commercial
+
+Decided on 2026-10-08. GnoRadio launches free and non-commercial: the operator takes no fee.
+
+- Ticket service fee 0: leave `tickets.SetServiceFee` unset (the realm's default is 0).
+- No support fee to the operator: no "+10%" on tips and no direct support. Tips and ticket
+  prices go 100% to the artists, as always.
+- Listeners and artists still pay their own transactions' gas: that is the chain, not a fee.
+- This allows CC BY-NC and BY-NC-SA music next to CC0, BY and BY-SA. ND stays excluded (jingles
+  and crossfades could count as adaptation).
+
+Done to launch this way:
+
+- [x] The app still offers the "+10%" and direct support and describes a ticket service fee
+      (`SupportSheet`, `lib/features.ts`, About, Legal): hide them and say "no fee" while no
+      treasury and no fee are set.
+- [x] The catalog realm limits curated imports to CC0, BY and BY-SA (`catalog.gno`, `licenses`):
+      widen it to BY-NC and BY-NC-SA, and let `tools/curate` keep them.
+- If fees are ever turned on, every NC track must be hidden first (its record stays on chain).
+
+What the launch catalog can draw on, given that its records are written to a public chain for
+good:
+
+- **Audius:** not imported. Its API Terms allow only session caching of its data and require
+  honouring an artist's later opt-out, which a permanent record cannot. Artists from Audius
+  are welcome to publish on GnoRadio themselves (their own records, their own consent).
+- **Platforms with API terms (Jamendo and others):** only if their terms allow keeping track
+  metadata permanently; otherwise, after launch, as an on-chain pointer (id, duration, genre)
+  with the title and artist read live from their API.
+- **Sources without API terms** (archive.org, artists' own sites, open datasets): fine, under
+  their CC licence, with attribution.
+
 ## Costs
 
 Measured on the v1 devnet, gas price 1 ugnot per 1,000 gas and 100 ugnot per stored byte on

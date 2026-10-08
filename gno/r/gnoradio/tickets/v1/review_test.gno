@@ -29,6 +29,7 @@ func TestServiceFee(cur realm, t *testing.T) {
 	alice, aid := artist(cur, "Fee Alice")
 	verify(cur, aid, true)
 	carol := who("carol")
+	treasuryOn(cur)
 	treasury := catalog.Treasury()
 
 	testing.SetRealm(testing.NewUserRealm(carol))

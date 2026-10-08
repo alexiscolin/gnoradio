@@ -127,7 +127,7 @@ LIC_RE = re.compile(r"creativecommons\.org/(licenses|publicdomain)/([a-z-]+)/([0
 
 
 def spdx_license(url):
-    """Map a Creative Commons URL to (SPDX id, port) or (None, reason). Only CC0, BY, BY-SA pass."""
+    """Map a Creative Commons URL to (SPDX id, port) or (None, reason). Only CC0, BY, BY-SA, BY-NC, BY-NC-SA pass (never ND)."""
     if not url:
         return None, "no license"
     m = LIC_RE.search(url)
@@ -140,8 +140,8 @@ def spdx_license(url):
         return None, "public domain mark (not a license)"
     if code == "by":
         spdx = "CC-BY-" + ver
-    elif code == "by-sa":
-        spdx = "CC-BY-SA-" + ver
+    elif code in ("by-sa", "by-nc", "by-nc-sa"):
+        spdx = "CC-" + code.upper() + "-" + ver
     else:
         return None, "excluded license CC " + code.upper()
     if port:
@@ -157,7 +157,7 @@ NAME_PUNCT = set(" .'-&")
 URL_CHARS = set("-._~:/?#=&%+@")
 ALLOWED_HOSTS = {"archive.org", "upload.wikimedia.org"}  # catalog init(); AllowHost adds more
 MAX_TITLE, MAX_CREDITS, MAX_ATTRIBUTION, MAX_NAME, MAX_BIO = 64, 160, 160, 40, 280
-CURATED_LIC_RE = re.compile(r"^(CC0-1\.0|CC-BY(-SA)?-(1\.0|2\.0|2\.5|3\.0|4\.0)(-[A-Z0-9]{2})?)$")
+CURATED_LIC_RE = re.compile(r"^(CC0-1\.0|CC-BY(-NC)?(-SA)?-(1\.0|2\.0|2\.5|3\.0|4\.0)(-[A-Z0-9]{2})?)$")
 SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 CLOCK_RE = re.compile(r"^(\d{1,3}):([0-5]\d)$")
 
@@ -330,6 +330,8 @@ def candidate(**kw):
 def archive_seed(seed, max_items, stats):
     lic = ('(licenseurl:http*creativecommons.org\\/licenses\\/by\\/* OR '
            'licenseurl:http*creativecommons.org\\/licenses\\/by-sa\\/* OR '
+           'licenseurl:http*creativecommons.org\\/licenses\\/by-nc\\/* OR '
+           'licenseurl:http*creativecommons.org\\/licenses\\/by-nc-sa\\/* OR '
            'licenseurl:http*creativecommons.org\\/publicdomain\\/zero\\/*)')
     excl = "-collection:(audio_bookspoetry OR librivoxaudio OR oldtimeradio OR radioprograms OR podcasts OR non_quality_audio)"
     if seed["kind"] == "creator":

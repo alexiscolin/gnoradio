@@ -10,7 +10,8 @@ import { PickNext } from "./components/PickNext";
 import { Splash } from "./components/Splash";
 import { SupportSheet, type SupportTarget } from "./components/SupportSheet";
 import { loadCatalog, type Touched, touchedBy, viewName } from "./lib/catalog";
-import { EMPTY_SUPPORT, loadActivity, loadSupport } from "./lib/community";
+import { EMPTY_SUPPORT, loadActivity, loadFees, loadSupport } from "./lib/community";
+import { FeesContext } from "./lib/fees";
 import { errorMessage } from "./lib/format";
 import type { Call } from "./lib/gno";
 import { sessionRef } from "./lib/incentives";
@@ -55,6 +56,7 @@ export default function App() {
   const closeSheet = useCallback(() => { setSheet(false); }, []);
   const [activity, setActivity] = useState<readonly Activity[]>([]);
   const [support, setSupport] = useState<SupportInfo>(EMPTY_SUPPORT);
+  const [fees, setFees] = useState(false); // no fee until the realm says so
   const [now, setNow] = useState(() => Date.now() / 1000);
   const [splash, setSplash] = useState<"on" | "leaving" | "done">("on");
   const [intro, setIntro] = useState(false); // panels rise in once, under the lifting poster
@@ -68,6 +70,7 @@ export default function App() {
   const refreshPulse = useCallback(() => {
     void loadActivity().then(setActivity);
     void loadSupport().then(setSupport);
+    void loadFees().then(setFees);
     setNow(Date.now() / 1000);
   }, []);
 
@@ -192,7 +195,7 @@ export default function App() {
   const isAdmin = (w.status === "connected" || w.status === "wrong-network") && w.address === cat.admin;
 
   return (
-    <>
+    <FeesContext.Provider value={fees}>
     {poster}
     <div className={`shell${intro ? " reveal" : ""}`}>
       <a className="skip" href="#content">Skip to content</a>
@@ -219,7 +222,7 @@ export default function App() {
         {actions.toast?.link && <> · <a href={actions.toast.link} target="_blank" rel="noreferrer">View on gnoscan</a></>}
       </div>
     </div>
-    </>
+    </FeesContext.Provider>
   );
 }
 

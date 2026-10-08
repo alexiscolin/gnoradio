@@ -5,7 +5,8 @@ import { REFUND } from "../lib/concerts";
 import { CHAIN_ID } from "../lib/gno";
 import { REF_DAYS } from "../lib/incentives";
 import { DAYS } from "../lib/session";
-import { CONTACT, HOST, INDEPENDENT, MIN_AGE, NO_PERSONAL_DATA, NOTICE_DELAY, PUBLISHER, REPEAT_INFRINGER, TERMS_DATE, TREASURY_HOLDER } from "../lib/legal";
+import { CONTACT, HOST, INDEPENDENT, MIN_AGE, NO_PERSONAL_DATA, NOTICE_DELAY, PUBLISHER, REPEAT_INFRINGER, TERMS_DATE, TREASURY_HOLDER, NO_FEE } from "../lib/legal";
+import { useFees } from "../lib/fees";
 
 /** StatsChoice is the one-click objection to the audience measurement. */
 function StatsChoice() {
@@ -19,6 +20,7 @@ const issue = (label: string) => <a href={CONTACT} target="_blank" rel="noreferr
 
 /** Legal: legal notice, privacy and terms, on one page. */
 export function Legal() {
+  const fees = useFees();
   return (
     <article className="about legal-page">
       <Head a="Legal" b="privacy · terms" note="Who runs GnoRadio, what it does with your data, and the rules of use." />
@@ -51,7 +53,7 @@ export function Legal() {
         <p className="muted small">Version of {TERMS_DATE}.</p>
         <p>GnoRadio is provided as is, to the extent permitted by law; nothing limits liability for gross negligence, intentional fault or bodily harm. You must be {MIN_AGE} or older to use its on-chain features. French law applies.</p>
         <p>{CHAIN_ID === "gnoland-1" ? "GNOT on gno.land mainnet has real value: check every amount before you sign." : "Testnet GNOT has no monetary value."} GnoRadio is not a financial or payment service. You are responsible for your wallet and keys.</p>
-        <p>A transaction you sign is final. Tips and ticket prices go to the artist in the same transaction; GnoRadio cannot refund them. Support and service fees go to the treasury, held by {TREASURY_HOLDER}.</p>
+        <p>A transaction you sign is final. Tips and ticket prices go to the artist in the same transaction; GnoRadio cannot refund them. {fees ? <>Support and service fees go to the treasury, held by {TREASURY_HOLDER}.</> : NO_FEE}</p>
         <p>{REFUND}</p>
         <p>Listeners and artists alone are responsible for what they publish: tracks, covers, names, bios, playlists, dedications, concert listings. GnoRadio is a hosting service for that content: it does not review it before it appears (apart from the automatic screening of dedications) and is not liable for it, except where, once told about illegal content, it does not act promptly to hide it (EU Digital Services Act art. 6, French LCEN art. 6). Forbidden: hate, harassment, threats, sexual content involving minors, terrorist content, doxxing (publishing someone's private details) and any illegal content.</p>
         <p>Publish only music you own or control the rights to, or hold a licence for. Publishing grants the licence stated in the rights declaration you accept.</p>

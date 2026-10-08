@@ -1,7 +1,11 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Artist, Track } from "../lib/types";
+import { FeesContext } from "../lib/fees";
 import { SupportSheet } from "./SupportSheet";
+
+const withFees = (ui: ReactNode) => <FeesContext.Provider value>{ui}</FeesContext.Provider>;
 
 afterEach(cleanup);
 
@@ -15,9 +19,14 @@ const REF = "g1u7y667z64x2h7vc6fmpcprgey4ck233jaww9zq";
 const ME = "g1tipperxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 
 describe("SupportSheet", () => {
+  it("offers no +10% while GnoRadio takes no fee", () => {
+    render(<SupportSheet target={{ kind: "tip", track, artist }} codeURL="#" onClose={() => undefined} onTip={() => undefined} onSupport={() => undefined} />);
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    expect(document.body.textContent).not.toMatch(/treasury|10%/);
+  });
   it("sends exactly the amount: the GnoRadio extra is off by default", () => {
     const onTip = vi.fn();
-    render(<SupportSheet target={{ kind: "tip", track, artist }} codeURL="#" onClose={() => undefined} onTip={onTip} onSupport={() => undefined} />);
+    render(withFees(<SupportSheet target={{ kind: "tip", track, artist }} codeURL="#" onClose={() => undefined} onTip={onTip} onSupport={() => undefined} />));
     expect(screen.getByRole<HTMLInputElement>("checkbox").checked).toBe(false);
     expect(screen.getByText(/A gift, not a purchase: final once sent, GnoRadio cannot refund it\./)).toBeTruthy();
     fireEvent.click(screen.getByText("Send 5 GNOT with Adena"));
@@ -25,7 +34,7 @@ describe("SupportSheet", () => {
   });
   it("adds the optional 10% on top when ticked", () => {
     const onTip = vi.fn();
-    render(<SupportSheet target={{ kind: "tip", track, artist }} codeURL="#" onClose={() => undefined} onTip={onTip} onSupport={() => undefined} />);
+    render(withFees(<SupportSheet target={{ kind: "tip", track, artist }} codeURL="#" onClose={() => undefined} onTip={onTip} onSupport={() => undefined} />));
     fireEvent.click(screen.getByRole("radio", { name: /20/ }));
     fireEvent.click(screen.getByRole("checkbox"));
     fireEvent.click(screen.getByText("Send 22 GNOT with Adena"));

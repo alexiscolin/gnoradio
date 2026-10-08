@@ -3,10 +3,11 @@ import { ShareButton, jumpTo } from "../components/common";
 import { Icon } from "../components/Icons";
 import { Composition, Shape } from "../components/Shapes";
 import { track } from "../lib/analytics";
-import { AUDIENCES, CANNOT, EXAMPLE, type Go, HERO, IMPORTED, MONEY, PHONE_SIGN, SHARE_TEXT, TRUST, VIDEO, hrefOf } from "../lib/features";
+import { CANNOT, EXAMPLE, type Go, HERO, IMPORTED, PHONE_SIGN, SHARE_TEXT, TRUST, VIDEO, audiences, hrefOf, moneyRows } from "../lib/features";
 import { licenseURL, licenseLabel } from "../lib/format";
 import { realmPage } from "../lib/links";
 import { CHAIN_ID, hasAdena, isPhone, networkLabel } from "../lib/gno";
+import { useFees } from "../lib/fees";
 import { INDEPENDENT } from "../lib/legal";
 import { viewToPath } from "../lib/router";
 import type { Catalog, Navigate, SupportInfo, View } from "../lib/types";
@@ -31,6 +32,7 @@ function FeatLink({ to, at, className, follow, children }: { readonly to: Go; re
 
 /** Features is the "Get started" landing page: every feature, for listeners and for artists, each with the way to it. */
 export function Features({ cat, support, go, openPick, me }: { readonly cat: Catalog; readonly support: SupportInfo; readonly go: Navigate; readonly openPick: (station: number) => void; readonly me: string }) {
+  const fees = useFees();
   const net = networkLabel(CHAIN_ID);
   const follow = (to: Go, at: At) => {
     track("cta", { page: "features", at, to: toOf(to) });
@@ -96,7 +98,7 @@ export function Features({ cat, support, go, openPick, me }: { readonly cat: Cat
         </button>
       </section>
 
-      {AUDIENCES.map((a) => (
+      {audiences(fees).map((a) => (
         <section key={a.id} className="about-sec" id={a.id}>
           <h2 className="feat-h2">{a.title} <span>{a.lead}</span></h2>
           <ol className="about-steps feat-grid">
@@ -129,7 +131,7 @@ export function Features({ cat, support, go, openPick, me }: { readonly cat: Cat
         <h2 className="feat-h2">Where every GNOT goes</h2>
         <p className="feat-example">{EXAMPLE}</p>
         <div className="about-table">
-          {MONEY.map(([what, where, note]) => (
+          {moneyRows(fees).map(([what, where, note]) => (
             <div key={what}><span>{what}</span><b>{where}</b><span className="muted small">{note}</span></div>
           ))}
         </div>

@@ -40,7 +40,7 @@ func PublishFor(cur realm, caller address, title string, genre int, duration, li
 	return id
 }
 
-// ImportFor adds a curated (CC0 / CC BY / CC BY-SA) or Audius track to an
+// ImportFor adds a curated (CC0 / CC BY / CC BY-SA / CC BY-NC / CC BY-NC-SA) or Audius track to an
 // unclaimed artist. by must be the admin. Audius tracks use audio "audius:<trackId>".
 func ImportFor(cur realm, by address, artistID int, title string, genre int, duration, license, credits, audio, audioSHA, cover, coverSHA, sourceURL, attribution string) int {
 	onlyRadio(cur)
@@ -63,7 +63,7 @@ func ImportFor(cur realm, by address, artistID int, title string, genre int, dur
 	} else {
 		lic := curatedLicense(license)
 		if lic == "" {
-			panic("catalog: curated imports must be CC0, CC BY or CC BY-SA")
+			panic("catalog: curated imports must be CC0, CC BY, BY-SA, BY-NC or BY-NC-SA")
 		}
 		tr.License = lic
 	}

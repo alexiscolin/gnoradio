@@ -119,6 +119,9 @@ func tip(cur realm, caller address, total int64, trackID, supportPct int, picker
 	}
 	// The track and artist records are changed in place, as Like does.
 	t := rd()
+	if supportPct > 0 && treasury(t) == "" {
+		panic("catalog: no treasury is set, a tip carries no support share")
+	}
 	rec, arec := playableRec(t, trackID)
 	if rec == "" {
 		panic("catalog: unknown track")

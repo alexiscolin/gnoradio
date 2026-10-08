@@ -3,6 +3,7 @@ import { Icon } from "./Icons";
 import { useEffect, useRef, useState } from "react";
 import { UGNOT, gnot, shortAddr } from "../lib/format";
 import { CHAIN_ID } from "../lib/gno";
+import { useFees } from "../lib/fees";
 import { COSTS, TREASURY_USE } from "../lib/legal";
 import { promoSplit } from "../lib/incentives";
 import { useNames } from "../lib/names";
@@ -33,6 +34,7 @@ interface Props {
 
 /** SupportSheet picks an amount and shows exactly where every GNOT goes. */
 export function SupportSheet({ target, codeURL, me = "", referrer = "", onClose, onTip, onSupport }: Props) {
+  const fees = useFees(); // no "+10%" while GnoRadio takes no fee
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -90,7 +92,7 @@ export function SupportSheet({ target, codeURL, me = "", referrer = "", onClose,
           </label>
         </div>
 
-        {isTip && (
+        {isTip && fees && (
           <label className="toggle">
             <input type="checkbox" checked={pct > 0} onChange={(e) => { setPct(e.target.checked ? DEFAULT_SUPPORT_PCT : 0); }} />
             <span>Add {DEFAULT_SUPPORT_PCT}% for the GnoRadio treasury</span>

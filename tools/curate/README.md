@@ -24,7 +24,7 @@ python3 curate.py batch --dry-run            # check every row against the realm
    - `to_review`: check before use (originality, quality);
    - `paused`: ignored.
 2. **`fetch`** reads the metadata through the official APIs and filters:
-   - **licence**: CC0, CC BY or CC BY-SA only (normalised to SPDX, national ports included, for example `CC-BY-SA-3.0-DE`);
+   - **licence**: CC0, CC BY, BY-SA, BY-NC or BY-NC-SA (normalised to SPDX, national ports included, for example `CC-BY-NC-3.0-DE`); ND is refused;
    - **length**: 1:30 to 10:00;
    - **bitrate**: at least 128 kbps, flagged "low bitrate" under 192;
    - **for Audius**: no remix, cover, stem or gated track, and a cover image is required.
@@ -50,7 +50,7 @@ python3 curate.py batch --dry-run            # check every row against the realm
 | **ccMixter** (editorial picks) | copy (CC BY) | **mirror required** on IPFS/CDN before import: ccMixter blocks playback from other sites (403). Fill `mirror_audio` in `approved.json`. Full attribution. |
 | **Audius** | stream and play in public through the API (Open Music License §1.2, the right granted to "Music Players") | OML §1.5 attribution: artist, ©, OML notice, link to the track. **Cache limited to the session** (API terms §2): never a copy or a fingerprint. No bulk extraction beyond the allowlist. **No AI training** on the tracks. `app_name=GnoRadio` in every call; request a key at api.audius.co/plans before going live. |
 
-Excluded: Free Music Archive (its terms forbid direct links), SoundCloud (radio and aggregation forbidden), Jamendo (commercial licence on request), NC and ND licences.
+Excluded: Free Music Archive (its terms forbid direct links), SoundCloud (radio and aggregation forbidden), Jamendo (commercial licence on request), ND licences. NC is allowed while GnoRadio takes no fee (docs/DEPLOY.md, launch policy).
 
 ## Known points
 

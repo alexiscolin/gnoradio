@@ -90,8 +90,8 @@ func TestCuratedAudiusAndClaim(cur realm, t *testing.T) {
 	t1 := ImportTrack(cross(cur), k, "Dreams", 5, "2:58", "CC0", "Komiku", ia, sha, "", "",
 		"https://archive.org/details/komiku-dreams", "Komiku, CC0 1.0, via archive.org")
 	uassert.Equal(t, OriginCurated, getTrack(rd(), t1).Origin)
-	uassert.AbortsContains(t, cur, "CC0, CC BY or CC BY-SA", func() {
-		ImportTrack(cross(cur), k, "X", 5, "2:00", "CC-BY-NC", "", ia, sha, "", "", "https://archive.org/details/x", "Komiku")
+	uassert.AbortsContains(t, cur, "BY-NC or BY-NC-SA", func() {
+		ImportTrack(cross(cur), k, "X", 5, "2:00", "CC-BY-ND", "", ia, sha, "", "", "https://archive.org/details/x", "Komiku")
 	})
 	t2 := ImportTrack(cross(cur), au, "Midnight Drive", 1, "3:41", "", "", "audius:Dk3aQ", "", "", "",
 		"https://audius.co/nighttapes/midnight-drive", "Night Tapes, Audius Open Music License")
@@ -248,7 +248,7 @@ func TestModeration(cur realm, t *testing.T) {
 func TestCuratedLicense(t *testing.T) {
 	for in, want := range map[string]string{
 		"CC0": "CC0-1.0", "CC-BY-3.0": "CC-BY-3.0", "cc-by-sa-3.0-de": "CC-BY-SA-3.0-DE", "CC-BY-4.0": "CC-BY-4.0",
-		"CC-BY-NC-4.0": "", "CC-BY-ND-3.0": "", "CC-BY-5.0": "", "ALL-RIGHTS-RESERVED": "",
+		"CC-BY-NC-4.0": "CC-BY-NC-4.0", "CC-BY-NC-SA-3.0": "CC-BY-NC-SA-3.0", "CC-BY-ND-3.0": "", "CC-BY-5.0": "", "ALL-RIGHTS-RESERVED": "",
 	} {
 		uassert.Equal(t, want, curatedLicense(in), in)
 	}

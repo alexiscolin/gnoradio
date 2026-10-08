@@ -2,7 +2,8 @@ import { Icon } from "../components/Icons";
 import { type Glyph, Shape } from "../components/Shapes";
 import { gnot, shortAddr } from "../lib/format";
 import { CHAIN_ID } from "../lib/gno";
-import { CANNOT, MONEY, PICK_WINDOW, REPORTS, TIP_LINE } from "../lib/features";
+import { CANNOT, PICK_WINDOW, REPORTS, TIP_LINE, moneyRows } from "../lib/features";
+import { useFees } from "../lib/fees";
 import { CONTACT, INDEPENDENT, NO_PERSONAL_DATA, NOTICE_DELAY, REPO } from "../lib/legal";
 import { realmPage, sourceURL } from "../lib/links";
 import type { Catalog, Navigate, SupportInfo } from "../lib/types";
@@ -66,6 +67,7 @@ export function liveFacts(cat: Catalog, support: SupportInfo): readonly (readonl
 /** About: how GnoRadio works, where the money goes, and how to check it. */
 export function About({ cat, support, go }: { readonly cat: Catalog; readonly support: SupportInfo; readonly go: Navigate }) {
   const facts = liveFacts(cat, support);
+  const fees = useFees();
   const links = [
     ["GnoRadio on gnoweb", realmPage("home"), "The same radio, rendered by the chain"],
     ["gno.land", "https://gno.land", "The chain it runs on"],
@@ -104,7 +106,7 @@ export function About({ cat, support, go }: { readonly cat: Catalog; readonly su
       <section className="about-sec">
         <h2 className="sub">Where the money goes</h2>
         <div className="about-table">
-          {MONEY.map(([what, where, note]) => (
+          {moneyRows(fees).map(([what, where, note]) => (
             <div key={what}>
               <span>{what}</span>
               <b>{where}</b>

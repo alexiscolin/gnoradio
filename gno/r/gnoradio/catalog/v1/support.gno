@@ -24,6 +24,9 @@ func SupportGnoRadio(cur realm) {
 		panic("catalog: support is between 0.1 and 1000000 GNOT")
 	}
 	t := rd()
+	if treasury(t) == "" {
+		panic("catalog: no treasury is set, GnoRadio takes no support")
+	}
 	bk := banker.NewBanker(banker.BankerTypeRealmSend, cur)
 	bk.SendCoins(cur.Address(), treasury(t), chain.Coins{{Denom: denom, Amount: amt}})
 	recordSupport(t, caller, amt)
@@ -31,10 +34,10 @@ func SupportGnoRadio(cur realm) {
 	emitEvent("Supported", "by", caller.String(), "amount", text.Itoa64(amt))
 }
 
-// SetTreasury changes where GnoRadio's support goes. Admin only.
+// SetTreasury changes where GnoRadio's support goes; "" (the default) takes none. Admin only.
 func SetTreasury(cur realm, to address) {
 	onlyAdmin(cur)
-	if !role.Canonical(to) {
+	if to != "" && !role.Canonical(to) { // "" switches support off
 		panic("catalog: invalid address")
 	}
 	if data.IsGnoRadio(to) {

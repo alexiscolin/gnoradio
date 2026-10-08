@@ -17,6 +17,7 @@ import { viewToPath } from "../lib/router";
 import { DOOR_CODE, OPENS_BEFORE, type RadioPick, loadPicks, loadTicketsOf, loadUser, useEvents } from "../lib/community";
 import { ALL_STATIONS, type Curator, MAX_PROMO, PICK_PAY, type Promo, type TopCurators, collectable, loadCurator, loadPromo, loadTopCurators, useSponsored } from "../lib/incentives";
 import { DEFAULT_GOAL, UGNOT, gnot, plural } from "../lib/format";
+import { useFees } from "../lib/fees";
 import { COSTS } from "../lib/legal";
 import { PROMO_ASK } from "../lib/features";
 import type { Activity, Catalog, Navigate, SupportInfo, UserInfo } from "../lib/types";
@@ -38,6 +39,7 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
   readonly onSupport: () => void;
   readonly openPick: (station: number) => void;
 }) {
+  const fees = useFees();
   const [picks, setPicks] = useState<readonly RadioPick[]>([]);
   const [curators, setCurators] = useState<TopCurators["top"]>([]);
   useEffect(() => { // now ticks with the app's pulse
@@ -85,15 +87,17 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
         </div>
       </div>
 
-      <div className="treasury">
-        <div className="treasury-txt">
-          <span className="lbl">GnoRadio treasury · {support.month || "this month"}</span>
-          <span className="big">{support.monthTotal > 0 ? <>{gnot(support.monthTotal)}<span className="muted"> / {gnot(goal)}</span></> : <>{gnot(goal)}<span className="muted"> goal this month</span></>}</span>
-          <div className="bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Share of the monthly goal reached"><i style={{ width: `${String(pct)}%` }} /></div>
-          <span className="muted small">{support.supporters > 0 ? `${plural(support.supporters, "supporter")} · ${gnot(support.total)} since launch.` : "No supporter yet: be the first."} Funds the project's work. {COSTS}</span>
-          <button className="cta" onClick={onSupport}><Shape g="square" size={12} /> Support GnoRadio</button>
+      {fees && (
+        <div className="treasury">
+          <div className="treasury-txt">
+            <span className="lbl">GnoRadio treasury · {support.month || "this month"}</span>
+            <span className="big">{support.monthTotal > 0 ? <>{gnot(support.monthTotal)}<span className="muted"> / {gnot(goal)}</span></> : <>{gnot(goal)}<span className="muted"> goal this month</span></>}</span>
+            <div className="bar" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Share of the monthly goal reached"><i style={{ width: `${String(pct)}%` }} /></div>
+            <span className="muted small">{support.supporters > 0 ? `${plural(support.supporters, "supporter")} · ${gnot(support.total)} since launch.` : "No supporter yet: be the first."} Funds the project's work. {COSTS}</span>
+            <button className="cta" onClick={onSupport}><Shape g="square" size={12} /> Support GnoRadio</button>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="cols">
         <div>
@@ -112,13 +116,17 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
               </button>
             ))}
           </div>
-          <h3 className="sub">Top supporters of GnoRadio</h3>
-          {support.top.length === 0 && <p className="muted">Be the first.</p>}
-          <ol className="top">
-            {support.top.map((r, i) => (
-              <li key={r.address}><span className="mono muted">{String(i + 1).padStart(2, "0")}</span><Who address={r.address} shown={who} go={go} /><b className="mono">{gnot(r.amount)}</b></li>
-            ))}
-          </ol>
+          {fees && (
+            <>
+            <h3 className="sub">Top supporters of GnoRadio</h3>
+            {support.top.length === 0 && <p className="muted">Be the first.</p>}
+            <ol className="top">
+              {support.top.map((r, i) => (
+                <li key={r.address}><span className="mono muted">{String(i + 1).padStart(2, "0")}</span><Who address={r.address} shown={who} go={go} /><b className="mono">{gnot(r.amount)}</b></li>
+              ))}
+            </ol>
+            </>
+          )}
         </div>
       </div>
     </section>

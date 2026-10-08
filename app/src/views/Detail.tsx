@@ -8,6 +8,7 @@ import { REALMS, qeval, unquote } from "../lib/gno";
 import type { Artist, Catalog, ConcertEvent, Navigate, OwnedTicket } from "../lib/types";
 import { CHECK_IN, type ConcertFilter, NO_FILTER, REFUND, REFUND_SHORT, almostFull, byMonth, cities, filterConcerts } from "../lib/concerts";
 import { loadTicketsOf, useEvents } from "../lib/community";
+import { useFees } from "../lib/fees";
 import { codeURL, eventPage, gnowebOf, txURL } from "../lib/links";
 import { EditTrackForm, PlaylistForm } from "./Contribute";
 import type { Actions } from "../player/useActions";
@@ -249,6 +250,7 @@ export function CancelConcert({ e, actions }: { readonly e: ConcertEvent; readon
 }
 
 export function Concerts({ cat, go, player, actions }: { readonly cat: Catalog; readonly go: Navigate; readonly player: Player; readonly actions: Actions }) {
+  const fees = useFees();
   const [f, setF] = useState<ConcertFilter>(NO_FILTER);
   const s = actions.wallet.state;
   const address = s.status === "connected" || s.status === "wrong-network" ? s.address : "";
@@ -266,7 +268,7 @@ export function Concerts({ cat, go, player, actions }: { readonly cat: Catalog; 
   );
   return (
     <section className="concerts-page">
-      <Head a="Concerts" b="& tickets" note="The ticket price goes 100% to the artist; a service fee is added." />
+      <Head a="Concerts" b="& tickets" note={`The ticket price goes 100% to the artist${fees ? "; a service fee is added" : ""}.`} />
       {cat.events.length === 0 ? (
         <Empty text="No concert announced yet.">
           <a className="cta" href={txURL("tickets", "CreateEvent")} target="_blank" rel="noreferrer">Announce yours <Icon name="external" size={14} className="nudge-out" /></a>

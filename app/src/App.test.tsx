@@ -6,7 +6,7 @@ import App from "./App";
 const loadCatalog = vi.fn(() => new Promise<never>(() => undefined));
 let onMissing: ((id: number) => void) | undefined;
 vi.mock("./lib/catalog", async (orig) => ({ ...(await orig<object>()), loadCatalog: () => loadCatalog() }));
-vi.mock("./lib/community", async (orig) => ({ ...(await orig<object>()), loadActivity: () => Promise.resolve([]), loadSupport: () => new Promise(() => undefined) }));
+vi.mock("./lib/community", async (orig) => ({ ...(await orig<object>()), loadActivity: () => Promise.resolve([]), loadSupport: () => new Promise(() => undefined), loadFees: () => new Promise(() => undefined) }));
 vi.mock("./player/usePlayer", () => ({
   usePlayer: (_cat: unknown, m: (id: number) => void) => {
     onMissing = m;

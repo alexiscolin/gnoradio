@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { type TrackOrder, sortTracks } from "../lib/catalog";
 import { BigList, type Crumb, Count, Crumbs, Empty, Head, MakeMusic, NOTHING_ON_AIR, NO_TRACK, Proof, TrackCards, TrackRows } from "../components/common";
 import { ProofMark } from "../components/Verify";
+import { useFees } from "../lib/fees";
 import { DEFAULT_GOAL, clock, gnot, plural } from "../lib/format";
 import { ActivityFeed } from "../components/ActivityFeed";
 import { Shape } from "../components/Shapes";
@@ -35,6 +36,7 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
   readonly now: number;
   readonly openSupport: (t: SupportTarget) => void;
 }) {
+  const fees = useFees();
   const main = cat.stations[0];
   const goal = support.goal > 0 ? support.goal : DEFAULT_GOAL;
   const onAir = main ? cat.byId.get(main.now.track) : undefined;
@@ -51,12 +53,12 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
           {onAir && <span className="muted small">Or play any track just for you in the Library.</span>}
           <span className="go">{onAir ? "Listen" : "Make music"} <Icon name="arrow-right" size={16} className="nudge" /></span>
         </button>
-        <button className="block-yellow" onClick={() => { go({ k: "community" }); }}>
+        {fees && <button className="block-yellow" onClick={() => { go({ k: "community" }); }}>
           <span className="lbl">Given to GnoRadio by listeners</span>
           <span className="big">{support.monthTotal > 0 ? gnot(support.monthTotal) : "Be the first"}</span>
           <span className="bar"><i style={{ width: `${String(Math.min(100, (support.monthTotal / goal) * 100))}%` }} /></span>
           <span className="small">{support.monthTotal > 0 ? `of ${gnot(goal)} this month` : `Goal: ${gnot(goal)} this month`}{support.supporters > 0 ? ` · ${plural(support.supporters, "supporter")}` : ""}</span>
-        </button>
+        </button>}
       </div>
       {cat.tracks.length > 0 && <button className="bethedj" onClick={() => { openPick(0); }}>
         <Icon name="on-air" size={48} className="bethedj-icon" />

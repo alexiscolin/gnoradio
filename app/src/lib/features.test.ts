@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { AUDIENCES, hrefOf } from "./features";
-import { COSTS } from "./legal";
+import { AUDIENCES, audiences, hrefOf, moneyRows } from "./features";
+import { feesOn } from "./fees";
+import { COSTS, NO_FEE } from "./legal";
 import { pathToView, viewToPath } from "./router";
 
 const all = AUDIENCES.flatMap((a) => [...a.cards, ...a.more]);
@@ -26,5 +27,25 @@ describe("COSTS", () => {
   it("does not claim GnoRadio pays nothing at all: the publisher pays the deploy and the launch catalog", () => {
     expect(COSTS).toMatch(/launch catalog/);
     expect(COSTS).not.toMatch(/pays nothing to run/);
+  });
+});
+
+describe("fees", () => {
+  const text = (fees: boolean) => JSON.stringify([moneyRows(fees), audiences(fees)]);
+  it("are on only with a treasury or a ticket service fee", () => {
+    expect(feesOn("", 0)).toBe(false);
+    expect(feesOn("g1treasury", 0)).toBe(true);
+    expect(feesOn("", 500_000)).toBe(true);
+  });
+  it("say no fee, and mention none, while none is set", () => {
+    expect(text(false)).not.toMatch(/service fee|treasury|\+10%|Direct support/);
+    expect(moneyRows(false).map((r) => r[2])).toContain(NO_FEE);
+    expect(NO_FEE).toBe("GnoRadio takes no fee: tips and ticket prices go 100% to the artist.");
+    expect(AUDIENCES).toEqual(audiences(false));
+  });
+  it("describe the fees once they are on", () => {
+    expect(text(true)).toMatch(/service fee/);
+    expect(moneyRows(true).map((r) => r[0])).toEqual(expect.arrayContaining(["Optional, on top of a tip", "Direct support"]));
+    expect(text(true)).not.toContain(NO_FEE);
   });
 });

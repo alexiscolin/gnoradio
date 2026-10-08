@@ -115,3 +115,33 @@ func TestActivityRing(cur realm, t *testing.T) {
 	uassert.Equal(t, "2026-10", month(1791294000))
 	uassert.Equal(t, "2026-11", month(1793900000))
 }
+
+func TestNoTreasuryNoSupport(cur realm, t *testing.T) {
+	testing.SetRealm(testing.NewUserRealm(boss))
+	SetTreasury(cross(cur), "")
+	urequire.True(t, strings.Contains(SupportJSON(), `"treasury":""`), SupportJSON())
+	alice, aid := artist(cur, "alice")
+	carol := who("carol")
+	testing.SetRealm(testing.NewUserRealm(alice))
+	id := PublishTrack(cross(cur), "Song", 2, "1:40", "CC-BY", "none", "", ipfs, "", "", "", "", "yes")
+	verified(cur, aid)
+	testing.SetRealm(testing.NewUserRealm(carol))
+	testing.IssueCoins(realmAddr, ugnots(11*ugnot))
+	testing.SetOriginSend(ugnots(5 * ugnot))
+	uassert.AbortsContains(t, cur, "no treasury", func() { SupportGnoRadio(cross(cur)) })
+	testing.SetOriginSend(ugnots(11 * ugnot))
+	uassert.AbortsContains(t, cur, "no treasury", func() { TipWithSupport(cross(cur), id, 10) })
+	TipWithSupport(cross(cur), id, 0) // a plain tip still works: 100% to the artist
+	uassert.Equal(t, int64(11*ugnot), balance(alice))
+	testing.SetOriginSend(nil)
+	treasuryTo(cur) // the store is shared with the other tests
+}
+
+func TestCuratedLicenses(t *testing.T) {
+	for _, ok := range []string{"CC0", "CC-BY-4.0", "CC BY-SA 3.0", "CC-BY-NC-4.0", "cc-by-nc-sa-2.5", "CC-BY-NC-3.0-DE"} {
+		uassert.True(t, curatedLicense(ok) != "", ok)
+	}
+	for _, no := range []string{"CC-BY-ND-4.0", "CC-BY-NC-ND-4.0", "ALL-RIGHTS-RESERVED", "CC-BY-NC-9.9", "CC-BY-NC-", ""} {
+		uassert.Equal(t, "", curatedLicense(no), no)
+	}
+}

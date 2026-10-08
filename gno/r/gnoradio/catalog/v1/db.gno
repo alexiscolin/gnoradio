@@ -60,7 +60,7 @@ func setup(cur realm, holder address) {
 		return
 	}
 	ops := store.Ops{}.Set(cMeta, "n", newCounts()).Set(cConfig, "admin", holder.String()).
-		Set(cConfig, "treasury", holder.String()).Set(cHosts, "archive.org", "1").Set(cHosts, "upload.wikimedia.org", "1")
+		Set(cHosts, "archive.org", "1").Set(cHosts, "upload.wikimedia.org", "1")
 	data.Batch(cross(cur), ops)
 }
 

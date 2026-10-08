@@ -317,7 +317,7 @@ func parseIDs(s string, max int) []int {
 
 // curatedLicense accepts the redistributable licenses curated imports may
 // carry, in any version and national port: CC0-1.0, CC-BY-<v>[-XX],
-// CC-BY-SA-<v>[-XX] (v = 1.0, 2.0, 2.5, 3.0, 4.0). It returns the normalized
+// CC-BY-SA-<v>[-XX], CC-BY-NC-<v>[-XX], CC-BY-NC-SA-<v>[-XX] (v = 1.0, 2.0, 2.5, 3.0, 4.0). It returns the normalized
 // id, or "" when the license is not allowed.
 func curatedLicense(s string) string {
 	s = strings.ToUpper(strings.ReplaceAll(strings.TrimSpace(s), " ", "-"))
@@ -326,6 +326,10 @@ func curatedLicense(s string) string {
 	}
 	var rest string
 	switch {
+	case strings.HasPrefix(s, "CC-BY-NC-SA-"):
+		rest = strings.TrimPrefix(s, "CC-BY-NC-SA-")
+	case strings.HasPrefix(s, "CC-BY-NC-"):
+		rest = strings.TrimPrefix(s, "CC-BY-NC-")
 	case strings.HasPrefix(s, "CC-BY-SA-"):
 		rest = strings.TrimPrefix(s, "CC-BY-SA-")
 	case strings.HasPrefix(s, "CC-BY-"):

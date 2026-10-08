@@ -3,7 +3,7 @@
 // realms do (docs/FEATURES.md); numbers come from the constants that enforce them.
 import type { Glyph } from "../components/Shapes";
 import { CHECK_IN } from "./concerts";
-import { COSTS, TREASURY_USE } from "./legal";
+import { COSTS, NO_FEE, TREASURY_USE } from "./legal";
 import { gnot, UGNOT } from "./format";
 import { MAX_PROMO, PICK_PAY, promoSplit } from "./incentives";
 import { realmPage, txURL } from "./links";
@@ -75,7 +75,8 @@ export const VIDEO = {
   music: { title: "New Again", artist: "Josh Woodward", site: "https://www.joshwoodward.com", license: "CC-BY-4.0" },
 } as const;
 
-export const AUDIENCES: readonly Audience[] = [
+/** audiences is the feature list; fees says whether the operator takes any (a ticket service fee). */
+export const audiences = (fees: boolean): readonly Audience[] => [
   {
     id: "listeners",
     title: "For listeners",
@@ -88,7 +89,7 @@ export const AUDIENCES: readonly Audience[] = [
       { g: "square", title: "A share of tips", line: `When an artist sets a promo share (0 to ${String(MAX_PROMO)}%, off by default), part of each tip made while your pick plays goes to you, and to whoever's link brought the tipper. It is shown before anyone signs.`, cta: "Top curators", go: { view: { k: "community" } } },
       { g: "square", title: "Tip an artist", line: TIP_LINE, cta: "Support an artist", go: { view: { k: "community" } } },
       { g: "circle", title: "Keep what you love", line: "Save tracks in your browser for free; like, follow artists and publish public playlists on-chain.", cta: "Make a playlist", go: { view: { k: "contribute", path: "listener" } } },
-      { g: "triangle", title: "Go to the concert", line: "Find concerts by city, day or price. Free or paid tickets; a paid ticket's price goes 100% to the artist, plus a service fee.", cta: "Concerts", go: { view: { k: "concerts" } } },
+      { g: "triangle", title: "Go to the concert", line: `Find concerts by city, day or price. Free or paid tickets; a paid ticket's price goes 100% to the artist${fees ? ", plus a service fee" : ""}.`, cta: "Concerts", go: { view: { k: "concerts" } } },
     ],
     more: [
       { title: "Your pick on air", line: "When your pick starts, the browser can tell you (if you allow it); when it ends, you see the likes and tips it gained.", go: PICK },
@@ -126,15 +127,15 @@ export const AUDIENCES: readonly Audience[] = [
   },
 ];
 
-/** MONEY: where each payment goes, as [what, where, note]. */
-export const MONEY = [
+/** moneyRows: where each payment goes, as [what, where, note]; the fee rows only while fees are on. */
+export const moneyRows = (fees: boolean): readonly (readonly [string, string, string])[] => [
   ["Tip to an artist", "0% to GnoRadio", `Split with collaborators as the artist declared it. The artist's promo share (0 to ${String(MAX_PROMO)}%, off until the artist sets it) goes to the listener who picked it on air and whoever shared the link.`],
   ["Free pick", "Paid by the artist", `The artist's budget refunds your pick once it has played in full (${String(PICK_PAY.def)} GNOT by default, enough that it costs you nothing). Collect it within 7 days. For wallets with some pick history, a few a day.`],
-  ["Optional, on top of a tip", "+10% to the treasury", `Off by default. ${TREASURY_USE}`],
-  ["Paid concert ticket", "Price to the artist", "The ticket price goes 100% to the artist; a service fee is added, for the treasury. The artist runs the concert: if it is cancelled, ask them for a refund."],
-  ["Direct support", "To the treasury", `${TREASURY_USE} ${COSTS}`],
+  ...(fees ? [["Optional, on top of a tip", "+10% to the treasury", `Off by default. ${TREASURY_USE}`] as const] : []),
+  ["Paid concert ticket", "Price to the artist", `The ticket price goes 100% to the artist${fees ? "; a service fee is added, for the treasury" : ""}. The artist runs the concert: if it is cancelled, ask them for a refund.`],
+  fees ? ["Direct support", "To the treasury", `${TREASURY_USE} ${COSTS}`] : ["GnoRadio fee", "None", NO_FEE],
   ["Storage deposit", "Locked by gno.land", "Returned to whoever's transaction frees the data, e.g. your own Unlike."],
-] as const;
+];
 
 /**
  * CANNOT: what nobody can do, whatever their role, and the one admin power that touches
@@ -157,3 +158,6 @@ export const TRUST = [
 /** hrefOf is a feature's link as a plain URL (the pick sheet opens from the live radio). */
 export const hrefOf = (go: Go, path: (v: View) => string): string =>
   "href" in go ? go.href : "pick" in go ? path({ k: "stations", live: 0 }) : `${path(go.view)}${go.hash ? `#${go.hash}` : ""}`;
+
+/** AUDIENCES is the feature list with no fee: the static copy (prerender) and the default. */
+export const AUDIENCES = audiences(false);

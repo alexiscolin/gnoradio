@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { EMPTY_SUPPORT } from "../lib/community";
+import { FeesContext } from "../lib/fees";
 import type { Catalog } from "../lib/types";
 import type { Actions } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
@@ -25,13 +26,19 @@ const noBadText = () => { expect(document.body.textContent).not.toMatch(/\bNaN\b
 describe("empty states", () => {
   it("Listen leads to publishing, hides the zero numbers and the DJ block", () => {
     const go = vi.fn();
-    render(<Listen cat={empty} player={player} go={go} activity={[]} support={EMPTY_SUPPORT} now={0} openSupport={vi.fn()} openPick={vi.fn()} />);
+    render(<FeesContext.Provider value><Listen cat={empty} player={player} go={go} activity={[]} support={EMPTY_SUPPORT} now={0} openSupport={vi.fn()} openPick={vi.fn()} /></FeesContext.Provider>);
     expect(screen.getByText("Be the first")).toBeTruthy();
     expect(screen.queryByText("Be the DJ")).toBeNull();
     expect(screen.getByText("No track yet: publish the first one.")).toBeTruthy();
     const [first] = screen.getAllByRole("button", { name: /Make music/ });
     if (first) fireEvent.click(first);
     expect(go).toHaveBeenCalledWith({ k: "contribute", path: "artist" });
+    noBadText();
+  });
+
+  it("Listen offers no support block while GnoRadio takes no fee", () => {
+    render(<Listen cat={empty} player={player} go={vi.fn()} activity={[]} support={EMPTY_SUPPORT} now={0} openSupport={vi.fn()} openPick={vi.fn()} />);
+    expect(screen.queryByText("Given to GnoRadio by listeners")).toBeNull();
     noBadText();
   });
 

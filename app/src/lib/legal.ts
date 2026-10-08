@@ -23,6 +23,8 @@ export const TERMS_DATE = "2026-10-08";
 export const NO_PERSONAL_DATA = "Do not put personal data (your name, contact details) in a GitHub issue or an on-chain report; a private contact will be added before GnoRadio opens to the public.";
 /** Who GnoRadio is not. */
 export const INDEPENDENT = "GnoRadio is an independent personal project, not an official gno.land product; not affiliated with Audius, Adena or gno.land.";
+/** Said wherever fees would be, while none is set. */
+export const NO_FEE = "GnoRadio takes no fee: tips and ticket prices go 100% to the artist.";
 /** What the treasury pays for, said wherever money goes to it. */
 export const TREASURY_USE = "It pays for the site the radio relies on: hosting, the domain, the dedication check and the on-chain deposits of each new release.";
 /** What running GnoRadio costs, said wherever support is asked for. */
