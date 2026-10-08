@@ -79,7 +79,15 @@ func ImportFor(cur realm, by address, artistID int, title string, genre int, dur
 		mustText("attribution", attribution, 2, maxCredits)
 	}
 	tr.SourceURL, tr.Attribution = sourceURL, attribution
+	if isRef(tr.Origin) { // one record per platform track (the key has a '-', no name skeleton does)
+		if _, dup := t.get(cNames, refKey+tr.Audio); dup {
+			panic("catalog: this pointer track is already imported (hide it and ReleaseName \"" + refKey + tr.Audio + "\" to import it again)")
+		}
+	}
 	id := addTrack(t, adminAddr(), a.ID, tr)
+	if isRef(tr.Origin) { // pointers imported before this key existed have none: fine on a fresh chain
+		t.set(cNames, refKey+tr.Audio, text.Itoa(id))
+	}
 	save(cur, t)
 	return id
 }
@@ -96,6 +104,11 @@ func EditFor(cur realm, caller address, trackID int, title string, genre int, du
 		panic("catalog: only the artist can edit this track")
 	}
 	mustRefAudio(tr, audio)
+	// A pointer keeps its platform id and stores no cover: only its genre,
+	// duration and (claimed owner) title change.
+	if isRef(tr.Origin) && (strings.TrimSpace(audio) != tr.Audio || strings.TrimSpace(cover) != "" || strings.TrimSpace(coverSHA) != "") {
+		panic("catalog: a pointer keeps its audio and stores no cover")
+	}
 	oldGenre := tr.Genre
 	// The owner of a claimed Audius or Jamendo profile may name their own
 	// tracks: the record then stores the title with the artist's consent.
@@ -151,6 +164,9 @@ func setInfo(tr *Track, title string, genre int, duration, credits string, named
 	tr.Title, tr.Genre, tr.Duration, tr.Credits = title, genre, d, credits
 }
 
+// refKey prefixes a pointer's audio in cNames (the '-' keeps it off every name skeleton).
+const refKey = "track-"
+
 // isRef reports whether tracks of this origin are pointers: read live from
 // Audius or Jamendo, with no title or credits stored on chain.
 func isRef(origin string) bool { return origin == OriginAudius || origin == OriginJamendo }
@@ -199,6 +215,9 @@ func setMedia(tr *Track, audio, audioSHA, cover, coverSHA string) {
 	audio, audioSHA = strings.TrimSpace(audio), strings.ToLower(strings.TrimSpace(audioSHA))
 	cover, coverSHA = strings.TrimSpace(cover), strings.ToLower(strings.TrimSpace(coverSHA))
 	mustMedia("audio", audio, audioSHA, true)
+	if coverSHA != "" && (cover == "" || !isSHA256(coverSHA)) { // coverSHA goes into the JSON as is
+		panic("catalog: cover sha256 must be 64 hex characters, with a cover")
+	}
 	if cover != "" {
 		mustMedia("cover", cover, coverSHA, false)
 	}

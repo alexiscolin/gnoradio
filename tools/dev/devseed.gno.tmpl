@@ -31,10 +31,12 @@ func Artists(cur realm, n int) int {
 	return len(artists) - madeTo
 }
 
-// Run imports the next n track lines through radio.ImportTracks (never more than one
-// stored batch of 25 a call) and returns how many batches remain. A line's first field is
+// Run imports the next n track lines through radio.ImportTracks, one stored batch
+// of 25 at a time, and keeps going into the next batches until n lines are done, all in one
+// transaction. It returns how many batches remain. A line's first field is
 // "@<artist index>", resolved to the id Artists created. Keep n so a call stays under the
-// gas you can offer (an import grows with the stations: about 30M gas a track).
+// gas you can offer (an import grows with the stations: about 30M gas a track, so n is
+// about 25 under a 1B gas cap for curated tracks; pointers are cheaper).
 func Run(cur realm, n int) int {
 	if madeTo < len(artists) {
 		panic("devseed: create the artists first")

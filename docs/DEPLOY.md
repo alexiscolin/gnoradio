@@ -78,10 +78,24 @@ good:
 
 ### Turning fees on later
 
-1. Hide every NC track first, with the admin `HideTrack` per track. A bulk hide-by-licence, and
-   a guard that refuses fees while NC tracks are visible, can come as a new release when needed.
-2. Set the treasury (`catalog.SetTreasury`) and/or the service fee (`tickets.SetServiceFee`).
-3. The app and gnoweb show the fee features again by themselves.
+1. Hide every NC track first, with the admin `HideTrack` per track. Nothing enforces this:
+   `SetTreasury` does not check for visible NC tracks (a counter kept on import, hide and
+   artist-hide would cost gas on every hot path), so the order is an operator rule. A bulk
+   hide-by-licence can come as a new release when needed.
+2. Set the treasury first (`catalog.SetTreasury`). A ticket fee needs it: `tickets.SetServiceFee`
+   alone changes nothing and raises no error, because the fee only applies while a treasury is
+   set. A fee stored earlier switches on, with the price plus fee to attach, the moment the
+   treasury is set: quote it to buyers first.
+3. Then set the service fee (`tickets.SetServiceFee`).
+4. The app and gnoweb show the fee features again by themselves.
+
+### Re-importing a pointer
+
+`ImportTracks` refuses an Audius or Jamendo track already imported (key `track-<audio>` in
+`catalog/names`, written by this release: pointers imported before it have none, fine on a
+fresh chain). To import one again after a wrong import: `HideTrack`, then
+`catalog.ReleaseName("track-audius:<id>")` (admin; allowed only once the track is hidden).
+`ReleaseName("audius-user:<id>")` frees a hidden pointer artist's key the same way.
 
 ## Costs
 

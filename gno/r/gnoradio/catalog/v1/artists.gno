@@ -180,12 +180,29 @@ func rename(t *tx, a *Artist, name string) {
 func ReleaseName(cur realm, name string) {
 	onlyAdmin(cur)
 	t := rd()
-	k := skeleton(strings.TrimSpace(name))
+	k := strings.TrimSpace(name)
+	if strings.HasPrefix(k, refKey) { // a pointer track's key: free once the track is hidden
+		v, ok := t.get(cNames, k)
+		if !ok {
+			panic("catalog: this name is not reserved")
+		}
+		if tr := getTrack(t, text.Atoi(v)); tr != nil && !tr.Hidden {
+			panic("catalog: this pointer track is visible")
+		}
+		t.del(cNames, k)
+		save(cur, t)
+		emitEvent("NameReleased", "name", k)
+		return
+	}
+	ref := strings.HasPrefix(k, refUser(OriginAudius)) || strings.HasPrefix(k, refUser(OriginJamendo)) // a pointer's raw platform key
+	if !ref {
+		k = skeleton(k)
+	}
 	v, ok := t.get(cNames, k)
 	if !ok {
 		panic("catalog: this name is not reserved")
 	}
-	if a := getArtist(t, text.Atoi(v)); a != nil && !a.Hidden && skeleton(a.Name) == k {
+	if a := getArtist(t, text.Atoi(v)); a != nil && !a.Hidden && (ref && a.Source == k || !ref && skeleton(a.Name) == k) {
 		panic("catalog: this name belongs to a visible artist")
 	}
 	t.del(cNames, k)

@@ -186,9 +186,16 @@ func HideSource(cur realm, kind string, from, count int, reason string) int {
 	t := rd()
 	last := int(t.count(mArtists))
 	for id := from; id < from+count && id <= last; id++ {
-		if a := getArtist(t, id); a != nil && a.Kind == kind && !a.Hidden {
-			a.Hidden = true
-			putArtist(t, a)
+		if a := getArtist(t, id); a != nil && a.Kind == kind {
+			// An artist that hid itself gets the reason too, so HideOwn cannot show it again;
+			// one a moderator hid keeps its own reason.
+			if r, ok := t.get(cRemoved, "artist:"+text.Itoa(id)); a.Hidden && ok && r != "" {
+				continue
+			}
+			if !a.Hidden {
+				a.Hidden = true
+				putArtist(t, a)
+			}
 			mark(t, "artist", id, true, reason)
 		}
 	}

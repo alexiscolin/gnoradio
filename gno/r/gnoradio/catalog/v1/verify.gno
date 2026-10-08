@@ -172,6 +172,14 @@ func ResetOwner(cur realm, artistID int) {
 	}
 	t.del(cOwners, a.Owner.String())
 	a.Owner, a.Verified = "", false
+	if isRef(a.Kind) && !a.Hidden { // a pointer has no name of its own: the claimant's name and bio go too
+		if old := skeleton(a.Name); old != "" {
+			if id, ok := t.get(cNames, old); ok && text.Atoi(id) == a.ID {
+				t.del(cNames, old)
+			}
+		}
+		a.Name, a.Bio = "", ""
+	}
 	putArtist(t, a)
 	t.del(cProofs, store.Pad(artistID))
 	t.del(cClaims, store.Pad(artistID))

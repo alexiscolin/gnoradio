@@ -282,18 +282,21 @@ func init(cur realm) {
 func main(cur realm) {
 	testing.SetRealm(testing.NewUserRealm(catalog.Admin()))
 	a := strconv.Itoa(catalog.CreateArtist(cross(cur), catalog.OriginJamendo, "", "", "jamendo-artist:7"))
-	b := a + "\t\t3\t3:30\tCC-BY-SA-3.0\t\tjamendo:1886257\t\t\t\t\t"
-	for i := 1; i < 25; i++ {
-		b += "\n" + a + "\t\t3\t3:30\tCC-BY-SA-3.0\t\tjamendo:1886257\t\t\t\t\t"
+	b := ""
+	for i := 0; i < 25; i++ { // one artist, 25 distinct platform ids (a pointer is imported once)
+		if i > 0 {
+			b += "\n"
+		}
+		b += a + "\t\t3\t3:30\tCC-BY-SA-3.0\t\tjamendo:" + strconv.Itoa(1886257+i) + "\t\t\t\t\t"
 	}
 	radio.ImportTracks(cross(cur), b)
 }
 
 // Gas:
-// 13281396577
+// 13289631512
 
 // Storage:
 // gno.land/r/gnoradio/catalog/v1: 6
-// gno.land/r/gnoradio/data: 8252
+// gno.land/r/gnoradio/data: 18952
 // gno.land/r/gnoradio/gas: 0
 // gno.land/r/gnoradio/radio/v1: 0
