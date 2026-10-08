@@ -124,6 +124,8 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
   const gotMeta = useRef(false); // some source of this load answered: an error after that is the network, not a dead file
   const audioFade = useRef<Fade | null>(null); // the main element's running fade
   const warmTimer = useRef(0);
+  const awaiting = useRef(0); // the Jamendo pointer whose stream URL is being fetched
+  const loadRef = useRef<(id: number, at?: number, autoplay?: boolean, live?: boolean, retried?: boolean) => void>(() => undefined);
   const warmed = useRef<HTMLAudioElement | null>(null); // the next track's file, fetched ahead
   // A track the schedule names that the catalog in memory does not hold yet (published since it
   // loaded): asked for once (onMissing), then played when the catalog brings it.
@@ -143,7 +145,7 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
 
   // live: at is a chain-time offset read now; the seek adds the time the file took to load.
   const load = useCallback(
-    (trackId: number, at = 0, autoplay = true, live = false) => {
+    (trackId: number, at = 0, autoplay = true, live = false, retried = false) => {
       const t = catalog.current?.byId.get(trackId);
       window.clearTimeout(failNote.current);
       setError("");
@@ -160,9 +162,23 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
       const urls = audioURLs(t);
       const src = urls[0];
       if (src === undefined) {
+        // A Jamendo stream comes with its bucket's meta (/api/meta): not there yet, fetch it and play then.
+        if (!retried && t.audio.startsWith("jamendo:")) {
+          const t0 = Date.now();
+          awaiting.current = trackId;
+          if (autoplay) setBuffering(true);
+          void want([{ id: trackId }]).finally(() => {
+            if (awaiting.current !== trackId) return; // the listener moved on meanwhile
+            awaiting.current = 0;
+            loadRef.current(trackId, at + (live ? (Date.now() - t0) / 1000 : 0), autoplay, live, true);
+          });
+          return;
+        }
+        setBuffering(false);
         setError("This track has no playable source.");
         return;
       }
+      awaiting.current = 0;
       sources.current = { urls, i: 0 };
       // A load of the file already there fires no new loadedmetadata: keep what it answered.
       if (audio.src !== src) {
@@ -191,10 +207,12 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
     },
     [audio],
   );
+  loadRef.current = load;
 
   /** stopLive ends what the radio had running: a pending sync, a fade, the tune-in jingle. */
   const stopLive = useCallback(() => {
     syncSeq.current++;
+    awaiting.current = 0;
     window.clearTimeout(endTimer.current);
     stopFade(audioFade);
     ident.current?.pause();

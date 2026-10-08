@@ -26,7 +26,14 @@ let onAir: { track: number; offset: number; queued: boolean } | undefined;
 vi.mock("../lib/catalog", () => ({
   loadOnAir: () => Promise.resolve(onAir),
   loadSchedule: () => loadSchedule(),
-  audioURLs: (t: { audio: string; alt?: string }) => (t.alt ? [t.audio, t.alt] : [t.audio]),
+  // A Jamendo pointer has a source only once its meta brought the stream (lib/refs want).
+  audioURLs: (t: { audio: string; alt?: string }) =>
+    t.audio.startsWith("jamendo:") ? (stream ? [stream] : []) : t.alt ? [t.audio, t.alt] : [t.audio],
+}));
+let stream = "";
+vi.mock("../lib/refs", () => ({
+  want: () => { stream = "https://prod-1.storage.jamendo.com/?trackid=9"; return Promise.resolve(); },
+  dropBucket: () => undefined,
 }));
 
 afterEach(() => {
@@ -174,6 +181,17 @@ describe("usePlayer live, player fixes", () => {
     act(() => { result.current.audio.dispatchEvent(new Event("loadedmetadata")); });
     expect(result.current.audio.currentTime).toBeGreaterThan(25); // at the station's place in the track
     onAir = undefined;
+  });
+  it("waits for a Jamendo pointer's stream instead of saying it has no source", async () => {
+    fake();
+    stream = "";
+    const jam = { ...cat, byId: new Map([[1, { id: 1, audio: "jamendo:9", duration: 300 }], [2, cat.byId.get(2)]] as never) } as unknown as Catalog;
+    const { result } = renderHook(() => usePlayer(jam));
+    await act(() => vi.advanceTimersByTimeAsync(100));
+    act(() => { result.current.toggle(); });
+    await act(() => vi.advanceTimersByTimeAsync(10));
+    expect(result.current.error).toBe("");
+    expect(result.current.audio.src).toContain("jamendo.com");
   });
   it("the next gateway starts at the chain's place, not the failed element's", async () => {
     fake();
