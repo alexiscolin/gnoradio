@@ -41,6 +41,16 @@ GNO=${GNO:-$HOME/.cache/gno-toolchains/onyx-v1.5.0/gno}
 # Lint's module cache only: gnokey keeps reading your own GNOHOME, where your
 # keys are.
 LINTHOME=${LINTHOME:-$HOME/.cache/gno-toolchains/onyx-v1.5.0/gnohome}
+# Sign with gnokey from the same release: an older one rejects package paths
+# the chains accept. Built once from the release's source next to gno.
+GNOKEY=${GNOKEY:-$HOME/.cache/gno-toolchains/onyx-v1.5.0/gnokey}
+GNOROOT_SRC=${GNOROOT_SRC:-$HOME/.cache/gno-toolchains/onyx-v1.5.0/gnoroot}
+if [ ! -x "$GNOKEY" ]; then
+  [ -f "$GNOROOT_SRC/gno.land/cmd/gnokey/main.go" ] ||
+    { echo "no $GNOKEY and no gno v1.5.0 source in $GNOROOT_SRC to build it" >&2; exit 1; }
+  echo "building $GNOKEY (gno v1.5.0)"
+  go -C "$GNOROOT_SRC" build -o "$GNOKEY" ./gno.land/cmd/gnokey
+fi
 FEE=200000 # ugnot per submission: 200M gas at 1ugnot/1000gas
 CAP=100000000 # ugnot, the most one package's storage deposit may take (vm default_deposit)
 OUT=build/$NET
@@ -76,7 +86,7 @@ status_sure() {
   exit 1
 }
 submit() {
-  set -- gnokey maketx addpkg -pkgdir "$1" -pkgpath "$2" -gas-fee "${FEE}ugnot" -gas-wanted 200000000 \
+  set -- "$GNOKEY" maketx addpkg -pkgdir "$1" -pkgpath "$2" -gas-fee "${FEE}ugnot" -gas-wanted 200000000 \
     -max-deposit "${CAP}ugnot" -chainid "$CHAIN" -remote "$REMOTE" -broadcast "$KEY"
   if [ -n "$DRY" ]; then echo "  would run: $*"; else "$@"; fi
 }
