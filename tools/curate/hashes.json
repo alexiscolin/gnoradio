@@ -5904,5 +5904,1041 @@
  "https://archive.org/download/soft-and-furious-diving-in-the-self/Soft%20and%20Furious%20-%20Diving%20in%20the%20self%20-%2007%20In%20Liquid%20Ending.mp3": {
   "audio_sha256": "ed8b0156b0bbb3f2393e6e8d0b270ee1784391dcc91a9af23a3c725a3cc25b24",
   "bytes": 6363333
+ },
+ "https://archive.org/download/path-through-the-mountains/PathThroughTheMountains_wide.jpg": {
+  "sha256": "e5592026ce01559acb18f1455083a89f8fd44657c5e59e3b0b9f1a04bd22742b"
+ },
+ "https://archive.org/download/Scott_Buckley-juggernaut/juggernautWide-01.jpg": {
+  "sha256": "55141c1f49b77af8eb9a2821510d608e66ab5443921e8a1530de75092ad81ccd"
+ },
+ "https://archive.org/download/Scott_Buckley-artemis/artemisWide.jpg": {
+  "sha256": "e539b5d1a74bd3b74717c1e82c8ea9910146ed96d8434d0afc765ac0f7153e88"
+ },
+ "https://archive.org/download/last-and-first-light/LastFirstLight-wide-01.jpg": {
+  "sha256": "05835f279fa8ea4164f88ca1e3d69aa3e92ff6ed3881de18eeffefa32eb97eeb"
+ },
+ "https://archive.org/download/Komiku-Poupis_incredible_adventures/a0606555560_16.jpg": {
+  "sha256": "d3c0622bfa406495e92ef55cd17673fabc7708d76b12b988349ad5d87e1a5b70"
+ },
+ "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_Its_time_for_adventure__vol_2_-_20161101115121009.jpg": {
+  "sha256": "99ce189a55a1e7bfd6ee99e6b7ef50c98a4ab619b2d774c6ca480377a4fb489a"
+ },
+ "https://archive.org/download/Komiku-TaleOnTheLate/Komiku_-_Tale_on_the_Late_-_2018041043811630.png.jpeg": {
+  "sha256": "7707582f04303f915290ceb7476f048741c1f8b320ec3e8ef93da1b0ae5686ce"
+ },
+ "https://archive.org/download/Monplaisir-RelaxingUkulele/cover.jpg": {
+  "sha256": "6dba414574cf77aeb660404c96154e5ff2d8eb3a6db0e962cd7ddfb2b03d0607"
+ },
+ "https://archive.org/download/MonplaisirOnNeCourtPlus/cover.jpg": {
+  "sha256": "3bfc9ebf7885a155f56a1fb0260aff576d24e15a5d40dfb1af0d88cb21e4d3b1"
+ },
+ "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/pochettefma.jpg": {
+  "sha256": "7b141d567610b05f8d4f48fb21a8092582e3f9f5d938d6c7d62ea611bf8b5882"
+ },
+ "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/The_Simple_Life_Part_2_1667-16369.jpg": {
+  "sha256": "6e145f6f78141e96f2a224ce76f24cf0412c0e73250d0e498318299b2e1b3361"
+ },
+ "https://archive.org/download/Grab_Bag-12446/Grab_Bag-12446.jpg": {
+  "sha256": "34140d49ce58c9611ae6c57e67171292ec28c6cdc5da62a2a256851c26f09762"
+ },
+ "https://archive.org/download/Dune-13188/Dune-13188.jpg": {
+  "sha256": "d8d5581d85f0e6540453b04c5c6989a4e07adc41f36b9da4c08b7b50ba654af5"
+ },
+ "https://archive.org/download/Jahzzar-Message/cover.jpg": {
+  "sha256": "df0f2538ae304f54272fd162b0e07ea97b37acc605324d75a5b71e75deedd0f2"
+ },
+ "https://archive.org/download/Jahzzar_Sele/cover.jpg": {
+  "sha256": "3b81be51fe530274cee064128ef46412fc6bad061a3e965b22054a5475f471e0"
+ },
+ "https://archive.org/download/Smoke_Factory-11354/Smoke_Factory-11354.jpg": {
+  "sha256": "7454376c5a11e67d430016dbe26b9d7d120f34ec0a2d267dab6ac1d1f825ecf5"
+ },
+ "https://archive.org/download/Kuddelmuddel/cover.jpg": {
+  "sha256": "2335ad60aefaa18f84dc060bc8c89a63c3b052c3aba7ff22fdbb214231664ee1"
+ },
+ "https://archive.org/download/Preludes-10052/Preludes-10052.jpg": {
+  "sha256": "b50b75dcca0cfcdb5927c723d552c5adef394778cc96a315213f8b188c970bbb"
+ },
+ "https://archive.org/download/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050.jpg": {
+  "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+ },
+ "https://archive.org/download/Divider-10058/Divider-10058.jpg": {
+  "sha256": "6a6cf7f251c2d7752d63870b7c4fdbf50ee26f20f5e63a725d0b40768c4f5e84"
+ },
+ "https://archive.org/download/The_Dark_Glow_of_the_Mountains-10049/The_Dark_Glow_of_the_Mountains-10049.jpg": {
+  "sha256": "075c58b97059b8bfc7fa87026477f7657c32ef25bd1c836638e4b4ae80f19d3c"
+ },
+ "https://archive.org/download/ChrisZabriskieDirectToVideo/cover.jpg": {
+  "sha256": "7db5640b09a715d4c794134016747e6cf67883b0478817f0f000c04a85a2e8ab"
+ },
+ "https://archive.org/download/ChrisZabriskieIAmAManWhoWillFightForYourHonor/cover.jpg": {
+  "sha256": "837c07634ae3ef306c29292b5706dc4ee67da17164b69e2231cf26c08c18e694"
+ },
+ "https://archive.org/download/ChrisZabriskieReappear/cover.jpg": {
+  "sha256": "937e34457f738b350944a94a9e00033d2e53849f5f96e63754def66972c02e2c"
+ },
+ "https://archive.org/download/Reappear-11948/Reappear-11948.jpg": {
+  "sha256": "dea142a9dfe8b70db6462b65cf75fb1a02c5ca4615e4220d8a493679854667fd"
+ },
+ "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty_Freak_Music_-_INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON_-_2018051541837121.jpg": {
+  "sha256": "b90d2e105bc352342f4d7fe395396adb149f18e85051d9255cf33274d3083f03"
+ },
+ "https://archive.org/download/alg021/alg021.jpg": {
+  "sha256": "4128d2efb63a254f30453fccb7ca6b495b64c639adc41157764f2e1da92770e4"
+ },
+ "https://archive.org/download/alg042/alg042.jpg": {
+  "sha256": "e17636e67b6ac2f4c484f454da88662e97ff6987faf501e0386db33e7792698c"
+ },
+ "https://archive.org/download/Slam_Funk-7603/Slam_Funk-7603.jpg": {
+  "sha256": "81edcb0368766573ca08df36f694138cf2c1fa286712e89ea8fa3b39a127eff3"
+ },
+ "https://archive.org/download/Directionless_EP-8295/Directionless_EP-8295.jpg": {
+  "sha256": "1358563c8c5afa955d2db456d85471895d3150f6c30fc549829b185d03bd6e61"
+ },
+ "https://archive.org/download/Grass_Hop-10919/Grass_Hop-10919.jpg": {
+  "sha256": "aa55a31a8d98b1779e5a70a9a1583826dceaf15d75e23492c967f23401d81bac"
+ },
+ "https://archive.org/download/Something_EP-9563/Something_EP-9563.jpg": {
+  "sha256": "a3393732a53566517b3c1a5a81d3c9ffe72d4f23f8bd102f6030a9e4aebbf4e8"
+ },
+ "https://archive.org/download/SCL115/cover.jpg": {
+  "sha256": "906bc798c019d8d635f66c34c8fb0e557c027f61b74f6eec2a03e9daa75b7355"
+ },
+ "https://archive.org/download/SCL125/cover.jpg": {
+  "sha256": "20b60a0a2363b5581c6b085c11ce771112d378fa2caf6f31496b65f327f3594e"
+ },
+ "https://archive.org/download/jamendo-180180/cover.jpg": {
+  "sha256": "019415f599559f0ee2bb94a1a6e2fbd45f689085abf93634186afb89c609b5bb"
+ },
+ "https://archive.org/download/The_Ferret_Show-13047/The_Ferret_Show-13047.jpg": {
+  "sha256": "49f04d37ab0ecae7b6beeadeaeb521026a5082b2b91e19600ab7d9f3cf08ec77"
+ },
+ "https://archive.org/download/jamendo-178033/cover.jpg": {
+  "sha256": "6e30d3a7b46637cc696e91474901235086096554876786465a41bf70ce85679e"
+ },
+ "https://archive.org/download/jamendo-199619/cover.jpg": {
+  "sha256": "bd90aa0cf841c0525d5e9ccde42af0d077f8cac0b2a5b4d5deeb1edaa415e442"
+ },
+ "https://archive.org/download/Stellardrone-LightYears/cover.jpg": {
+  "sha256": "e71c7b2232bf8edf82c6f3bb0ccd1a1a8ec5f169d2d890de7db1892e534d6d7b"
+ },
+ "https://archive.org/download/Stellardrone-InventTheUniverse-CC-BY/front.jpg": {
+  "sha256": "3a153a324e53fbe5e9913b11e3f00d295d206c4b5530c65de2ba87b9186be3f3"
+ },
+ "https://archive.org/download/jamendo-122870/cover.jpg": {
+  "sha256": "58e2f69e59949eb63d1bb2e8fb0f1c81c7a67bd34acbae3c5dce9dece5b6c38f"
+ },
+ "https://archive.org/download/shoki006/shoki006.jpg": {
+  "sha256": "c7bbcd68d49933e6c36d5c0e207e12a110b0af7f7c0622a0679d3f312ad0f34a"
+ },
+ "https://archive.org/download/shoki005g/shoki005g.jpg": {
+  "sha256": "26504718b9c1c4d37deea41f417ead2d1646a31f01ead112a1b1f5a1bd448ea5"
+ },
+ "https://archive.org/download/shoki011af/shoki011.jpg": {
+  "sha256": "45f3c5bb237facc4c75fde11ea8f6dc8a16a299b2a68af7381f9a11c0fff6798"
+ },
+ "https://archive.org/download/Watch_Your_Dubstep_-_EP-4741/Watch_Your_Dubstep_-_EP-4741.jpg": {
+  "sha256": "684ae99e8c51d9fa5b7db11f90662b845535d12683a71d6f3bf92cffb6f13eac"
+ },
+ "https://archive.org/download/This_Is_America-11173/This_Is_America-11173.jpg": {
+  "sha256": "01cdedad13b78da4156105f8247d851d126745292366ec48b5acdd4c48e27913"
+ },
+ "https://archive.org/download/bs-out-of-it-remastered/cover.jpg": {
+  "sha256": "878d8682aa09fe7e68667130529488548450916071e890bd13a73fa394ab5d6e"
+ },
+ "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/cover.jpg": {
+  "sha256": "876d4b61f3e6d300a77b207b81862c3aedfb60114fddb8d0607139d3c31c97de"
+ },
+ "https://archive.org/download/bs-guess-whos-a-mess-remastered/cover.jpg": {
+  "sha256": "6dd364f861aaf229500ae36060d2b2fdae4b400da8eaf6763f15067fb8646f28"
+ },
+ "https://archive.org/download/Out_Of_It-3406/Out_Of_It-3406.jpg": {
+  "sha256": "221aec7286d70dc28821d13530292d31cfc592f4f0d488cde563ad14a8791110"
+ },
+ "https://archive.org/download/Safe_and_Sound_EP-10796/Safe_and_Sound_EP-10796.jpg": {
+  "sha256": "06c24036216a6c01081d4296f5ff53ff233d8dd71104da17ce80e53f48f83b23"
+ },
+ "https://archive.org/download/We_Be_Geese-13242/We_Be_Geese-13242.jpg": {
+  "sha256": "73f9a767029d0c63c1c44ce100d89b043e2887d1319219773ca68a09c8cc0d8b"
+ },
+ "https://archive.org/download/CloudkickerBeacons/cover.jpg": {
+  "sha256": "bc9f85374a7735f7ae027ad670fa28fa36e8040803b101b955dea34235008182"
+ },
+ "https://archive.org/download/CloudkickerLetYourselfBeHuge/cover.jpg": {
+  "sha256": "8e3a8281dc877da2d9942e04a37a07cd6277fdfca58bc1bb464d0f2327e2a650"
+ },
+ "https://archive.org/download/jamendo-194093/cover.jpg": {
+  "sha256": "8c4e2cba54377b2ffe8f13ddd06f0000597835e641b2f13a00260be12256c723"
+ },
+ "https://archive.org/download/jamendo-194483/cover.jpg": {
+  "sha256": "1aebcc095d54916bdcf59ef07ce0de31fe697ae8215afcc820c1b47b9745fe6c"
+ },
+ "https://archive.org/download/01-intro_202201/cover.png": {
+  "sha256": "56d372524f1ec42e6f92341aa6cfec24e6ee3c8b18ced8a40d347769bf2c56bb"
+ },
+ "https://archive.org/download/01-hand-in-space/cover.jpg": {
+  "sha256": "32f3bda69abded7c72d78c0a8ea7eba20e9d7af44c68d516ea48a6e236d79ae3"
+ },
+ "https://archive.org/download/jamendo-118676/cover.jpg": {
+  "sha256": "04986cc238e76f3399e27d6e86ef632be56141d1ade0a39b00070ae979de4812"
+ },
+ "https://archive.org/download/jamendo-148417/cover.jpg": {
+  "sha256": "ac58107da1c034c9ef274b7ecf9a1eac6a08d48cfc94ec9cfbc75f7dae7dd125"
+ },
+ "https://archive.org/download/jamendo-286571/cover.jpg": {
+  "sha256": "9c58b9b769c96131d9548dc5461480a473d74a7be79ed364bb2b56cd19bf0584"
+ },
+ "https://archive.org/download/jamendo-165296/cover.jpg": {
+  "sha256": "114328d8270ab5bbe297f08f4fa9e8e38bebcd816cb1f310c55967796580a380"
+ },
+ "https://archive.org/download/OpenGoldbergVariations/cover.jpg": {
+  "sha256": "f3934fbc5ce7d2a35e5d52185f1d0095b5c1e0dfce36e8490b05a9edfaf78dd4"
+ },
+ "https://archive.org/download/The_Open_Goldberg_Variations-11823/The_Open_Goldberg_Variations-11823.jpg": {
+  "sha256": "0f9bf157ac5f0b1cf045eda84439e0da67f144753ea976bdca48c322615005f8"
+ },
+ "https://archive.org/download/Hayvanlar_Alemi_Tatilde-1865/Hayvanlar_Alemi_Tatilde-1865.jpg": {
+  "sha256": "6fe7deb0c7be43047bd8abcb3ecc58a0adabf3ec07bf6b67fc52e1909b354893"
+ },
+ "https://archive.org/download/jamendo-153512/cover.jpg": {
+  "sha256": "ddda32d78e6669801d51c53ccbf15f6c12ebcac50cbf86e8d508d89a08bd8708"
+ },
+ "https://archive.org/download/jamendo-153622/cover.jpg": {
+  "sha256": "d1b31895aa9eb0157f2ae27112be8cfa782fff9cbee37beb0c9feabbb59d9499"
+ },
+ "https://archive.org/download/Fonkdongo_Vs_Bzmbzdim-11831/Fonkdongo_Vs_Bzmbzdim-11831.jpg": {
+  "sha256": "6264713735ab8c197ee39f5e6e87fd6f19a64d3d2cf0c01b23522a7df2f3c1c6"
+ },
+ "https://archive.org/download/Dub_Lab-10191/Dub_Lab-10191.jpg": {
+  "sha256": "9d3e86ab215113f5842c2ef259405eeea3aced6e3bb3dc0855822c81322c90ad"
+ },
+ "https://archive.org/download/jamendo-118381/cover.jpg": {
+  "sha256": "98f91e42525e1b43b8e508261f94378237a3245ca3f37587ca0bf10dc7948a37"
+ },
+ "https://archive.org/download/jamendo-133052/cover.jpg": {
+  "sha256": "dd9b2e7d78feeac1e3b235c75cdeb89fca52f43a5a21e927d75b5bb1b910125a"
+ },
+ "https://archive.org/download/jamendo-255656/cover.jpg": {
+  "sha256": "2ec8e4d3fcefac636feb72acf0c814e21b4772c51d135585828047892a5ed7b3"
+ },
+ "https://archive.org/download/jamendo-263723/cover.jpg": {
+  "sha256": "d5360fe2b392ee373d0adb247574fbf075b1048e776550eaaa2000898a688491"
+ },
+ "https://archive.org/download/jamendo-118100/cover.jpg": {
+  "sha256": "d758eec6c6a868167b60b8770822570414f098f8999b453768f70de9eacf86b2"
+ },
+ "https://archive.org/download/jamendo-576812/cover.jpg": {
+  "sha256": "f4b77478c77a5f2c885664557332e5cf197b62b95bed185a490b0b4da320df96"
+ },
+ "https://archive.org/download/jamendo-131519/cover.jpg": {
+  "sha256": "1f10ff796c4e7498b84bcc312556f146acb3bfd40fe887e5a745296bc8a3a764"
+ },
+ "https://archive.org/download/smoking-monkey/JoCo_SmokingMonkey.jpg": {
+  "sha256": "744808be1edb209b7395ad8c575cf3c1027888d0b67133cab9303df13f35cd57"
+ },
+ "https://archive.org/download/pandacd-87-listen/%5Bcover%5D%20Tryad%20-%20Listen.jpg": {
+  "sha256": "70bab77bc29e94483bbcab548f8effbe980943fe96954a820d783990e3e038ad"
+ },
+ "https://archive.org/download/pandacd-88-public-domain/%5Bcover%5D%20Tryad%20-%20Public%20Domain.jpg": {
+  "sha256": "612f2f65cd2f0495fb5f07f2cff4cba6dd1327ba7def5eae06f901e067723509"
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_Public_Domain_-_Cover.jpg": {
+  "sha256": "0bec1ddb4ae48e72ded852749ea0296cec21d95ce74fba9ad83de5fb36bedab9"
+ },
+ "https://archive.org/download/floating-mind-1213EP/monoKraK245_cover.jpg": {
+  "sha256": "3253a0766f22892e230e0baf9db5d49fd845a2d17a488050ecc1edc86848d53e"
+ },
+ "https://archive.org/download/Monokrak209FloatingMind_Ready_For_Flying/monoKraK209_cover.jpg": {
+  "sha256": "ecde63dd7637cbd8060ba74ae1e46d355953a4bbbd2a581632a91a789b812f55"
+ },
+ "https://archive.org/download/Monokrak211FloatingMind_BroussaillesEP/monoKraK211_cover.jpg": {
+  "sha256": "efd01b870507af8c952d7f7fff97d6abf93cb5d17a61fce004085043e6dc8b9d"
+ },
+ "https://archive.org/download/monokrak232floatingmind_amar/monoKraK232_cover.JPG": {
+  "sha256": "9ba8eca7062d9e0edde734453411764974f8668f723773a1493c7b93f6b24211"
+ },
+ "https://archive.org/download/monokrak91SonorefictionVsFloatingMindparticulesInstables/particulesinstables_cover.JPG": {
+  "sha256": "201a676039cd6a762ba294faa0e764ccdb083677e049c3261ccaf8729cef7bcd"
+ },
+ "https://archive.org/download/Monokrak222FloatingMind_FreeEP/monoKraK222_cover.jpg": {
+  "sha256": "5530d5f6f2ad58170a9ae0167ac691b8aa261819c1ee7e45d9a4bff7023b928e"
+ },
+ "https://archive.org/download/Monokrak214FloatingMind_Hidden_Passion/monoKraK214_cover.jpg": {
+  "sha256": "1d0a6000eb6b1feb39239a73ded5919c080825d2dff573ddc1b0304e77bf1efa"
+ },
+ "https://archive.org/download/Monokrak215FloatingMind_Morbida/monoKraK215_cover.jpg": {
+  "sha256": "c7c9041e9d373f9649368f898c54e398bb6be7b4c1802e3df4cd54be9ce2d36f"
+ },
+ "https://archive.org/download/Monokrak213FloatingMind_Cleave/monoKraK213_cover.jpg": {
+  "sha256": "7dc81304fb116b372bda4276c86aebf5b98ea41a57420bda24faa3b3f504d9e3"
+ },
+ "https://archive.org/download/monokrak-244-floating-mind-nuencia/monoKraK244_cover.JPG": {
+  "sha256": "7b8fe514f35543874a62845703f57c19b989fd1e7142357566a330fca65b6e52"
+ },
+ "https://archive.org/download/monokrak223floatingmind_multi_kolor/monoKraK223_cover.jpg": {
+  "sha256": "8b9caa7382b858636df10bb9931bbd2ec72131bd1af858dd666cfd0292c1c541"
+ },
+ "https://archive.org/download/Monokrak201FloatingMind_Human_Kalor/monoKraK201_cover.JPG": {
+  "sha256": "194468131cc9b785b20773f60fef14606d6c81fcc25d0a32a03df1aede3a90b3"
+ },
+ "https://archive.org/download/Monokrak210FloatingMind_MusikIsAll/monoKraK210_cover.jpg": {
+  "sha256": "bbe2d86ce06a14c66754d01f407a631124d583417281357cda6642253023ebb2"
+ },
+ "https://archive.org/download/nx010/nx010_cover.jpg": {
+  "sha256": "64fd8785caf583f3e016d12ce9368aaf3375102acd8b718cff1242501e59a9b3"
+ },
+ "https://archive.org/download/nx012/cover.jpg": {
+  "sha256": "467b351a4de51118814ae740519b90442ec846bc9524b4ba0e411a1901d956cd"
+ },
+ "https://archive.org/download/jamendo-310654/cover.jpg": {
+  "sha256": "6180c024d41afeceb616ef965a55b3adcd85124c5271ff0d6d7d7121b55966b3"
+ },
+ "https://archive.org/download/jamendo-123311/cover.jpg": {
+  "sha256": "95580b7da369d0c0b797b3afa8e287492a3fdbc372b2bd86c31d66b37fd69fbd"
+ },
+ "https://archive.org/download/jamendo-561571/cover.jpg": {
+  "sha256": "ec39c4994fecde22a55da07064f2336265e2346cd1b10669d66b44829ab78112"
+ },
+ "https://archive.org/download/jamendo-381201/cover.jpg": {
+  "sha256": "70cd8dc635426ac38ac559549f761ae965d7c7fb96766e833c4b056af6f726ab"
+ },
+ "https://archive.org/download/jamendo-612669/cover.jpg": {
+  "sha256": "8f545dc1466781ba2e11552d01cb4a96d84c466d28e91c8055e4b98eee592963"
+ },
+ "https://archive.org/download/jamendo-599539/cover.jpg": {
+  "sha256": "7689d644f0306a82f9cf3e7821ea70310f6215cb1b5d65f542116a560abd403f"
+ },
+ "https://archive.org/download/jamendo-576787/cover.jpg": {
+  "sha256": "a84246324724f3345284f3bd7421a359b9ad1319e6edfc3a663295d96dbe5e3b"
+ },
+ "https://archive.org/download/jamendo-383601/cover.jpg": {
+  "sha256": "fcc7840f5326382ca02d331cc8d99db1d94a3e39030b19ab2afc2e2beb5cce83"
+ },
+ "https://archive.org/download/jamendo-140069/cover.jpg": {
+  "sha256": "58f0002b6939ec18f5c561234ff9316c3ef7fb23f1445e563bed742354809a29"
+ },
+ "https://archive.org/download/jamendo-382925/cover.jpg": {
+  "sha256": "c2dd60e20060fd6410797b4318c9c672cb0ec3cacc960c3c12164afbf5f4ac38"
+ },
+ "https://archive.org/download/jamendo-468066/cover.jpg": {
+  "sha256": "e4421e544b78b427d8c82eaee7e8b13a418d0a155b0a8be43e9e395d8642749b"
+ },
+ "https://archive.org/download/jamendo-600080/cover.jpg": {
+  "sha256": "bca0da14e8c80a38faeee58e51459b207ff9eecee636d337353e347b050654b8"
+ },
+ "https://archive.org/download/jamendo-373638/cover.jpg": {
+  "sha256": "9125b61254a0ea594d18b0d4f2638ed7dbfd722c2947d9e46b23bbf704413d01"
+ },
+ "https://archive.org/download/jamendo-352368/cover.jpg": {
+  "sha256": "c7d784ae1ef79c41433cfa3cd60e8a96dc52716f227fcb23954aeda8e823a6ea"
+ },
+ "https://archive.org/download/jamendo-339650/cover.jpg": {
+  "sha256": "f0ce0c808168bc6c9cb14a88ae532b40cd0d9fbb4d91ea14e818cb06056c2dec"
+ },
+ "https://archive.org/download/ImpactValentineWMM/Cover.jpg": {
+  "sha256": "308f2f81ff1026cc8de9a32a72f492e16785bceaf598fdae20a1c0b8af1c18e5"
+ },
+ "https://archive.org/download/jamendo-602837/cover.jpg": {
+  "sha256": "74fb6f3e8cc63c035bd789ce70ddeded2b06c7e735eb38948e6ed12f7472ff8c"
+ },
+ "https://archive.org/download/jamendo-484532/cover.jpg": {
+  "sha256": "3cfc3f876d4aa8f19bb13565cc183d877598dab8d52eb8d2e67e1e03b31e2c6b"
+ },
+ "https://archive.org/download/jamendo-164577/cover.jpg": {
+  "sha256": "92233e635043a62ffdb705e39c007a378aaf8d9a0c2e940f90e3fde2b2ab2930"
+ },
+ "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/SteveSoblick2290.jpg": {
+  "sha256": "595dcf2b2b17dcc9bb20d239ce97d3cdabc98c879ff24a374bfcb778acfab553"
+ },
+ "https://archive.org/download/SoftAndFurious-manimnot/a1825322208_16.jpg": {
+  "sha256": "8f2668e0b0cbcddd1510cec014d8751253cf26924cf656fa5cd6e4d0c7bebb12"
+ },
+ "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/Soft_and_Furious_-_You_know_where_to_find_me_-_20180430125722997.jpg": {
+  "sha256": "31d519b9e26a6b2e3075e8178bab6e9f1375b7e9d54c30370d722e47e065a684"
+ },
+ "https://archive.org/download/soft-and-furious-diving-in-the-self/cover.jpg": {
+  "sha256": "f1601b6eface0140142e58d0515bf54d880bd59479ac2ea13afcdde48c9502dc"
+ },
+ "https://archive.org/download/gt458SteamFlow-WithTrainsAndBones/cover.JPG": {
+  "sha256": "253ba0381bc8b382ce2c0d1c8ca82f6809393a8119a8704fb3e4e8b251daeba0"
+ },
+ "https://archive.org/download/Jade_Furnace_I/the_jade_furnace_I.jpg": {
+  "sha256": "d22df79f55d102f59fa27fc818baa9db91b677065e89534c245e4c2654724902"
+ },
+ "https://archive.org/download/Generative_I/a_front.jpg": {
+  "sha256": "f513ce798a65e8672c0573aae1e80fc7d49bd75ebf402378b5cd4367c7d8f42c"
+ },
+ "https://archive.org/download/Seetyca_Suite/Seetyca_Suite.JPG": {
+  "sha256": "5366da8dace624125624d9acf41d131e446761df8c9622e7ad1cd9e10a9fef33"
+ },
+ "https://archive.org/download/treetrunk011/treetrunk011_Front_Cover.JPG": {
+  "sha256": "fcb303f0b2c403db6c69e2f67432b30bac5569ddfcab876986eefbd08d2dcc42"
+ },
+ "https://archive.org/download/treetrunk008/treetrunk008_Front_Cover.jpg": {
+  "sha256": "5f2dfe49e36d167495f6093ab6c77a2fd8ffb6ce5554a173c54b33c4463e8023"
+ },
+ "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2027%20La%20balade%20du%20gentil%20robot.mp3": {
+  "audio_sha256": "373ef239ca46a47504e6d529035203638d5b3a1466ea075182bbccd11064474a",
+  "bytes": 7700196
+ },
+ "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2028%20Pourquoi%20Tu.mp3": {
+  "audio_sha256": "dfa178a77387ddfbc9b18d19afbaade075a2e040a3120e4feecb770a3c001171",
+  "bytes": 10140033
+ },
+ "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2031%20Pas%20de%20repos.mp3": {
+  "audio_sha256": "c2d6b26000f8d427ac10295e302eb86663abc45bf62c9f33739fb1d53901ebe2",
+  "bytes": 14740698
+ },
+ "https://archive.org/download/rolemusic_singles/rolemusic_-_cold_chains.mp3": {
+  "audio_sha256": "de17614526a97d04e9edbad6d9b2c075339fbe1ac71498f1fc21cbcc66d99816",
+  "bytes": 8896249
+ },
+ "https://archive.org/download/USR-012/01-apertura.mp3": {
+  "audio_sha256": "ce77d153af44f7084fd83ee4891d70b1afd2e07aec19ec078dde828920ab66b6",
+  "bytes": 4550656
+ },
+ "https://archive.org/download/USR-012/01-apertura_vbr.mp3": {
+  "audio_sha256": "0a12a84b16807899d005c98e5b795bf8efb510b2ab7662c3d5aa835b249ea592",
+  "bytes": 4537070
+ },
+ "https://archive.org/download/USR-012/02-ritorno_a_casa.mp3": {
+  "audio_sha256": "dabe73d06ea84dc48f5829ef32a9a3c90b805802ceef469bbfc3c2411939f4ad",
+  "bytes": 5984256
+ },
+ "https://archive.org/download/USR-012/03-senza_parole.mp3": {
+  "audio_sha256": "6b4f42ed1de9632d425fc4df0519e90153837fe6a3cc9768b67e6392ed61ed71",
+  "bytes": 7655424
+ },
+ "https://archive.org/download/USR-012/03-senza_parole_vbr.mp3": {
+  "audio_sha256": "e105ec39c00b9b4b25edbe9a87bce071c4d49f2b23dfb681f146407f5e9cd4b8",
+  "bytes": 7106322
+ },
+ "https://archive.org/download/USR-012/05-riflessione.mp3": {
+  "audio_sha256": "e23190aacf1d38196a71e6e86d24c9e64ae85cb474d91e9832b71bdb12fcb931",
+  "bytes": 6582272
+ },
+ "https://archive.org/download/USR-012/05-riflessione_vbr.mp3": {
+  "audio_sha256": "f84d52b0aea3bce358d3bdb31a5326de46d7e3c3ec5672a852d9593caea2642e",
+  "bytes": 5722675
+ },
+ "https://archive.org/download/USR-012/06-sei_improbabili_ragazzini.mp3": {
+  "audio_sha256": "f6056abcb0a0142848ba134015aa23d89730423c3f5e18468d3fdf52512e3665",
+  "bytes": 5566464
+ },
+ "https://archive.org/download/USR-012/06-sei_improbabili_ragazzini_vbr.mp3": {
+  "audio_sha256": "d926d424840e9f7b6264e9b12b77d5fe7e5ae0eeac1ef77c4dae3b648c1858ac",
+  "bytes": 5492132
+ },
+ "https://archive.org/download/USR-012/08-sulla_strada.mp3": {
+  "audio_sha256": "9c4a2db91058906479f3a362224fbb16743dd8eafd056778b35e544816ec9ac1",
+  "bytes": 3952640
+ },
+ "https://archive.org/download/USR-012/08-sulla_strada_vbr.mp3": {
+  "audio_sha256": "523d487fc418064da306c8b0797b8177e364825c8cb2495fc9865ca539cd1911",
+  "bytes": 3662136
+ },
+ "https://archive.org/download/USR-012/09-IFO.mp3": {
+  "audio_sha256": "62e465938b113b600e6f1e2465a66512121eaedf046b325928afe80f03baf1d1",
+  "bytes": 6524928
+ },
+ "https://archive.org/download/USR-012/09-IFO_vbr.mp3": {
+  "audio_sha256": "776d319140d883a3618ddcb975fe153debc2f2875f5ce6ab16178dc17a785489",
+  "bytes": 6240804
+ },
+ "https://archive.org/download/USR-012/10-finestra.mp3": {
+  "audio_sha256": "8fd87bd1024a2281ea5e23c2860a07fe8ee41cbfce3f2cdcd11ffcc1bf3e372e",
+  "bytes": 5992448
+ },
+ "https://archive.org/download/USR-012/10-finestra_vbr.mp3": {
+  "audio_sha256": "34f93eae9d5c4977c28272563b06a968ffc5ff5fb5170b6f968c353a59483782",
+  "bytes": 5659666
+ },
+ "https://archive.org/download/USR-019/01_-_monoculture_-_peace_city.mp3": {
+  "audio_sha256": "fe419b0233feac0d2fc13f9ed334878eed1f5d4252abaea6b80d62b609ed35c0",
+  "bytes": 3817472
+ },
+ "https://archive.org/download/USR-019/02_-_monoculture_-_the_new_rasputin.mp3": {
+  "audio_sha256": "aa06ee74da62f3c88fdbad9a4745b94e5feca4ae824becac5d294c51e0d8bd1e",
+  "bytes": 3964928
+ },
+ "https://archive.org/download/USR-019/03_-_monoculture_-_my_cancer_for_a_kingdom.mp3": {
+  "audio_sha256": "83d0fbf37cf7d6bf25f70b26c2dba05222464c9672cbff314a5a67895b5f4e26",
+  "bytes": 5468160
+ },
+ "https://archive.org/download/USR-019/04_-_monoculture_-_parco_girls.mp3": {
+  "audio_sha256": "3928df8ae0a1451bbe655572d177efbfa218549d7038f94c57d25e067286f5c7",
+  "bytes": 6156288
+ },
+ "https://archive.org/download/USR-019/05_-_monoculture_-_cause_and_consequence.mp3": {
+  "audio_sha256": "805e3b31f630be07ca445c1f8d60025758b1c378abb95d0a43aef17d47b2bcfb",
+  "bytes": 7651328
+ },
+ "https://archive.org/download/USR-019/06_-_winterstand_-_syntig_shuji_monomix.mp3": {
+  "audio_sha256": "882d93c7269163010b6b862c3a5870e9580078b183f801cf66412620756c1d8a",
+  "bytes": 5922816
+ },
+ "https://archive.org/download/alg010/alg010_06.mp3": {
+  "audio_sha256": "41fe82e79f755d83fac3f6a7de354f1d20aa9080c61f6b5af7b32e940d5b2cbd",
+  "bytes": 6607076
+ },
+ "https://archive.org/download/alg010/alg010_09.mp3": {
+  "audio_sha256": "7660e94259bfcc0e0ed96b10c079d63444c4f602c7b829985e0abfe6d91ec989",
+  "bytes": 13453250
+ },
+ "https://archive.org/download/alg010/alg010_10.mp3": {
+  "audio_sha256": "cf8502626d8ad314a74984124cd173fa32f12acedbf4bda434f8703a82b8e9a1",
+  "bytes": 12073368
+ },
+ "https://archive.org/download/alg010/alg010_12.mp3": {
+  "audio_sha256": "bc75e69e80709d8321285e0800771e1d4ad6ab7ac67924fe1d6764bbd4040cd8",
+  "bytes": 3620969
+ },
+ "https://archive.org/download/alg010/alg010_14.mp3": {
+  "audio_sha256": "31c5063cc80e5415ebce880dd44af2140e0741e321389bda50c7e5dae33130d0",
+  "bytes": 6797666
+ },
+ "https://archive.org/download/alg021/09regueiful.mp3": {
+  "audio_sha256": "233595fe780ed16f5054fc07909946c7a58e6458e676043555cd1420d46881de",
+  "bytes": 2595742
+ },
+ "https://archive.org/download/alg016/01.mp3": {
+  "audio_sha256": "5281623764292787e79c19dbcdf86377ef020dae549692ed9df8de662d66bd8c",
+  "bytes": 12918152
+ },
+ "https://archive.org/download/alg016/02.mp3": {
+  "audio_sha256": "23017a3ae12122530b067d0446cf5dd4164502488d74b9e557e01b4a351a99c2",
+  "bytes": 10761483
+ },
+ "https://archive.org/download/alg016/04.mp3": {
+  "audio_sha256": "12944aed98ac6fc20b73ee97b7a0094048ea23c553e5c0eb50691f57fd3031f1",
+  "bytes": 10780291
+ },
+ "https://archive.org/download/alg-018/11_torn.mp3": {
+  "audio_sha256": "bc47850b6900308e848d9e40658cef873eddf40e4bce26bfea315207d6d1f2d1",
+  "bytes": 3346229
+ },
+ "https://archive.org/download/alg-018/1_bases.mp3": {
+  "audio_sha256": "db1d5845df25d321a0c772c776654b18bebdcd11002e3861985ba8809b59bcca",
+  "bytes": 9209599
+ },
+ "https://archive.org/download/alg-018/3_cricksxxx.mp3": {
+  "audio_sha256": "f90be80f0098ceade5ae320328a7019c0f61945be1424e371b4d013049d5a0f1",
+  "bytes": 11007354
+ },
+ "https://archive.org/download/alg-018/4_datatecho.mp3": {
+  "audio_sha256": "3baf11d0416b6c324528e4f29b094e0db8f621ba40f6b0728b65ff2d8c20fe7f",
+  "bytes": 4932729
+ },
+ "https://archive.org/download/alg-018/6_gasimetro.mp3": {
+  "audio_sha256": "0467402060128a1e4329046041a6373a71dce2ed952c9d1fa183d6e6954085e5",
+  "bytes": 2906184
+ },
+ "https://archive.org/download/alg-018/8_la_plupart_des_surfaces.mp3": {
+  "audio_sha256": "25c91d006fd51bd4d7ce69ade4595a535885a63ab2b32606645bba7faf5df7eb",
+  "bytes": 4606244
+ },
+ "https://archive.org/download/alg-018/9_suelo_online_bot_yactor.mp3": {
+  "audio_sha256": "1a36ebac3cab72b64e7fd9a5cedcbd8743ec2665c1980723b8052067234822b6",
+  "bytes": 3746194
+ },
+ "https://archive.org/download/alg003/alg003_01.mp3": {
+  "audio_sha256": "2356f362d90abb524cb2da7cc49fcd34685d0ec3d4a86a88c8bef0b85572b378",
+  "bytes": 3517025
+ },
+ "https://archive.org/download/alg003/alg003_02.mp3": {
+  "audio_sha256": "ddabe0fef67a0559e87210ea9d5deb08d5fd6781bacb026eef3449fbd7946d0c",
+  "bytes": 6338249
+ },
+ "https://archive.org/download/alg003/alg003_03.mp3": {
+  "audio_sha256": "88db5a311f70187ddcce432b684675060b2e38fc2095e555ee72f214ab3cfad6",
+  "bytes": 7473635
+ },
+ "https://archive.org/download/alg003/alg003_04.mp3": {
+  "audio_sha256": "2137d76358a7cd6d82832ecf5959068b40788f81914810aeed9fc24ffffa0fdc",
+  "bytes": 8816015
+ },
+ "https://archive.org/download/alg003/alg003_05.mp3": {
+  "audio_sha256": "44d75efb40af0f354b136b7e30a8e06ef172590f002908af6e1247843c3b1463",
+  "bytes": 9763606
+ },
+ "https://archive.org/download/alg003/alg003_06.mp3": {
+  "audio_sha256": "6dd393a0b53f233f8c8ea781947b198b38c0e346110a11d9aa3266323224cf2d",
+  "bytes": 7298719
+ },
+ "https://archive.org/download/alg003/alg003_07.mp3": {
+  "audio_sha256": "4f6642a39e09077dc3beeb8c7d73379142a6abf79a3abed4edb02a8798acced3",
+  "bytes": 4640607
+ },
+ "https://archive.org/download/kahvi039/kahvi039a_badloop-your_blue_eyes.mp3": {
+  "audio_sha256": "2ad4b4a45ed53cbc6c761e7610f8a5ac7e2f5495a8b300e94bb0252843bf2fd1",
+  "bytes": 9463808
+ },
+ "https://archive.org/download/kahvi039/kahvi039b_badloop-dont_ever_let_go.mp3": {
+  "audio_sha256": "ff22f11d0b1835e4e359a78abc4bc4e9ef24092ceade9ea15a4c30ba9e2f5ec2",
+  "bytes": 6865024
+ },
+ "https://archive.org/download/kahvi029/kahvi029a_badloop_lumme.mp3": {
+  "audio_sha256": "b8be0a339aec14c00f74f3d07381bbbdf73b20676ef7ea8c994f84f4677d2edc",
+  "bytes": 9720186
+ },
+ "https://archive.org/download/kahvi029/kahvi029b_badloop_favorite_things.mp3": {
+  "audio_sha256": "5643295dba114c57e9557d961540acb4692e5ed9079dfbdac78ef688a280dfea",
+  "bytes": 7120271
+ },
+ "https://archive.org/download/kahvi042/kahvi042a_4tthieves-the_beginning.mp3": {
+  "audio_sha256": "4065242b90274057ee9adc689500fa7129e9d26f0cc0df98442f384f968e4b96",
+  "bytes": 6900782
+ },
+ "https://archive.org/download/kahvi042/kahvi042b_4tthieves-dimension_x.mp3": {
+  "audio_sha256": "c214c3a1422c41bf631c38273702747b48a8fd1260038bc917dc3a322241b1c0",
+  "bytes": 8607628
+ },
+ "https://archive.org/download/kahvi042/kahvi042c_4tthieves-tidalblues_v2.mp3": {
+  "audio_sha256": "64e8d148a65b50149cebf814bed039468b33ec83e9ca39453f960649980749e8",
+  "bytes": 9215774
+ },
+ "https://archive.org/download/kahvi042/kahvi042d_4tthieves-cubicstate.mp3": {
+  "audio_sha256": "d25245a7973c56a2a1f43cc90e887b9dc38f9832cee7f6eebd9e4d13159d2d9c",
+  "bytes": 5728384
+ },
+ "https://archive.org/download/kahvi017/kahvi017a_4tthieves-mistsoftime.mp3": {
+  "audio_sha256": "804526e54d7ed6be5e15d79c601ed5f5c8bda1bf1c585428aed3a49f76b73e36",
+  "bytes": 9588864
+ },
+ "https://archive.org/download/kahvi017/kahvi017b_4tthieves-mistsoftimeambient.mp3": {
+  "audio_sha256": "a64f502adde8b0361fbe9cca241ea1d31311f40d15cd43746b74153f778532d3",
+  "bytes": 12654720
+ },
+ "https://archive.org/download/kahvi017/kahvi017c_4tthieves-trancendental.mp3": {
+  "audio_sha256": "3772f2b55f81c698e2009720adbca1c1466bb7fa5751190cb35f9ec8526ca0b4",
+  "bytes": 7671936
+ },
+ "https://archive.org/download/kahvi079/kahvi079a_berestez-vendox.ogg": {
+  "audio_sha256": "475363b620955f6a24588f28db802ce269feec36354b81c0088501ccbe9633b8",
+  "bytes": 6315064
+ },
+ "https://archive.org/download/kahvi079/kahvi079d_berestez-unclone.ogg": {
+  "audio_sha256": "6b6f7f19a0f1604405a891962df02b99312d32de23c2bf25a4dff49f5206593e",
+  "bytes": 6261544
+ },
+ "https://archive.org/download/kahvi079/kahvi079e_berestez-korimba.ogg": {
+  "audio_sha256": "3f460d42b3822db016bce7562fcd5da73517459d22a6f096b5edca4e2d6449aa",
+  "bytes": 5354974
+ },
+ "https://archive.org/download/kahvi035/kahvi035a_mindflower-calm.mp3": {
+  "audio_sha256": "76197332ef190c99fb37b5ab487f6645c41520256b8ce5bd4e8287752253f1b2",
+  "bytes": 6475776
+ },
+ "https://archive.org/download/kahvi035/kahvi035b_mindflower-breakntwomen.mp3": {
+  "audio_sha256": "f2c777fcadfe7e39fb7845bcb772b39e1240788e45889812a3391428d4afeaa0",
+  "bytes": 3876864
+ },
+ "https://archive.org/download/kahvi035/kahvi035c_mindflower-bang.mp3": {
+  "audio_sha256": "5501e5f28d46129e7defae6c4d509a5fddff2ab25b4d0296ea30fb3d6e5372bb",
+  "bytes": 11982976
+ },
+ "https://archive.org/download/kahvi035/kahvi035d_mindflower-dropdown.mp3": {
+  "audio_sha256": "8448d4fecbb78b2252bf6f4352cccf1fd69b274262dc95f6cb03ffb20250e4c5",
+  "bytes": 6369408
+ },
+ "https://archive.org/download/kahvi005/kahvi005_4tthieves-the_abyss.mp3": {
+  "audio_sha256": "d4c1abbf994b5f635bbcd4a3d2f785070934bb4ecc65c307001e14b10e5bf0fc",
+  "bytes": 9126058
+ },
+ "https://archive.org/download/kahvi038/kahvi038_skyscape-a_river_in_the_city.mp3": {
+  "audio_sha256": "db6352e5adff720faa01d29142814c224ed07849ba39e66083c0badc9024bc01",
+  "bytes": 6490496
+ },
+ "https://archive.org/download/kahvi053/kahvi053a-the_alpha_conspiracy-cross_product.ogg": {
+  "audio_sha256": "d7ad6a2f9889c6dfbab6272235a2625c810f2f28873c36640a72551b1a619f82",
+  "bytes": 7867058
+ },
+ "https://archive.org/download/kahvi053/kahvi053b-the_alpha_conspiracy-black_sunrise.ogg": {
+  "audio_sha256": "6a36c1916a598d59a694b03a32dbfb61026964d73775167fbddcbcafe2bbc8b7",
+  "bytes": 7318999
+ },
+ "https://archive.org/download/kahvi053/kahvi053c-the_alpha_conspiracy-winter.ogg": {
+  "audio_sha256": "fd8797d3736cf0461c7cdbfcddd71c05e1e3fd4c16153b6a7152f31b7643806a",
+  "bytes": 5653432
+ },
+ "https://archive.org/download/kahvi053/kahvi053d-the_alpha_conspiracy-ubik.ogg": {
+  "audio_sha256": "7042ea7da4d56840ecaa205afd4e7e9b72320df28025ff423e82d5e06c9d937b",
+  "bytes": 6277033
+ },
+ "https://archive.org/download/kahvi027/kahvi027_esem_awedisco.mp3": {
+  "audio_sha256": "78f24f00d8a087779e8ed62e7aa938af4a31fc1f59d78e301d235280d85e1746",
+  "bytes": 6676984
+ },
+ "https://archive.org/download/kahvi007/kahvi007_4tthieves-inside_out.mp3": {
+  "audio_sha256": "ddfef517b694a8c29cdba169da55270abc58549e94c68622e84926a5360c8eb1",
+  "bytes": 7286244
+ },
+ "https://archive.org/download/kahvi036/kahvi036_4tthieves-distantreality.mp3": {
+  "audio_sha256": "96cfcac076d3a91ec27782bbcde5d53259cddd9642498068e7a2e7721ba123ff",
+  "bytes": 10727136
+ },
+ "https://archive.org/download/kahvi081/kahvi081a_4t_thieves-chernobyl_underground.ogg": {
+  "audio_sha256": "177dea710c0eb263a0e1037cb6cad2200727a10f57daf4210b2d698e06088353",
+  "bytes": 7862914
+ },
+ "https://archive.org/download/kahvi081/kahvi081b_bad_loop-50Mikrog_192mg.ogg": {
+  "audio_sha256": "3adcd5062babe3d94b4ebfe5523a7d71a02ea45481abe6bffe911ee844ac2949",
+  "bytes": 8075813
+ },
+ "https://archive.org/download/kahvi081/kahvi081c_crud-plenty_of_fresh_air_and_exercise.ogg": {
+  "audio_sha256": "4eb6764b85229dfc824a6d3785d54aaf33077b4b6dc6b1b8b8e9b84e9f1fcb33",
+  "bytes": 4834751
+ },
+ "https://archive.org/download/kahvi081/kahvi081e_phrulex-amoeba.ogg": {
+  "audio_sha256": "725e271b67e3d53ebb896320845e2c79ddcb6ca8695c0c2982d11f9d5989f3a7",
+  "bytes": 6454049
+ },
+ "https://archive.org/download/kahvi081/kahvi081f_pinza-irrelevance.ogg": {
+  "audio_sha256": "8e6ee50e1dbf6d9c8559314325527950b61e0f07999a8cf8167070a2d6677d9c",
+  "bytes": 6668593
+ },
+ "https://archive.org/download/kahvi026/kahvi026_realsmokers-lifedrive2.mp3": {
+  "audio_sha256": "304281422e647b1dc40991b66d86c1bee932aefa613bf93d5ca9db87755bd05d",
+  "bytes": 5233186
+ },
+ "https://archive.org/download/kahvi030/kahvi030_die_strangest_thing.mp3": {
+  "audio_sha256": "2c9af243bb40b0fc45cc8ab9ac9a2eae020479aa14821f253ab21e984be61f1a",
+  "bytes": 5602604
+ },
+ "https://archive.org/download/kahvi009/kahvi009_esem-instlr.mp3": {
+  "audio_sha256": "ee67eaa0b586ef25ccbea9b8249667c3147a2c033bafc9cb6fe230e09fc19ce0",
+  "bytes": 5084930
+ },
+ "https://archive.org/download/kahvi045/kahvi045a_realsmokers-daybreak.mp3": {
+  "audio_sha256": "3a4c5fb910cf2f38b6d736eeb73a5e268d1ff4de2f34ed3de946bfe631592bd0",
+  "bytes": 8823348
+ },
+ "https://archive.org/download/kahvi045/kahvi045b_realsmokers-thelegend.mp3": {
+  "audio_sha256": "fd06a8f33ab59dbfcdb0b6177da64d1e2709056654b6bcd71ef31bf25f9daecc",
+  "bytes": 4673716
+ },
+ "https://archive.org/download/kahvi063/kahvi063a_stud-01_1908.ogg": {
+  "audio_sha256": "ad7ed7ca5cb771201d4fd620fa0a4fea8f3840d99ef3e4a7680fed9422371cb4",
+  "bytes": 10956785
+ },
+ "https://archive.org/download/kahvi063/kahvi063f_stud-06_cellophane_invention.ogg": {
+  "audio_sha256": "a6d775f9a8cbe2f2065df3964cecebcbb156ed7b5d57eb7400b22b9f347f0147",
+  "bytes": 3346813
+ },
+ "https://archive.org/download/kahvi021/kahvi021_sushibrother-demoner.mp3": {
+  "audio_sha256": "0fe7e55f7c935e20249da044fceb7a1c51e7c746f50404e9f5d7c9c13429de8f",
+  "bytes": 5906432
+ },
+ "https://archive.org/download/kahvi072/kahvi072_bliss-soon_enough.ogg": {
+  "audio_sha256": "dbe12dce03821b8b7fa3459991ba077b32321697d2d665f244bc7b2993871adf",
+  "bytes": 8130842
+ },
+ "https://archive.org/download/kahvi025/kahvi025_4tthieves-journeymanproject.mp3": {
+  "audio_sha256": "6937216e2c03c64e85abfb392a1075539e4b8568b4d6a2675e0289ac0f60a41a",
+  "bytes": 12820480
+ },
+ "https://archive.org/download/kahvi061/kahvi061_xhale-oslo_by_night.ogg": {
+  "audio_sha256": "247a9873ec8d53c27279a29c29cb656115d6b466baaadb6da077436b9e80b1cf",
+  "bytes": 7372542
+ },
+ "https://archive.org/download/kahvi010/kahvi010_prook-six.mp3": {
+  "audio_sha256": "599626c46976f166104749cee3b0754133e53d667183428008127963862eb9b2",
+  "bytes": 6217774
+ },
+ "https://archive.org/download/kahvi032/kahvi032_xhale_fallsoundslike.mp3": {
+  "audio_sha256": "a17e7fe1b669dd334fbaeb7e39b75e58b90dc28c4c354545139df708e9fa5a3c",
+  "bytes": 6336475
+ },
+ "https://archive.org/download/kahvi070/kahvi070a_stud-bleostrada.ogg": {
+  "audio_sha256": "9456101180fa164d3540aad21504536bd7ddcc17ae3c2303e2c9e1ee7b36ef9e",
+  "bytes": 9190198
+ },
+ "https://archive.org/download/kahvi070/kahvi070b_stud-lugna_favoriter.ogg": {
+  "audio_sha256": "642beeaade70f96b923455da10882a1328708eedb7896bf651854b38978337e3",
+  "bytes": 8392028
+ },
+ "https://archive.org/download/kahvi074/kahvi074_blamstrain-advance.ogg": {
+  "audio_sha256": "fd71e306a4c831cbb64e8815f5eff3f4abafcced522576077a411ffee79dd278",
+  "bytes": 10779255
+ },
+ "https://archive.org/download/kahvi060/kahvi060a_budha_building-derivative_works.ogg": {
+  "audio_sha256": "ca5eb0d2ad4b22abb953617da1f7e4de9740497590505b64ecd993ceb6983135",
+  "bytes": 11101373
+ },
+ "https://archive.org/download/kahvi060/kahvi060b_budha_building-rain_river_sea.ogg": {
+  "audio_sha256": "21bc5a1850dc568fd913cb27342b3e662b75f4c1bae76595655b1aefd580f1cc",
+  "bytes": 6535243
+ },
+ "https://archive.org/download/kahvi060/kahvi060c_budha_building-slowest_possible_groove.ogg": {
+  "audio_sha256": "281a928dcd6a1bb20dc72b9e2ed388386d22cf1ee81c9a772787d9117f4e9dec",
+  "bytes": 8114857
+ },
+ "https://archive.org/download/kahvi066/kahvi066a_4tthieves-somewhere_in_time.ogg": {
+  "audio_sha256": "fd0125577d55ff6b024401e2947280e0fd261365ed46af2274fcce4b223876e7",
+  "bytes": 7415136
+ },
+ "https://archive.org/download/kahvi066/kahvi066b_badloop-glacier.ogg": {
+  "audio_sha256": "143a7dfb39c843dd3c8dbfe668036573d19d4cc29531b443e53b9c14ce94b926",
+  "bytes": 8446490
+ },
+ "https://archive.org/download/kahvi066/kahvi066d_jeannine-witick_island.ogg": {
+  "audio_sha256": "a4343e9d0b2cac905dfb9abb68fa705497982ee9abe35629f3f3af3d69d8d506",
+  "bytes": 7649014
+ },
+ "https://archive.org/download/kahvi066/kahvi066e_vae-lynn_brook.ogg": {
+  "audio_sha256": "ac8a692cf11da2fc6a37581ad6078b8e326c328b66c494041490e729b6359977",
+  "bytes": 5592024
+ },
+ "https://archive.org/download/kahvi015/kahvi015_esem-outburstthenflat.mp3": {
+  "audio_sha256": "51dfc81bafef3d65079a674a1d24e9361b5e6efe32660b59cf810439cd9f6bea",
+  "bytes": 5013416
+ },
+ "https://archive.org/download/kahvi059/kahvi059_whatwedotounderstand.ogg": {
+  "audio_sha256": "1907a4409baee50265ce3d27e4934b7f0d9921a3883f8e67c853e674ce736b9c",
+  "bytes": 10190693
+ },
+ "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/07%20I%20Think%20I%20Started%20a%20Trend.mp3": {
+  "audio_sha256": "8810f1d53f27bf5fc52e49d9dc6e52854b6ee221b77290b6bfb51dbe8bc12ddc",
+  "bytes": 4331471
+ },
+ "https://archive.org/download/Durbar_Dub-16564/Robodub_-_03_-_Sabbath_Dub.mp3": {
+  "audio_sha256": "d51ff279f7d59197e43f02fd53fc375d96dc202c2c8c8852cc839078230af870",
+  "bytes": 5219594
+ },
+ "https://archive.org/download/Durbar_Dub-16564/Robodub_-_08_-_Sacrifice.mp3": {
+  "audio_sha256": "7056c7257d8ededb7433d182b48c59c0adc0991166f030ba6ecd6e03b8f34b04",
+  "bytes": 5177354
+ },
+ "https://archive.org/download/Durbar_Dub-16564/Robodub_-_09_-_Flying_Saucer_Attack.mp3": {
+  "audio_sha256": "76c8668d3649cb902f70caf156d86d8aa3a6681161433ac2b81b3cdf8ccfd12b",
+  "bytes": 5091914
+ },
+ "https://archive.org/download/badpanda088/ErgoPhizmizFeatMcBumbledonk-AnnaBoom.mp3": {
+  "audio_sha256": "7b53a5c3b5e91226c52f3a3c625e2e399043ae062c2a491d2dad9b8b9e50e686",
+  "bytes": 19878862
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_02_-_The_Final_Rewind.mp3": {
+  "audio_sha256": "5a6ecdba8573efcd8f930a47422058c12a68cbce8830ee7c98cc1fb059807142",
+  "bytes": 10932352
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_03_-_I_See.mp3": {
+  "audio_sha256": "545e64387e2efa5eb2ca25ffad313f807c1bcec86ef4bbbf1edcb239e81d6cf0",
+  "bytes": 9517184
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_04_-_Our_Lives_Change.mp3": {
+  "audio_sha256": "462b4b5fcf735846487ebcf2af5f413c0e12e58523cd137002536256b963c4d5",
+  "bytes": 7608448
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_05_-_Seduction.mp3": {
+  "audio_sha256": "5b50bbf3b4837801b837e0fed9ee894b4ff8f2e6e14a12dd621e30eb216f5a5a",
+  "bytes": 7843968
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_06_-_Witness.mp3": {
+  "audio_sha256": "09e064c6883d195168b3fcdd7b46dfe207d5a2b200b890a0db87ba04682b2d39",
+  "bytes": 15411328
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_07_-_Beat_Into_Submission_-_Solo.mp3": {
+  "audio_sha256": "044587bceb08fe7e39eb27320a8f83b076f0f0ddfc6d57fe31d193fb9c2f6380",
+  "bytes": 7303168
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_09_-_Peace_On_Earth_-_Same_Place.mp3": {
+  "audio_sha256": "176fc0282688932c35108e5ac79e5ad86349ffee512be82cf903a432854ecfb8",
+  "bytes": 9185408
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_10_-_My_Piano_Sings_-_Part_4_-_with_Joana_Smith.mp3": {
+  "audio_sha256": "f3ce3959ee7a8bc27c1cd45016b2e0bb1a8fe22b830dfea8c588d78f9d544eda",
+  "bytes": 8204416
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_11_-_Dance_of_the_Urbanite.mp3": {
+  "audio_sha256": "325124f31378588e6ede6dd0fefdec0e8dda7d53bf5047e337b66c8994579b7c",
+  "bytes": 10684544
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_12_-_Star_Guide.mp3": {
+  "audio_sha256": "557bed43e1cf9d161edf9322c69a45419a855180dad2af6a4d69630833870a42",
+  "bytes": 7452800
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_13_-_Sampling_Memory.mp3": {
+  "audio_sha256": "734b1355770e291586b2c5baa44e5ee44754ee7dd62853f666579616d0e3823c",
+  "bytes": 10127488
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_14_-_My_Placid_Island.mp3": {
+  "audio_sha256": "4414cd0dd4d3f43d4bdc0f985749fa82e0d8e07d2eaad4ed7dfa439354f46a87",
+  "bytes": 5613696
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_15_-_Arcadia.mp3": {
+  "audio_sha256": "b76205d66eb9af97f00ea93a1889d30ad11f6667bd71a6ff160f2a1fac2fe463",
+  "bytes": 8812672
+ },
+ "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_16_-_The_Rising.mp3": {
+  "audio_sha256": "b62e989ec0bb4e0912f41f7a41759f7a3693fac6a3722eed79f414a3906ccab1",
+  "bytes": 11925632
+ },
+ "https://archive.org/download/jamendo-123311/02-1046537-LELE%20RAMBELLI-Parker%20jazz%20club.mp3": {
+  "audio_sha256": "0a927d95bd6670ee652149f4e39d0a6dbce6bd559c47b4051eae8c3c56e8bf2c",
+  "bytes": 4203562
+ },
+ "https://archive.org/download/gt390FandorinProjet2/46MattBuildsCharacter-Con.scienceDigestion.mp3": {
+  "audio_sha256": "d6d3e1ea01e18fed2881eb19292000dec70f3f43ac4e311bdb69c4790d57c4e8",
+  "bytes": 9414748
+ },
+ "https://archive.org/download/Jade_Furnace_I/02_Ashi.mp3": {
+  "audio_sha256": "18fc2d4220082304f48c7038261c56127eb4004b85bcb9b221da8acf1c030d4e",
+  "bytes": 5163204
+ },
+ "https://archive.org/download/Jade_Furnace_I/03_Odic.mp3": {
+  "audio_sha256": "964cd7d2cbc62158b46b38b83b2ab3031000dc9feda4301db3c34a2d5b35cd9a",
+  "bytes": 2907838
+ },
+ "https://archive.org/download/Jade_Furnace_I/04_Ttlicastic.mp3": {
+  "audio_sha256": "f1e81681811e007f6b3950e5f1d558493313189408a95eebf24a52840031c3eb",
+  "bytes": 4311454
+ },
+ "https://archive.org/download/Jade_Furnace_I/05_Unscal.mp3": {
+  "audio_sha256": "6be3d5fee01cc8561a0726b484c0a42c2d6768471cfac4f58fe8e282dee9c904",
+  "bytes": 4231747
+ },
+ "https://archive.org/download/Jade_Furnace_I/06_Lustal.mp3": {
+  "audio_sha256": "e7c3f981f524171a07e51759ff447edc795c87c3f8e48e307cc0e175d22c2b8c",
+  "bytes": 3225447
+ },
+ "https://archive.org/download/Jade_Furnace_I/08_Ofilatinte.mp3": {
+  "audio_sha256": "3319fea6b34c980d857acfe1ae7eefcab399c0bff252a9203d1b38dd924ab2a6",
+  "bytes": 3679952
+ },
+ "https://archive.org/download/Jade_Furnace_I/09_Occurainch.mp3": {
+  "audio_sha256": "6771690a7420737e5b85c9f664f8029f84cb9f56487c0bb58a9de54b028e57d0",
+  "bytes": 3636808
+ },
+ "https://archive.org/download/Jade_Furnace_I/10_Psulty.mp3": {
+  "audio_sha256": "cb0182b653419da98af6a81ec758becdacacbc5ede34293201232c389cfe401a",
+  "bytes": 3790091
+ },
+ "https://archive.org/download/Jade_Furnace_I/12_Pulsam.mp3": {
+  "audio_sha256": "462c632b5f6a8e9c5a824f483a5de8f93ba8eb541b209d0b7504f0fc67102bc3",
+  "bytes": 3726089
+ },
+ "https://archive.org/download/Jade_Furnace_I/13_Psieldinal.mp3": {
+  "audio_sha256": "d472fc260b9c803e0e157ea76c1f1b307286bfa86c2fce5782d3ce52cd3bf021",
+  "bytes": 3941227
+ },
+ "https://archive.org/download/Jade_Furnace_I/14_Younateles.mp3": {
+  "audio_sha256": "fa99c62903595379b57199b7fbc25998b00714e41c10e932c9e655a16c4b2f87",
+  "bytes": 3833888
+ },
+ "https://archive.org/download/Jade_Furnace_I/15_Edgemerams.mp3": {
+  "audio_sha256": "a34fd8de6a6c529dce370907cf8273c409e194921a523d352fcd6c77d9f9f7ee",
+  "bytes": 3457011
+ },
+ "https://archive.org/download/Jade_Furnace_I/16_Riveal.mp3": {
+  "audio_sha256": "f3d2171b93ed4f4c3043c7fb890c58c53a65769dc35a6d5a74c9c3fa4b78fc53",
+  "bytes": 5018882
+ },
+ "https://archive.org/download/Jade_Furnace_I/17_Ious.mp3": {
+  "audio_sha256": "9fcd409c32492b55885a88bd9bb186452b8fc7c251c3444b4d239ae6cd6cdb5f",
+  "bytes": 3482126
+ },
+ "https://archive.org/download/Jade_Furnace_I/18_Amal.mp3": {
+  "audio_sha256": "80cb907665b86445ec32130c693c09f523b0a09cc56d65f5fb277f5e9f3df903",
+  "bytes": 2932820
+ },
+ "https://archive.org/download/Jade_Furnace_I/20_Chisan.mp3": {
+  "audio_sha256": "9a0010664c413bf3ab43cca9657d502debdbf84a96e50d41316b096ae30fab47",
+  "bytes": 5265468
+ },
+ "https://archive.org/download/Generative_I/02-rabbits.mp3": {
+  "audio_sha256": "f9afd7a61384b1996d3fb3d2386fc223128f9d93e284bd340613fefe06c84ce7",
+  "bytes": 9594548
+ },
+ "https://archive.org/download/Generative_I/03-deadin658.mp3": {
+  "audio_sha256": "18e9fc943e0013073eb7cd6925391e3c3df3b90904a273110fee310f49fcdbce",
+  "bytes": 3544592
+ },
+ "https://archive.org/download/Generative_I/04-rpentomino.mp3": {
+  "audio_sha256": "46015effca1dcebfdc6ddb5e5aa6024ea32e171aafb2c4ad0faee90768b25c56",
+  "bytes": 7933778
+ },
+ "https://archive.org/download/Generative_I/05-gospergun.mp3": {
+  "audio_sha256": "3895404add5168592267c9734da405b64a10dd11938097a700e165e77c9b485e",
+  "bytes": 6124467
+ },
+ "https://archive.org/download/Seetyca_Suite/01_die_comoedia_von_der_zeit.mp3": {
+  "audio_sha256": "c2121e3ab0b46e100296dbe5bb44df3b742715842ea58e3192f7a88b819cc791",
+  "bytes": 11663360
+ },
+ "https://archive.org/download/Seetyca_Suite/02_meyne_seele_theilt_sich.mp3": {
+  "audio_sha256": "25d809475061532f09f2b955acf632474a39a502e7fbff2c54e3e0e87e8137d8",
+  "bytes": 12308480
+ },
+ "https://archive.org/download/Seetyca_Suite/03_der_glaube_alleyn_versetzet_nichts.mp3": {
+  "audio_sha256": "89cc782a03b58328489bae71ee6e1a78ad11a28b3c29f61ad4ed40ec796d3a56",
+  "bytes": 9988096
+ },
+ "https://archive.org/download/Seetyca_Suite/04_das_seyn_und_das_nichts.mp3": {
+  "audio_sha256": "96284e906492553a2f69001f50b53ba05fa7c3d5fd5065931fbfbb14c2a4262f",
+  "bytes": 7522304
+ },
+ "https://archive.org/download/Seetyca_Suite/05_warten_in_der_ruhe.mp3": {
+  "audio_sha256": "8231eb7d104757ceafd7ca7393500d9d87350422302f57ffb5571fe893d31d6f",
+  "bytes": 8378368
+ },
+ "https://archive.org/download/Seetyca_Suite/06_eyne_wegwerffende_bewegung.mp3": {
+  "audio_sha256": "2dfe6dd49994378af4383121eb0376a86770c6bb25ee2a2cc55579ef54eea658",
+  "bytes": 20338688
+ },
+ "https://archive.org/download/treetrunk011/01_Boy_King.mp3": {
+  "audio_sha256": "a3dc151a9a210251b44177967f31d35bd5aa48938aa0215e606d453b6e43ebdb",
+  "bytes": 3638293
+ },
+ "https://archive.org/download/treetrunk011/02_Blue_Scarab.mp3": {
+  "audio_sha256": "ad89e14bd9f9eb975de584829adbb340b69b66743d9a35a618f77a7891c5c6c3",
+  "bytes": 4950604
+ },
+ "https://archive.org/download/treetrunk011/03_Beans.mp3": {
+  "audio_sha256": "7cd8c52bf33a82d339f85f3d4e8d58132084dcd06357f0448583cdcdb7c2775f",
+  "bytes": 3573219
+ },
+ "https://archive.org/download/treetrunk011/04_The_Leaf_On_The_Pond.mp3": {
+  "audio_sha256": "9dbfbe7156848b90115dfb1579b3556c59e8321172f6eac26d4985e858ca9a30",
+  "bytes": 8067116
+ },
+ "https://archive.org/download/treetrunk011/05_MN12.mp3": {
+  "audio_sha256": "49a08523014729c23f544967340c24a579dcb0a6e485905120c1ec91d02474b1",
+  "bytes": 5648387
+ },
+ "https://archive.org/download/treetrunk011/06_What_Was_Next.mp3": {
+  "audio_sha256": "8a557d006b1e0a0560e696f57a0ce02365069a98cf99d0d4f27ba12afed63f5a",
+  "bytes": 6247740
+ },
+ "https://archive.org/download/treetrunk011/08_Venharismatic.mp3": {
+  "audio_sha256": "8733bd8ac2fd425a50dcf33c73d78760a6bdf89258cfe0da681fc1f676fa70dc",
+  "bytes": 3146901
+ },
+ "https://archive.org/download/treetrunk011/09_FM_Six.mp3": {
+  "audio_sha256": "9c0bc6510be8d51876506285c5922e8a64e1f73b6984ed742a4f4923fce3712d",
+  "bytes": 6218901
+ },
+ "https://archive.org/download/treetrunk011/10_QFourteen.mp3": {
+  "audio_sha256": "5ae0ea9e2becfde7e667c30f19ca1095a7d1363324bf32a3d3b7323776979855",
+  "bytes": 4787600
+ },
+ "https://archive.org/download/treetrunk011/11_Progress.mp3": {
+  "audio_sha256": "d666d611a3cd27970a312a896e2144239fc2eb1c0e87cfcaf8be7734378b0858",
+  "bytes": 6279087
+ },
+ "https://archive.org/download/treetrunk011/12_Stepping_Down.mp3": {
+  "audio_sha256": "1afccc84b38468a98de004bb22f2ede32a472e39b7c3044f45da31ddb0d46eb5",
+  "bytes": 3465386
+ },
+ "https://archive.org/download/treetrunk008/01_Fractal_1.mp3": {
+  "audio_sha256": "4700b3150d077189d9b788d48f932b82df54697d13cf1b0957965de93ee8618b",
+  "bytes": 5354979
+ },
+ "https://archive.org/download/treetrunk008/02_Our_Skies_1.mp3": {
+  "audio_sha256": "2f82885de8556a3b443785caff0bd8d1b8f1c3e040f053dc71a1412b6fc4ee0c",
+  "bytes": 5907939
+ },
+ "https://archive.org/download/treetrunk008/03_MN5.mp3": {
+  "audio_sha256": "3dff994f6328ea9e0fb97509fd0564a15090e59eb59b85b002a56ad207ae6bbc",
+  "bytes": 3629644
  }
 }

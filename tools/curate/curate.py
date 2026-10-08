@@ -44,7 +44,7 @@ LONG_MAX_SEC = 900
 MIN_KBPS = 160      # quality gate: estimated size*8/length
 WARN_KBPS = 192     # below this the candidate is flagged low_bitrate for the reviewer
 AUDIO_FORMATS = ("MP3", "OGG VORBIS")  # archive.org format names accepted (case-insensitive)
-LIC_VERSIONS = {"3.0", "4.0"}          # CC0 has its own 1.0 rule; no 2.0/2.5, no jurisdiction ports
+LIC_VERSIONS = {"1.0", "2.0", "2.5", "3.0", "4.0"}  # unported only (no jurisdiction ports); in sync with CURATED_LIC_RE
 
 # Audius genre (or, for a broad electronic genre, tag) -> GnoRadio genre id
 # (first match wins; checked on lowercase, so "trap" precedes "rap" and "dubstep" precedes "dub").
@@ -383,6 +383,29 @@ def archive_seed(seed, max_items, stats):
     return out[:max_tracks]
 
 
+COVER_NAME = re.compile(r"(^|[^a-z])(cover|folder|front|artwork|album)([^a-z]|$)", re.I)
+BACK_NAME = re.compile(r"back|inlay|booklet|tray|disc|cd\d", re.I)
+IMG_EXT = (".jpg", ".jpeg", ".png")
+
+
+def original_cover(ident, files):
+    """Cover URL from the item's ORIGINAL images only (never archive.org's derived waveform PNGs or thumbs).
+    An image named like cover/folder/front wins, else the only original image. Per-track art (same stem as an
+    audio file, or '01 Song.jpg') is not an album cover."""
+    stems = set()
+    for f in files:
+        fmt = (f.get("format") or "").upper()
+        if any(k in fmt for k in ("MP3", "OGG VORBIS", "FLAC", "WAVE", "AIFF", "APPLE LOSSLESS")):
+            stems.add(os.path.splitext(first(f.get("original")) or f["name"])[0])
+            stems.add(os.path.splitext(f["name"])[0])
+    imgs = [f["name"] for f in files if f.get("source") == "original" and f["name"].lower().endswith(IMG_EXT)
+            and "/" not in f["name"] and not f["name"].startswith("__ia_thumb")]
+    named = [n for n in imgs if COVER_NAME.search(os.path.splitext(n)[0]) and not BACK_NAME.search(n)]
+    album = [n for n in imgs if not BACK_NAME.search(n) and os.path.splitext(n)[0] not in stems and not re.match(r"\d{1,3}[ ._-]", n)]
+    pick = named[0] if named else album[0] if len(album) == 1 else None
+    return "https://archive.org/download/%s/%s" % (ident, urllib.parse.quote(pick)) if pick else None
+
+
 def archive_item(seed, ident, meta, stats):
     m = meta.get("metadata", {})
     spdx, why = spdx_license(m.get("licenseurl"))
@@ -400,17 +423,7 @@ def archive_item(seed, ident, meta, stats):
         return []
     item_artist = first(m.get("creator")) or seed.get("artist") or seed["id"]
     files = meta.get("files", [])
-    names = {f.get("name") for f in files}
-    cover = None
-    for f in files:
-        fmt = (f.get("format") or "").lower()
-        if fmt in ("jpeg", "png", "jpeg thumb") or fmt.endswith("jpeg") or fmt == "png":
-            if f.get("name", "").startswith("__ia_thumb"):
-                continue
-            cover = "https://archive.org/download/%s/%s" % (ident, urllib.parse.quote(f["name"]))
-            break
-    if not cover and "__ia_thumb.jpg" in names:
-        cover = "https://archive.org/services/img/" + ident
+    cover = original_cover(ident, files)
     source_url = "https://archive.org/details/" + ident
     out = []
     genre = seed.get("genre_overrides", {}).get(ident, seed["genre"])
@@ -544,7 +557,7 @@ OML_RE = re.compile(r"\bopen music licen[sc]e\b|^oml$", re.I)
 EDIT_RE = re.compile(r"\b(edit|remix|bootleg|flip|rework|mashup|cover|vip mix|stem drop|live set|mix vol)\b", re.I)
 
 
-def audius_problem(t):
+def audius_problem(t, max_sec=MAX_SEC):
     """Why an Audius track is not a streamable original with artwork (None when it is)."""
     if t.get("is_stream_gated") or not t.get("is_streamable", True) or t.get("is_delete") or t.get("is_unlisted"):
         return "gated/unavailable"
@@ -552,7 +565,7 @@ def audius_problem(t):
         return "remix/cover/stem"
     if EDIT_RE.search(t.get("title", "")):
         return "title looks like an edit/remix/set"
-    if not (MIN_SEC <= (t.get("duration") or 0) <= MAX_SEC):
+    if not (MIN_SEC <= (t.get("duration") or 0) <= max_sec):
         return "duration"
     if not t.get("artwork"):
         return "no artwork"
@@ -570,7 +583,7 @@ def audius_seed(seed, max_items, stats):
     stats["items"] += len(rows)
     out = []
     for t in rows:
-        why = audius_problem(t)
+        why = audius_problem(t, LONG_MAX_SEC if seed["genre"] in LONG_GENRES else MAX_SEC)
         if why:
             stats["rejected"][why] = stats["rejected"].get(why, 0) + 1
             continue

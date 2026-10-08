@@ -1,0 +1,2547 @@
+{
+"_doc": "Pointer seeds for tools/curate/pointers.py (`pointers.py seeds`). jamendo: artist id, genre (1-20), max pointers, or explicit track ids. audius: handle, genre, max. Chosen from popularity-ordered tag listings (Jamendo) and trending/follower counts (Audius); stock/library catalogues and artists already in the archive.org seeds are left out.",
+"jamendo": [
+{
+"artist": "104",
+"name": "Tryad",
+"genre": 13,
+"ids": [
+843905,
+843909,
+843913,
+843915,
+843916,
+843920,
+843975
+],
+"max": 7,
+"notes": "Instrumentals album (CC BY-SA 3.0). Vocal-style songs -> Pop. The 2.0/2.5 originals are rejected; the archive.org albums pandacd-87/88 are the originals."
+},
+{
+"artist": "104",
+"name": "Tryad",
+"genre": 1,
+"ids": [
+843904,
+843906,
+843908,
+843910,
+843911,
+843914,
+843917,
+843918,
+843919
+],
+"max": 9,
+"notes": "Instrumentals album (CC BY-SA 3.0) -> Electronica"
+},
+{
+"artist": "465094",
+"name": "DjjOnyflOw",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "338437",
+"name": "silencide",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "456943",
+"name": "Acreil",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "339226",
+"name": "paniq",
+"genre": 1,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "343061",
+"name": "ZONA MC",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "458626",
+"name": "Tesla Coil",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "368142",
+"name": "Andrey Avkhimovich",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "346557",
+"name": "Polarity/1",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "480361",
+"name": "On the stick",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "337540",
+"name": "Neeva Orrù",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "436377",
+"name": "Casi todos los males",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "456929",
+"name": "Aenedra",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "456962",
+"name": "[creeper:Robusto]",
+"genre": 1,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "370988",
+"name": "Linturaven",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "443439",
+"name": "Herr Doktor",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "369036",
+"name": "LNG- La Nueva Guardia",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "489551",
+"name": "Lfete",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "365973",
+"name": "Steven Booth",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "487463",
+"name": "ONSTEAD",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "484921",
+"name": "Miami Sheriff",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "337636",
+"name": "Piotr Pawłowski",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "461185",
+"name": "George Crys.t.al",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "551936",
+"name": "Retro Frank",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "463194",
+"name": "Hawk",
+"genre": 2,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "463703",
+"name": "Darkshine",
+"genre": 2,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "510867",
+"name": "Egor Budennyy",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "5324",
+"name": "Franck Mouzon",
+"genre": 2,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "437699",
+"name": "bobby blue",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "357317",
+"name": "Snabisch",
+"genre": 2,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "433540",
+"name": "pheelia/en peh",
+"genre": 2,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "341528",
+"name": "Adragante",
+"genre": 3,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "353520",
+"name": "Dieter Werner",
+"genre": 3,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "1907",
+"name": "Maniax Memori",
+"genre": 3,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "433907",
+"name": "DJ Spooky",
+"genre": 3,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "507576",
+"name": "Tonepoet",
+"genre": 3,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "3687",
+"name": "Giac & Juan",
+"genre": 3,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "350222",
+"name": "Alexander Stamenkovic",
+"genre": 3,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "354509",
+"name": "Van Syla",
+"genre": 3,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "352280",
+"name": "Jorgen Kruse",
+"genre": 3,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "367313",
+"name": "OVERCOLORED",
+"genre": 3,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "337281",
+"name": "Screw-Jay",
+"genre": 3,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "247",
+"name": "SEBRIDER",
+"genre": 3,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "357893",
+"name": "Víctor Figueroa Molina",
+"genre": 3,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "489888",
+"name": "ludo 76",
+"genre": 3,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "337893",
+"name": "Sole Symphony",
+"genre": 3,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "5840",
+"name": "Symon€",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "337294",
+"name": "The Phase",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "4398",
+"name": "Circus Marcus",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "530",
+"name": "humeka",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7506",
+"name": "Sapiens FX",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "336503",
+"name": "open minds collective",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "8161",
+"name": "BeatJuice",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "6278",
+"name": "Mister M",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "475744",
+"name": "Eddie Mcgilvray",
+"genre": 4,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "8211",
+"name": "Ptit lutin",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7560",
+"name": "Dj Thony",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "493445",
+"name": "Stanislav Barantsov",
+"genre": 4,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "376805",
+"name": "Dj89",
+"genre": 4,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "4854",
+"name": "X3mpt",
+"genre": 4,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "350820",
+"name": "PM music Prod",
+"genre": 4,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "354479",
+"name": "DJ ATTaCK!",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "343151",
+"name": "DJ Fire-Black",
+"genre": 4,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "1205",
+"name": "Briareus",
+"genre": 4,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "434554",
+"name": "Becays",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "4820",
+"name": "Andrea Barone",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "358678",
+"name": "Rataxes",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "6131",
+"name": "A.K.1974",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "437152",
+"name": "TheBlackParrot",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "462491",
+"name": "REC",
+"genre": 5,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "504779",
+"name": "Dj Still",
+"genre": 5,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "7162",
+"name": "DJ GregDP",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "441841",
+"name": "Dj Quincy Ortiz",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "340225",
+"name": "Peter Maze",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "470713",
+"name": "Disco Bolt",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "498947",
+"name": "SRB",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "456891",
+"name": "Deep-X Recordings",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "456653",
+"name": "Prysm",
+"genre": 5,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "461560",
+"name": "Synthetik Human",
+"genre": 5,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "493825",
+"name": "Konstantin Ogorelin",
+"genre": 5,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "493974",
+"name": "Theobuntu",
+"genre": 5,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "483590",
+"name": "John Alishking",
+"genre": 5,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "338392",
+"name": "Bisirk",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "348064",
+"name": "Pianochocolate",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "976",
+"name": "Ed L'Epicier",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "442559",
+"name": "Xytum",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "5644",
+"name": "Windpearl",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "345894",
+"name": "Freestyle Percussion Magik",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "336659",
+"name": "Misfilter",
+"genre": 6,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "4341",
+"name": "The 462nd Zinnias",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "338635",
+"name": "Tonal Discrepancy",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "354668",
+"name": "Ultra pink noise",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "347535",
+"name": "NMI Recordz",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "346554",
+"name": "Retrospecter",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "314",
+"name": "Manuzik",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "378721",
+"name": "unfa",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "337509",
+"name": "Jezisovi Pivo Nelej",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "489061",
+"name": "Viacheslav Okhrymenko",
+"genre": 6,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "465078",
+"name": "Vicate",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "487833",
+"name": "Adi Rambo",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "495572",
+"name": "Square a Saw",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "458379",
+"name": "Steves J. Bryan",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "438321",
+"name": "Speaker System",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "5373",
+"name": "ISItheDreaMakeR",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "490453",
+"name": "Killo-Gram",
+"genre": 7,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "460470",
+"name": "Chaz Ultra",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "466164",
+"name": "SaintCharlez",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "339490",
+"name": "Vampire TNA",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "457689",
+"name": "Sokarus",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "429077",
+"name": "Bassballah",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "484873",
+"name": "Ortoped",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "457977",
+"name": "lost.element",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "350867",
+"name": "Kudai",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "454115",
+"name": "Strange Strains",
+"genre": 7,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "3799",
+"name": "StrangeZero",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "337763",
+"name": "Williamson",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "351032",
+"name": "Ozzed",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "337902",
+"name": "mykee",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "441857",
+"name": "Nsevenaine",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7708",
+"name": "Fiffdimension",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "337755",
+"name": "sierra kilo",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "360283",
+"name": "Semantic",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "342878",
+"name": "Farmertan",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "476715",
+"name": "Ton in Ton",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "432520",
+"name": "Quietly Concerned",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "431686",
+"name": "passing party",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "336628",
+"name": "Walter Well",
+"genre": 8,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "8206",
+"name": "Empathik",
+"genre": 9,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7733",
+"name": "AL-FAMI",
+"genre": 9,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7349",
+"name": "Cartel",
+"genre": 9,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "454720",
+"name": "Kidd Young",
+"genre": 9,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "348835",
+"name": "Tab",
+"genre": 9,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "351806",
+"name": "Blackwell",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "439253",
+"name": "Mafia",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "337814",
+"name": "red1",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "458796",
+"name": "Suedey",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "440537",
+"name": "Comar ",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "531586",
+"name": "Shon Tha Phenom",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "495984",
+"name": "Exmiranda",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "517042",
+"name": "BlueExcess",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "484946",
+"name": "EclipticJesus",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "500296",
+"name": "INTERNOTHERNALZ",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "457970",
+"name": "Julian Rhine",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "476146",
+"name": "Weedandpills",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "487357",
+"name": "Mercury & The Architects",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "360987",
+"name": "Yav i Nav",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "485731",
+"name": "Mindfull",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "484695",
+"name": "Samie Bower",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "507948",
+"name": "Rxbyn",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "457981",
+"name": "J Lynn the Bride",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "486119",
+"name": "Jyant",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "469932",
+"name": "David Sanya",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "495558",
+"name": "Cortéz",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "492376",
+"name": "М 2",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "457964",
+"name": "LAWRENCE BEAMEN",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "503192",
+"name": "Markay",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "471813",
+"name": "Joseph Curwen",
+"genre": 10,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "486198",
+"name": "Milestep",
+"genre": 10,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "338209",
+"name": "Jemex",
+"genre": 10,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "350163",
+"name": "dj davidson",
+"genre": 10,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "433460",
+"name": "GC Canvas",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "264",
+"name": "AS-POTIRONT!",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "464181",
+"name": "Monochrome",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "377603",
+"name": "En 3 palabras",
+"genre": 10,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "344760",
+"name": "Circa Vitae",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "433617",
+"name": "Great White Buffalo",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "375106",
+"name": "This Public Life",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "348252",
+"name": "Kismet",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "370213",
+"name": "Thoola",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "435415",
+"name": "Seba Lay",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "351337",
+"name": "Singleton",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "360584",
+"name": "Whalers",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "370143",
+"name": "The Easton Ellises",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "492053",
+"name": "Always the Alibi",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "368711",
+"name": "Figures in Motion",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "497930",
+"name": "Plastic Light Factory",
+"genre": 11,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "5708",
+"name": "The League",
+"genre": 11,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "544024",
+"name": "piccadillyCircus",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "501273",
+"name": "83Crutch",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "368794",
+"name": "José Negrin",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "8236",
+"name": "Daniel Bautista",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "1695",
+"name": "Freibeuter AG",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "370921",
+"name": "Bent Not Broken",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "524089",
+"name": "Маруся Мирова",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "852",
+"name": "Antarhes",
+"genre": 12,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "378190",
+"name": "Black Bones",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "353656",
+"name": "Blas Morenilla",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "441751",
+"name": "2morrow2late",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "6135",
+"name": "Gråsuggorna",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "5534",
+"name": "Anima",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "4713",
+"name": "Predator",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "350587",
+"name": "Tiresia",
+"genre": 12,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "544266",
+"name": "1st Contact",
+"genre": 12,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "355753",
+"name": "Jonathan Dimmel",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "371777",
+"name": "Neon NiteClub",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "349976",
+"name": "Bryyn",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "497907",
+"name": "RVNS",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "508935",
+"name": "XNOVA",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "6229",
+"name": "The Fumes",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "343164",
+"name": "State Shirt",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "467034",
+"name": "The Vow",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "498715",
+"name": "The Spin Wires",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "5611",
+"name": "Bessonn&sa",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "355169",
+"name": "Leslie Hunt",
+"genre": 13,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "441694",
+"name": "Ocean Jet",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "439316",
+"name": "Monkeyman",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "91",
+"name": "Lonah",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "454165",
+"name": "Mickael Huchet",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "336985",
+"name": "DoubleMinds",
+"genre": 13,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "3901",
+"name": "Jampy",
+"genre": 14,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7331",
+"name": "Larry Smith and Unfinished Business",
+"genre": 14,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7596",
+"name": "Animal Architects",
+"genre": 14,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "421279",
+"name": "Kassy Key & the Raindoggs",
+"genre": 14,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "487051",
+"name": "Forget the Whale",
+"genre": 14,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "432069",
+"name": "Confushian",
+"genre": 14,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7461",
+"name": "Still Nameless",
+"genre": 14,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "339360",
+"name": "SKOMOROSHIJ BUNT/REVOLUTION OF CLOWNS",
+"genre": 14,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "338390",
+"name": "Franck Camu",
+"genre": 14,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "436349",
+"name": "The Kinky Fingers",
+"genre": 14,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "499680",
+"name": "maddogblues",
+"genre": 14,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "496063",
+"name": "Nevermorge",
+"genre": 14,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "341332",
+"name": "Crete Boom",
+"genre": 14,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "479547",
+"name": "Rusty Tea Makers",
+"genre": 14,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "5333",
+"name": "Moving sand",
+"genre": 14,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "439586",
+"name": "David Krystal",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "2935",
+"name": "Slim",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "378695",
+"name": "Lilly Wolf",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "434614",
+"name": "Townhouse Woods",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "457898",
+"name": "madelyn munsell",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "436034",
+"name": "Jill Zimmerman",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "438603",
+"name": "Michael Ellis",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "368292",
+"name": "Lollita",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "342503",
+"name": "Charlie Mosbrook",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "442305",
+"name": "Anne Davis",
+"genre": 15,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "466853",
+"name": "Manhat10",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "486468",
+"name": "Allie Farris",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "347867",
+"name": "Brady Harris",
+"genre": 15,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "2740",
+"name": "Celestial Aeon Project",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "355362",
+"name": "Marc Teichert",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "342686",
+"name": "et_",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "350065",
+"name": "Eracilon",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "500128",
+"name": "Borrtex",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "347673",
+"name": "Aufklarung",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "498142",
+"name": "WhiteCat",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "486550",
+"name": "BDKSonic",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "2534",
+"name": "Real Rice",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "495751",
+"name": "Yuriy Shishlov",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "344867",
+"name": "Enzo Carlino",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "353162",
+"name": "Fragments Of Winter",
+"genre": 16,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "3786",
+"name": "Frozen Silence",
+"genre": 16,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "354405",
+"name": "Axis Mundi Actum",
+"genre": 16,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7003",
+"name": "ENDORPHINE",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "501822",
+"name": "Ivan Tregub (BER)",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "345898",
+"name": "Viy",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "2741",
+"name": "Project Divinity",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "336573",
+"name": "Piter",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "499587",
+"name": "Крики бабочек",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "337939",
+"name": "Laurent Danis",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "341795",
+"name": "Turjan Aylahn",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "7585",
+"name": "mmb digidesigns",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "350817",
+"name": "Marijanh",
+"genre": 17,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "489225",
+"name": "MIGALA",
+"genre": 17,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "351210",
+"name": "Ottilie",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "428477",
+"name": "Paolo Pavan Pasqualino Ubaldini",
+"genre": 17,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "359714",
+"name": "Subterrestrial",
+"genre": 17,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "350883",
+"name": "EL GRAN PROYECTO",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "342396",
+"name": "LOLO PEREZ EL TROPICANERO DE CUBA",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "499576",
+"name": "Harveys",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "461498",
+"name": "Túlio Borges",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "488810",
+"name": "KANKEL",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "2443",
+"name": "LaBarcaDeSua",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "428874",
+"name": "Dee Yan-Key",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "356759",
+"name": "Arnaud Martin Jazabana",
+"genre": 18,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "490435",
+"name": "NandoMalo",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "355437",
+"name": "Jaiah23",
+"genre": 18,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "430032",
+"name": "VagabundoBarbudo",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "485239",
+"name": "Mundo Armenta",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "506819",
+"name": "TRIMARIACHI",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "355047",
+"name": "abraham castellon",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "439755",
+"name": "Rodhen Santos",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "362501",
+"name": "JoosTVD",
+"genre": 18,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "340064",
+"name": "MADRAS FAMILY",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "341415",
+"name": "FAMILIA REGGAE",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "358187",
+"name": "Sundayers",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "353090",
+"name": "LA OLLA EXPRESS",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "493159",
+"name": "stonefacepriest",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "435524",
+"name": "Los Brodies",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "425274",
+"name": "Soldiah Beez",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "1025",
+"name": "King Dubby",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "442890",
+"name": "Bryan Art",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "3162",
+"name": "Mesh m18",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "438007",
+"name": "RAS ROMAIN",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "347191",
+"name": "Dubamix",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "341807",
+"name": "Missin Red",
+"genre": 19,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "337503",
+"name": "Paolo Pavan",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "428934",
+"name": "Jelixa",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "370748",
+"name": "Martin Eigenmann",
+"genre": 20,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "487628",
+"name": "Oilboy's Aftersun",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "357",
+"name": "FOXAPET",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "99",
+"name": "Kiff'On",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "336901",
+"name": "Q ' s a l i v a",
+"genre": 20,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "339139",
+"name": "Stellar Art Wars",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "349798",
+"name": "Fatman On The Vibes",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "340099",
+"name": "Schizzofunk",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "527486",
+"name": "ZaharVips",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "357062",
+"name": "Liquid Clock",
+"genre": 20,
+"max": 14,
+"status": "approved"
+},
+{
+"artist": "482111",
+"name": "texasradiofish",
+"genre": 20,
+"max": 10,
+"status": "approved"
+},
+{
+"artist": "347808",
+"name": "Corvus",
+"genre": 20,
+"max": 14,
+"status": "approved"
+}
+],
+"audius": [
+{
+"handle": "masego",
+"name": "masego",
+"genre": 10,
+"max": 12,
+"status": "approved"
+},
+{
+"handle": "chromonicci",
+"name": "chromonicci",
+"genre": 10,
+"max": 8,
+"status": "approved"
+},
+{
+"handle": "falconsbeats",
+"name": "falconsbeats",
+"genre": 10,
+"max": 5,
+"status": "approved"
+},
+{
+"handle": "lizayohannes",
+"name": "lizayohannes",
+"genre": 10,
+"max": 4,
+"status": "approved"
+},
+{
+"handle": "AuggieVelarde",
+"name": "AuggieVelarde",
+"genre": 18,
+"max": 13,
+"status": "approved"
+},
+{
+"handle": "SencilloMQM",
+"name": "SencilloMQM",
+"genre": 18,
+"max": 10,
+"status": "approved"
+},
+{
+"handle": "sammyandlesen",
+"name": "sammyandlesen",
+"genre": 18,
+"max": 12,
+"status": "approved"
+},
+{
+"handle": "Brozrdz",
+"name": "Brozrdz",
+"genre": 18,
+"max": 5,
+"status": "approved"
+},
+{
+"handle": "Xcelencia",
+"name": "Xcelencia",
+"genre": 18,
+"max": 4,
+"status": "approved"
+},
+{
+"handle": "thebaileyb",
+"name": "thebaileyb",
+"genre": 13,
+"max": 4,
+"status": "approved"
+},
+{
+"handle": "MorrisTheFriend",
+"name": "MorrisTheFriend",
+"genre": 13,
+"max": 8,
+"status": "approved"
+},
+{
+"handle": "xxbridge",
+"name": "xxbridge",
+"genre": 13,
+"max": 3,
+"status": "approved"
+},
+{
+"handle": "miquela",
+"name": "miquela",
+"genre": 13,
+"max": 5,
+"status": "approved"
+},
+{
+"handle": "Pouyalilpou",
+"name": "Pouyalilpou",
+"genre": 9,
+"max": 14,
+"status": "approved"
+},
+{
+"handle": "trillsammy",
+"name": "trillsammy",
+"genre": 9,
+"max": 14,
+"status": "approved"
+},
+{
+"handle": "madeintyo",
+"name": "madeintyo",
+"genre": 9,
+"max": 12,
+"status": "approved"
+},
+{
+"handle": "CamArcher",
+"name": "CamArcher",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"handle": "DarnellWilliams",
+"name": "DarnellWilliams",
+"genre": 9,
+"max": 12,
+"status": "approved"
+},
+{
+"handle": "katoproducer",
+"name": "katoproducer",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"handle": "mattox",
+"name": "mattox",
+"genre": 9,
+"max": 12,
+"status": "approved"
+},
+{
+"handle": "FeedYouSalt",
+"name": "FeedYouSalt",
+"genre": 9,
+"max": 8,
+"status": "approved"
+},
+{
+"handle": "grouptherapydot",
+"name": "grouptherapydot",
+"genre": 9,
+"max": 10,
+"status": "approved"
+},
+{
+"handle": "disclosure",
+"name": "disclosure",
+"genre": 5,
+"max": 15,
+"status": "approved"
+},
+{
+"handle": "schade",
+"name": "schade",
+"genre": 5,
+"max": 8,
+"status": "approved"
+},
+{
+"handle": "anunnaki301",
+"name": "anunnaki301",
+"genre": 5,
+"max": 3,
+"status": "approved"
+},
+{
+"handle": "camouflybeats",
+"name": "camouflybeats",
+"genre": 5,
+"max": 7,
+"status": "approved"
+},
+{
+"handle": "frizofficial",
+"name": "frizofficial",
+"genre": 4,
+"max": 7,
+"status": "approved"
+},
+{
+"handle": "UNIIQU3",
+"name": "UNIIQU3",
+"genre": 4,
+"max": 2,
+"status": "approved"
+},
+{
+"handle": "CriticalMusic",
+"name": "CriticalMusic",
+"genre": 6,
+"max": 20,
+"status": "approved"
+},
+{
+"handle": "Stranjah",
+"name": "Stranjah",
+"genre": 6,
+"max": 12,
+"status": "approved"
+},
+{
+"handle": "zedsdead",
+"name": "zedsdead",
+"genre": 7,
+"max": 10,
+"status": "approved"
+},
+{
+"handle": "RLGRIME",
+"name": "RLGRIME",
+"genre": 7,
+"max": 15,
+"status": "approved"
+},
+{
+"handle": "Lookas",
+"name": "Lookas",
+"genre": 7,
+"max": 7,
+"status": "approved"
+},
+{
+"handle": "Ookay",
+"name": "Ookay",
+"genre": 7,
+"max": 7,
+"status": "approved"
+},
+{
+"handle": "snailmusic",
+"name": "snailmusic",
+"genre": 7,
+"max": 9,
+"status": "approved"
+},
+{
+"handle": "sablevalley",
+"name": "sablevalley",
+"genre": 7,
+"max": 15,
+"status": "approved"
+},
+{
+"handle": "capshun",
+"name": "capshun",
+"genre": 7,
+"max": 8,
+"status": "approved"
+},
+{
+"handle": "onumi",
+"name": "onumi",
+"genre": 7,
+"max": 6,
+"status": "approved"
+},
+{
+"handle": "NGHTMRE",
+"name": "NGHTMRE",
+"genre": 7,
+"max": 4,
+"status": "approved"
+},
+{
+"handle": "Cyber7710",
+"name": "Cyber7710",
+"genre": 2,
+"max": 15,
+"status": "approved"
+},
+{
+"handle": "Starlight",
+"name": "Starlight",
+"genre": 2,
+"max": 10,
+"status": "approved"
+},
+{
+"handle": "unlikepluto",
+"name": "unlikepluto",
+"genre": 12,
+"max": 8,
+"status": "approved"
+},
+{
+"handle": "angelbaby",
+"name": "angelbaby",
+"genre": 12,
+"max": 8,
+"status": "approved"
+},
+{
+"handle": "RAC",
+"name": "RAC",
+"genre": 1,
+"max": 6,
+"status": "approved"
+},
+{
+"handle": "slowmagic",
+"name": "slowmagic",
+"genre": 1,
+"max": 20,
+"status": "approved"
+},
+{
+"handle": "attlas",
+"name": "attlas",
+"genre": 1,
+"max": 1,
+"status": "approved"
+},
+{
+"handle": "ardenrecords",
+"name": "ardenrecords",
+"genre": 8,
+"max": 15,
+"status": "approved"
+},
+{
+"handle": "mollymcphaul",
+"name": "mollymcphaul",
+"genre": 8,
+"max": 8,
+"status": "approved"
+},
+{
+"handle": "adore",
+"name": "adore",
+"genre": 3,
+"max": 7,
+"status": "approved"
+},
+{
+"handle": "iration",
+"name": "iration",
+"genre": 19,
+"max": 15,
+"status": "approved"
+},
+{
+"handle": "umphreysmcgee",
+"name": "umphreysmcgee",
+"genre": 11,
+"max": 10,
+"status": "approved"
+}
+]
+}

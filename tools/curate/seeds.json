@@ -831,10 +831,12 @@
    "status": "approved",
    "ids": [
     "pandacd-87-listen",
-    "pandacd-88-public-domain"
+    "pandacd-88-public-domain",
+    "Tryad_-_Public_Domain"
    ],
    "genre_overrides": {
-    "pandacd-88-public-domain": 13
+    "pandacd-88-public-domain": 13,
+    "Tryad_-_Public_Domain": 13
    },
    "notes": "Whitelisted by item identifier (licence checked per item)."
   },

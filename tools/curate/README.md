@@ -25,7 +25,7 @@ python3 curate.py batch --dry-run            # check every row against the realm
    - `to_review`: check before use (originality, quality);
    - `paused`: ignored.
 2. **`fetch`** reads the metadata through the official APIs and filters:
-   - **licence**: CC0, CC BY, BY-SA, BY-NC or BY-NC-SA, versions 3.0 and 4.0 only (no ND, no 2.5/2.0/1.0, no jurisdiction ports);
+   - **licence**: CC0, CC BY, BY-SA, BY-NC or BY-NC-SA, unported versions 1.0, 2.0, 2.5, 3.0 and 4.0 (no ND, no jurisdiction ports, no public-domain mark);
    - **length**: 1:30 to 10:00 (Ambient and Cinematic up to 15:00);
    - **format**: mp3 or ogg;
    - **bitrate**: at least 160 kbps (size×8/length), flagged "low bitrate" under 192; unknown size passes only for VBR MP3 or a stated 192+ kbps format;
@@ -57,7 +57,7 @@ Excluded: Free Music Archive (its terms forbid direct links), SoundCloud (radio 
 ## Known points
 
 - **Bitrate**: many good archive.org releases are VBR MP3 around 128 to 190 kbps (Scott Buckley at 128). They pass, with a flag.
-- **Covers**: ccMixter has none; the realm then draws an SVG cover.
+- **Covers**: only the item's ORIGINAL images (cover/folder/front, or its only original image), never archive.org's generated waveform PNGs; none means the realm draws one. ccMixter has none; the realm then draws an SVG cover.
 - **Genres**: the seed's genre is the default. For Audius, it comes from the genre the artist declared. It can be fixed while listening.
 - **Loudness in LUFS**: needs `ffmpeg` (`brew install ffmpeg`).
 
