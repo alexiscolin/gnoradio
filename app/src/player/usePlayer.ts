@@ -123,6 +123,8 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
   const hourly = useRef<HTMLAudioElement | null>(null); // the hourly jingle playing over the music
   const gotMeta = useRef(false); // some source of this load answered: an error after that is the network, not a dead file
   const audioFade = useRef<Fade | null>(null); // the main element's running fade
+  const warmTimer = useRef(0);
+  const warmed = useRef<HTMLAudioElement | null>(null); // the next track's file, fetched ahead
   // A track the schedule names that the catalog in memory does not hold yet (published since it
   // loaded): asked for once (onMissing), then played when the catalog brings it.
   const missing = useRef<{ id: number; autoplay: boolean } | null>(null);
@@ -182,7 +184,9 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
         audio.addEventListener("loadedmetadata", seek, { once: true });
       }
       if (autoplay) {
-        audio.play().then(() => { setPlaying(true); }, () => { setPlaying(false); });
+        // archive.org takes 2 to 8 s to start a file: the dial shows it loading until sound comes.
+        setBuffering(true);
+        audio.play().then(() => { setPlaying(true); }, () => { setPlaying(false); setBuffering(false); });
       }
     },
     [audio],
@@ -272,6 +276,16 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
         // Sync again when this entry ends (or the next one starts, in a gap): a pick that cut
         // the track on air switches every listener on time, not only the one who picked.
         const switchAt = e?.end ?? s.entries.find((x) => x.start > now)?.start;
+        // Warm the next track's file 20 s before it airs, so the change is not a few seconds of silence.
+        const upcoming = s.entries.find((x) => x.start >= (e?.end ?? now) && x.start > now);
+        const warm = upcoming && catalog.current?.byId.get(upcoming.track);
+        window.clearTimeout(warmTimer.current);
+        if (warm) {
+          warmTimer.current = window.setTimeout(() => {
+            const src = audioURLs(warm)[0];
+            if (src && audio.src !== src) { const a = new Audio(); a.preload = "auto"; a.src = src; warmed.current = a; }
+          }, Math.max(0, upcoming.start - now - 20) * 1000);
+        }
         if (switchAt !== undefined) {
           endTimer.current = window.setTimeout(() => {
             const l = latest.current;
