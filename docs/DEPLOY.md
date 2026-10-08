@@ -189,6 +189,14 @@ override the UI's and pin every site to one chain).
 | `AUDIUS_API_KEY` | the Audius key (api.audius.co/plans), functions only | the same |
 | `JAMENDO_CLIENT_ID` | the Jamendo client id (devportal.jamendo.com), functions only | the same |
 
+Not used, keep them out of Netlify: Audius's bearer token (it acts for users; GnoRadio only
+reads) and any `VITE_AUDIUS_KEY` (the key stays server-side; plays use `app_name`).
+
+The operator's values live in `app/.env.local` on the build machine (git-ignored, mode 600); the
+Netlify CLI can import them without printing them: `netlify link --id <site>`, then
+`netlify env:import app/.env.local` (drop the two unused names first), then set `VITE_NETWORK`
+and `VITE_GNORADIO_NS` per site, and check the names with `netlify env:list`.
+
 `VITE_NETWORK` sets the chain id, the RPC (the page reads the chain's public RPC directly; both
 answer cross-origin requests), the RPC given to Adena and the gnoweb links
 (`app/src/lib/network.ts`); `VITE_RPC`, `VITE_CHAIN_ID`, `VITE_WALLET_RPC`, `VITE_GNOWEB` and
@@ -290,7 +298,7 @@ only call on the role is the slow `GuardianReplace` above.
 7. Netlify: the variables in [Netlify](#netlify), scope "All". Without `VITE_GNORADIO_NS`
    there, the link previews query `gno.land/r/gnoradio/...` and fall back to the default card.
 8. Move the guardian to its own key (above).
-9. Before opening to the public: an Audius API key (their terms).
+9. Audius and Jamendo keys (`AUDIUS_API_KEY`, `JAMENDO_CLIENT_ID`) in Netlify, functions only (table above).
 10. Before the public launch: a private contact for notices and data requests (GDPR art. 13, DSA), shown on the Legal page.
 
 ## Upgrading the rules later

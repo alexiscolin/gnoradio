@@ -8,7 +8,7 @@ You can play any album or playlist on demand, or tune into one of the live stati
 
 The chain comes in when something matters. You can tip an artist: it goes to the artist and their collaborators, minus the promo share the artist chose; 0% to GnoRadio. You can also put a track on air for everyone, with a dedication, now or at a set time, follow someone, buy a concert ticket (an NFT), or support the project. Every one of these is a public transaction anyone can check. Running the stations costs GnoRadio nothing on chain: no robot transacts, and listeners and artists pay their own transactions. The operator pays the deploy and the curated launch catalog ([DEPLOY.md](docs/DEPLOY.md)).
 
-The music comes from artists who publish their own tracks and from a hand-picked catalog of Creative Commons and Audius releases, each with proper credits. Artists prove they control a page (their Audius profile or their own domain) with a code checked by a robot before any tip reaches them; the domain is shown next to their ✓, and the few profiles the moderator verified say so ([how](docs/VERIFICATION.md)).
+The music comes from artists who publish their own tracks and from a hand-picked catalog of Creative Commons releases, each with proper credits, plus Audius and Jamendo tracks streamed from those platforms (the chain keeps only a reference; titles and names are read live from them). Artists prove they control a page (their Audius profile or their own domain) with a code checked by a robot before any tip reaches them; the domain is shown next to their ✓, and the few profiles the moderator verified say so ([how](docs/VERIFICATION.md)).
 
 ## Features
 

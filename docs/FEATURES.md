@@ -11,7 +11,7 @@ the repository.
 
 | Promise | How it is kept | Checked by |
 |---|---|---|
-| Listening is free and needs no wallet | The app reads the chain without signing; audio comes from IPFS, Arweave, archive.org or Audius | e2e `app.spec.ts` (scenarios 1 to 4) |
+| Listening is free and needs no wallet | The app reads the chain without signing; audio comes from IPFS, Arweave, archive.org, Audius or Jamendo | e2e `app.spec.ts` (scenarios 1 to 4) |
 | Everyone on a station hears the same second | The schedule is on-chain; players compute the offset from block time; jingles play over the music without shifting it | radio `TestScale*`, e2e scenario 3 |
 | GnoRadio pays nothing to run | Listeners and artists sign and pay their own transactions; a published track joins its stations in the artist's own transaction (`radio.PublishTrack`), so no robot transacts for GnoRadio; robots only sign certificates off-chain | radio `TestPublishJoinsStations`, `z_gas_publish_*` filetests; catalog `TestTrackWritesRadioOnly` |
 | GnoRadio never holds your money | Tips, tickets and support are paid out in the same transaction; promo budgets sit in the data realm's vault with no admin power over them and can be withdrawn by their funder at any time, even while GnoRadio is paused; the rules realms end every transaction holding nothing | catalog `TestTipSplitsAndGuards`, `TestSponsoredPickMoney`, `TestTipCannotSpendBudgets`, `TestRulesHoldNothing`; data `TestVaultInvariant`, `TestWithdrawWhilePaused` |
