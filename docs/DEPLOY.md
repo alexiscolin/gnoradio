@@ -69,6 +69,13 @@ good:
 - **Sources without API terms** (archive.org, artists' own sites, open datasets): fine, under
   their CC licence, with attribution.
 
+### Turning fees on later
+
+1. Hide every NC track first, with the admin `HideTrack` per track. A bulk hide-by-licence, and
+   a guard that refuses fees while NC tracks are visible, can come as a new release when needed.
+2. Set the treasury (`catalog.SetTreasury`) and/or the service fee (`tickets.SetServiceFee`).
+3. The app and gnoweb show the fee features again by themselves.
+
 ## Costs
 
 Measured on the v1 devnet, gas price 1 ugnot per 1,000 gas and 100 ugnot per stored byte on
@@ -258,12 +265,13 @@ only call on the role is the slow `GuardianReplace` above.
 
 1. Robot keys: `catalog.SetBot` and `radio.SetModBot` with the robot's public key (the private
    one only in Netlify, `BOT_SIGNING_KEY`; [VERIFICATION.md](VERIFICATION.md)).
-2. `catalog.SetTreasury` to the address that receives support and service fees.
+2. `catalog.SetTreasury`: skipped for the free, non-commercial launch (no treasury by default;
+   see [Launch policy](#launch-policy-free-and-non-commercial)). Without one, support is refused.
 3. `catalog.AllowHost("archive.org", true)` if it is not allowed yet (`HostAllowed`), and any
    other https host the catalog uses.
 4. `home.SetAppURL` to the app's public URL, so gnoweb links to the app and its Legal page;
    `home.SetContact` for the contact line on the rights-notice page.
-5. `tickets.SetServiceFee` (ugnot, 10 GNOT at most).
+5. `tickets.SetServiceFee` (ugnot, 10 GNOT at most): skipped for the free launch (fee 0 by default).
 6. Launch catalog: build `tools/curate/import_batch.json` (`curate.py batch`), then
    `tools/deploy/import.py [--dry-run] <onyx|mainnet> <key> nym-alexiscolin000` as the catalog
    admin. It creates the missing artists, then calls `radio.ImportTracks` per 25 tracks (each joins

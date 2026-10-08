@@ -263,7 +263,11 @@ func renderHome() string {
 	}
 	b.WriteString(coverGrid(fresh))
 	b.WriteString("\n[Full catalog →](" + page("catalog") + ")\n\n")
-	b.WriteString("<gno-columns>\n" + supportBlock() + "<gno-columns-sep />\n## Recent activity\n\n" + activityFeed(8) + "</gno-columns>\n\n---\n\n" + stats())
+	if hasTreasury() {
+		b.WriteString("<gno-columns>\n" + supportBlock() + "<gno-columns-sep />\n## Recent activity\n\n" + activityFeed(8) + "</gno-columns>\n\n---\n\n" + stats())
+	} else {
+		b.WriteString("## Recent activity\n\n" + activityFeed(8) + "\n---\n\n" + stats())
+	}
 	return b.String()
 }
 
@@ -284,8 +288,14 @@ func coverGrid(ts []catalog.Track) string {
 	return b.String() + "</gno-columns>\n"
 }
 
+// hasTreasury is false at the free launch: support and the tip share panic then.
+func hasTreasury() bool { return catalog.Treasury().IsValid() }
+
 // supportBlock shows GnoRadio's own funding: treasury, monthly goal, links.
 func supportBlock() string {
+	if !hasTreasury() {
+		return ""
+	}
 	to, total, supporters, monthTotal, goal := catalog.SupportInfo()
 	var b strings.Builder
 	b.WriteString("## Keep GnoRadio on air\n\n")
@@ -583,8 +593,11 @@ func support(t catalog.Track, a catalog.Artist) string {
 		} else if n > 1 {
 			to = "The artist share is split with " + text.Itoa(n) + " collaborators"
 		}
-		return "**◈ Tip:** [1 GNOT](" + tipURL(t.ID, 1) + ") · [5 GNOT](" + tipURL(t.ID, 5) + ") · [20 GNOT](" + tipURL(t.ID, 20) + ")  \n" +
-			"Or [5 GNOT + 10% to keep GnoRadio on air](" + tipSupportURL(t.ID, 5, 10) + ").  \n" + to + ", same transaction.\n"
+		out := "**◈ Tip:** [1 GNOT](" + tipURL(t.ID, 1) + ") · [5 GNOT](" + tipURL(t.ID, 5) + ") · [20 GNOT](" + tipURL(t.ID, 20) + ")  \n"
+		if hasTreasury() {
+			out += "Or [5 GNOT + 10% to keep GnoRadio on air](" + tipSupportURL(t.ID, 5, 10) + ").  \n"
+		}
+		return out + to + ", same transaction.\n"
 	}
 	s := verifyNote(a)
 	if u := sanitize.URL(a.Source); t.Origin == catalog.OriginAudius && u != "" {
@@ -1169,12 +1182,25 @@ func renderJoin() string {
 		"Genres: " + genreList() + "\n"
 }
 
+// aboutFees names the operator's income, only when there is any.
+func aboutFees() string {
+	switch {
+	case hasTreasury() && tickets.ServiceFee() > 0:
+		return " An optional extra and a ticket service fee fund GnoRadio."
+	case hasTreasury():
+		return " An optional extra funds GnoRadio."
+	case tickets.ServiceFee() > 0:
+		return " A ticket service fee funds GnoRadio."
+	}
+	return ""
+}
+
 func renderAbout() string {
 	return header("How it works", "about") +
 		"<gno-columns>\n" +
 		"### Library and Live\n\nPlay any album or playlist in any order, or tune into a station where everyone hears the same second. The schedule lives on-chain; there is no streaming server to switch off.\n" +
 		"<gno-columns-sep />\n" +
-		"### 0% taken from artists, provably\n\nTips and ticket prices reach the artist in the same transaction; an optional extra and a ticket service fee fund GnoRadio. Don't trust us, read the code.\n" +
+		"### 0% taken from artists, provably\n\nTips and ticket prices reach the artist in the same transaction." + aboutFees() + " Don't trust us, read the code.\n" +
 		"<gno-columns-sep />\n" +
 		"### Tickets that remember\n\nEach ticket is an NFT drawn by the contract, in your name. Gift it, get it checked in at the door, keep it after the show.\n" +
 		"</gno-columns>\n\n" +

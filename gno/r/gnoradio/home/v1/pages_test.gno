@@ -51,11 +51,10 @@ func TestGnowebPages(cur realm, t *testing.T) {
 	urequire.False(t, strings.Contains(Render("catalog?g=8"), "Gw Song"))
 	uassert.True(t, strings.Contains(genreBrowse(7), page("catalog?g=7")))
 
-	// Track page: undo links, tip with support, fingerprints.
+	// Track page: undo links, no tip share without a treasury, fingerprints.
 	tp := Render("track/" + text.Itoa(tr))
 	urequire.True(t, strings.Contains(tp, "func=Unlike"), tp)
-	urequire.True(t, strings.Contains(tp, "func=TipWithSupport"))
-	urequire.True(t, strings.Contains(tp, "5500000ugnot"))
+	urequire.False(t, strings.Contains(tp, "func=TipWithSupport"), tp) // no treasury by default
 	urequire.True(t, strings.Contains(tp, "**Fingerprints.**"))
 	urequire.True(t, strings.Contains(Render("artist/"+text.Itoa(aid)), "func=Unfollow"))
 	urequire.True(t, strings.Contains(Render("album/"+text.Itoa(al)), "kind=album"))
@@ -68,10 +67,10 @@ func TestGnowebPages(cur realm, t *testing.T) {
 	urequire.True(t, strings.Contains(lp, "Gw Song"))
 	urequire.False(t, strings.Contains(lp, "Recent likes"))
 
-	// Home: support block and activity feed; About: $source links.
+	// Home: activity feed, no support block; About: $source links.
 	home := Render("")
-	urequire.True(t, strings.Contains(home, "Keep GnoRadio on air"), home)
-	urequire.True(t, strings.Contains(home, "func=SupportGnoRadio"))
+	urequire.False(t, strings.Contains(home, "Keep GnoRadio on air"), home)
+	urequire.False(t, strings.Contains(home, "func=SupportGnoRadio"), home) // no treasury by default
 	urequire.True(t, strings.Contains(home, "## Recent activity"))
 	urequire.True(t, strings.Contains(home, "liked [Gw Song]"))
 	about := Render("about")
