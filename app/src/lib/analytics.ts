@@ -24,6 +24,8 @@ export interface Events {
   action: { label: string; stage: "sent" | "ok" | "cancelled" | "failed"; via: "adena" | "session" | "gnokey" };
   /** A link shared, by what it points at. */
   share: { what: string };
+  /** Where a shared link went from the share sheet. */
+  share_to: { to: string };
   /** A track saved in this browser, or unsaved. */
   save: { on: boolean };
   /** The pick sheet, step by step: open, a track chosen, pushed, or closed at a step without pushing. */

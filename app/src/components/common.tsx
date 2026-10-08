@@ -3,6 +3,7 @@ import { withRef } from "../lib/incentives";
 import { isAddress } from "../lib/proof";
 import { Icon } from "./Icons";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { clock, licenseLabel } from "../lib/format";
 import { UNAVAILABLE, checkWhenSeen, isDead, usePlayable } from "../lib/playable";
 import { viewToPath } from "../lib/router";
@@ -236,34 +237,80 @@ export function Crumbs({ trail, go }: { readonly trail: readonly Crumb[]; readon
   );
 }
 
-/**
- * ShareButton shares a link, this page's by default: the system sheet on
- * phones, the clipboard elsewhere. `to` shares another screen, `text` adds a line.
- */
 /** EARNS: what a copied link of mine does (the tipper sees the split before signing). */
-const EARNS = "Link copied · tips through it share the promo share with you, when the artist set one";
+const EARNS = "Tips through this link share the promo share with you, when the artist set one.";
 
-export function ShareButton({ title, to, text = `${title} on GnoRadio, the community radio. Listen free.`, refBy = "", compact = false, label = "Share" }: { readonly title: string; readonly to?: View; readonly text?: string; readonly refBy?: string; readonly compact?: boolean; readonly label?: string }) {
-  const [copied, setCopied] = useState(false);
-  const share = async () => {
+/** SOCIAL: where a link can be posted, each by the network's own share URL (no SDK, no tracker). */
+const SOCIAL: readonly { name: string; tone: string; href: (url: string, text: string) => string }[] = [
+  { name: "X", tone: "ink", href: (u, t) => `https://x.com/intent/post?text=${encodeURIComponent(t)}&url=${encodeURIComponent(u)}` },
+  { name: "Bluesky", tone: "blue", href: (u, t) => `https://bsky.app/intent/compose?text=${encodeURIComponent(`${t} ${u}`)}` },
+  { name: "Facebook", tone: "blue", href: (u) => `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(u)}` },
+  { name: "WhatsApp", tone: "yellow", href: (u, t) => `https://wa.me/?text=${encodeURIComponent(`${t} ${u}`)}` },
+  { name: "Telegram", tone: "yellow", href: (u, t) => `https://t.me/share/url?url=${encodeURIComponent(u)}&text=${encodeURIComponent(t)}` },
+  { name: "Reddit", tone: "red", href: (u, t) => `https://www.reddit.com/submit?url=${encodeURIComponent(u)}&title=${encodeURIComponent(t)}` },
+  { name: "Email", tone: "ink", href: (u, t) => `mailto:?subject=${encodeURIComponent(t)}&body=${encodeURIComponent(u)}` },
+];
+
+/**
+ * ShareButton opens the share sheet for a link, this page's by default: the
+ * social networks, copy, and the system sheet where there is one. `to` shares
+ * another screen, `text` is the line posted with it.
+ */
+export function ShareButton({ title, to, text = `${title} on GnoRadio, the community radio. Listen free.`, refBy = "", compact = false, label = "Share", className = "mini-act" }: { readonly title: string; readonly to?: View; readonly text?: string; readonly refBy?: string; readonly compact?: boolean; readonly label?: string; readonly className?: string }) {
+  const [url, setUrl] = useState("");
+  const open = () => {
     track("share", { what: to?.k ?? "page" });
     // refBy makes the link earn: tips made from it share the artist's promo share with them.
-    const url = withRef(to ? new URL(viewToPath(to, to.k === "stations" ? "" : title), location.origin).href : location.href, refBy);
-    if (typeof navigator.share === "function") {
-      await navigator.share({ title: `${title} · GnoRadio`, url, ...(text ? { text } : {}) }).catch(() => undefined);
-      return;
-    }
-    await navigator.clipboard.writeText(text ? `${text} ${url}` : url);
-    setCopied(true);
-    setTimeout(() => { setCopied(false); }, 1800);
+    setUrl(withRef(to ? new URL(viewToPath(to, to.k === "stations" ? "" : title), location.origin).href : location.href, refBy));
   };
-  if (compact) {
-    return <button className="mini-act" onClick={() => void share()} aria-label={copied ? "Link copied" : "Share"} title="Share a link"><Icon name={copied ? "check" : "share"} size={20} /></button>;
-  }
+  return (<>
+    {compact
+      ? <button className={className} onClick={open} aria-label="Share" title="Share a link"><Icon name="share" size={20} /></button>
+      : <button className="btn share" onClick={open} title="Share a link"><Icon name="share" size={15} /> {label}</button>}
+    {/* On <body>: out of the row of buttons it opens from, and of its styles. */}
+    {url && createPortal(<ShareSheet title={title} url={url} text={text} earns={isAddress(refBy)} onClose={() => { setUrl(""); }} />, document.body)}
+  </>);
+}
+
+function ShareSheet({ title, url, text, earns, onClose }: { readonly title: string; readonly url: string; readonly text: string; readonly earns: boolean; readonly onClose: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null);
+  const [copied, setCopied] = useState(false);
+  useEffect(() => {
+    const d = ref.current;
+    if (d && !d.open && typeof d.showModal === "function") d.showModal();
+    return () => { d?.close(); };
+  }, []);
+  const copy = async () => {
+    await navigator.clipboard.writeText(url).catch(() => undefined);
+    track("share_to", { to: "copy" });
+    setCopied(true);
+  };
   return (
-    <button className="btn share" onClick={() => void share()} title="Share a link">
-      <Icon name="share" size={15} /> {copied ? (isAddress(refBy) ? EARNS : "Link copied") : label}
-    </button>
+    <dialog ref={ref} className="sheet share-sheet" aria-label={`Share ${title}`}
+      onCancel={(e) => { e.preventDefault(); onClose(); }}
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="sheet-body">
+        <div className="sheet-head">
+          <h2>Share</h2>
+          <button className="x" onClick={onClose} aria-label="Close"><Icon name="close" /></button>
+        </div>
+        <p className="muted share-what">{title}</p>
+        <div className="share-grid">
+          {SOCIAL.map((s) => (
+            <a key={s.name} className={`share-to ${s.tone}`} href={s.href(url, text)} target="_blank" rel="noreferrer"
+              onClick={() => { track("share_to", { to: s.name }); }}>{s.name}</a>
+          ))}
+          {typeof navigator.share === "function" && (
+            <button className="share-to soft" onClick={() => { track("share_to", { to: "system" }); void navigator.share({ title: `${title} · GnoRadio`, url, text }).catch(() => undefined); }}>More…</button>
+          )}
+        </div>
+        <button className="share-copy" onClick={() => void copy()}>
+          <span className="mono">{url.replace(/^https:\/\//, "")}</span>
+          <strong><Icon name={copied ? "check" : "share"} size={15} /> {copied ? "Copied" : "Copy link"}</strong>
+        </button>
+        {copied && earns && <p className="muted small" role="status">{EARNS}</p>}
+      </div>
+    </dialog>
   );
 }
 

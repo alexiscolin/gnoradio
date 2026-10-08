@@ -260,6 +260,8 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
           <Icon name={p.muted || p.volume === 0 ? "mute" : "volume"} />
         </button>
         <input type="range" min={0} max={1} step={0.05} value={p.muted ? 0 : p.volume} aria-label="Volume" onChange={(e) => { p.setVolume(Number(e.target.value)); }} />
+        {/* Share what plays: the station on the radio (the link tunes in), the track in the library. */}
+        {t && <ShareButton compact className="vol-share" title={t.title} to={live ? { k: "stations", live: p.station } : { k: "track", id: t.id }} refBy={me} />}
       </div>
 
       {live && (

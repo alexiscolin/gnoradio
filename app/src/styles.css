@@ -668,7 +668,7 @@ dialog.sheet.pick { max-width: min(440px, calc(100% - 32px)); }
 }
 /* very short windows: drop the least needed blocks rather than scroll */
 @media (min-width: 901px) and (max-height: 760px) {
-  .now .proof, .now .volume { display: none; }
+  .now .proof, .now .volume > :not(.vol-share) { display: none; }
 }
 @media (min-width: 901px) and (max-height: 680px) {
   .now .support { display: none; }
@@ -694,7 +694,7 @@ dialog.sheet.pick { max-width: min(440px, calc(100% - 32px)); }
 .biglist .dot { margin-left: .12em; vertical-align: .2em; }
 .more-links { display: flex; }
 @media (max-width: 900px) {
-  .now .volume { display: none; }
+  .now .volume > :not(.vol-share) { display: none; } /* phones set the volume with their own buttons */
   .hero { grid-template-columns: minmax(0, 1fr); }
 }
 
@@ -809,8 +809,10 @@ dialog.sheet.pick { max-width: min(440px, calc(100% - 32px)); }
 .now-meta { justify-content: space-between; gap: 12px; }
 .now-titles { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .now-titles .title { text-overflow: ellipsis; }
-.volume { grid-template-columns: 24px minmax(0, 1fr); gap: 10px; }
+.volume { grid-template-columns: 24px minmax(0, 1fr) 24px; gap: 10px; }
 .volume button { width: 24px; height: 24px; }
+.volume .vol-share { grid-column: 3; } /* kept at the end when the slider is hidden */
+.volume .vol-share .icon { width: 18px; height: 18px; }
 .volume input[type="range"] { -webkit-appearance: none; appearance: none; height: 2px; background: var(--line); border-radius: 2px; }
 .volume input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 10px; height: 10px; border-radius: 50%; background: var(--ink); }
 .volume input[type="range"]::-moz-range-thumb { width: 10px; height: 10px; border: 0; border-radius: 50%; background: var(--ink); }
@@ -1476,3 +1478,19 @@ main h3:not([class]), .month { font-size: 18px; font-weight: 500; letter-spacing
 }
 /* Support before the artist is verified: same place, quieter, leads to the artist page. */
 .act.support.soon { background: transparent; border: 1px dashed var(--line); color: var(--mute); }
+
+/* share sheet: the networks as Bauhaus tiles, then the link to copy */
+.share-sheet .sheet-body { grid-template-columns: minmax(0, 1fr); } /* the long link must not widen the sheet */
+.share-sheet h2 { font-size: 22px; }
+.share-what { margin-top: -8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.share-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.share-to { display: flex; align-items: center; justify-content: center; min-height: 54px; border-radius: 16px; font-weight: 600; font-size: 16px; text-decoration: none; color: #fff; background: var(--ink); }
+.share-to.blue { background: var(--blue); }
+.share-to.red { background: var(--red-fill); }
+.share-to.yellow { background: var(--yellow); color: var(--ink); }
+.share-to.soft { background: var(--soft); color: var(--ink); }
+.share-to:hover { transform: translateY(-2px); }
+.share-to:active { transform: scale(.97); }
+.share-copy { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; background: var(--soft); color: var(--ink); text-align: left; }
+.share-copy .mono { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--mute); }
+.share-copy strong { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
