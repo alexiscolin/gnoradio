@@ -330,8 +330,10 @@ only call on the role is the slow `GuardianReplace` above.
 2. As owner, on `data`: `Propose(<role>, <new realm path>)` for each role in the release.
 3. Call `Ready()` on each new realm (anyone may); 12 h after the last one, the whole release
    takes over at once. The data stays where it is: nothing is copied, no deposit is paid again.
-   Admins carry over. Then set `VITE_RULES_VERSION=v2` on the site (Netlify, scope All) and
-   redeploy it: the app points to the new paths (`app/src/lib/realms.ts`).
+   Admins carry over. Right after the `Ready` calls, set `VITE_RULES_VERSION=v2` and
+   `VITE_RULES_FROM=<at>` (the `at` of `data.Writers()`) on the site (Netlify, scope All) and
+   redeploy it: the app talks to the old realms until `at`, then to the new ones on its own
+   (`app/src/lib/realms.ts`).
    `tools/deploy/deploy.sh --release v2 <net> <key> <ns>` deploys the four realms and prints
    the `Propose` calls; anyone then calls `Ready` on each of them.
 4. During those 12 h anyone can read the new code on gnoweb; the owner or the guardian can

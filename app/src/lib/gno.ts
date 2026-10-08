@@ -24,7 +24,8 @@ export function networkLabel(chainId: string): string {
   return chainId;
 }
 
-export type RealmPath = (typeof REALMS)[keyof typeof REALMS] | SysPath;
+/** A gno.land package path: GnoRadio's realms (REALMS, by release), the system realms (SysPath), SAFE. */
+export type RealmPath = `gno.land/${string}`;
 /** gno.land system realms the app reads: names (r/sys/users) and the name registrar. */
 export type SysPath = "gno.land/r/sys/users" | "gno.land/r/sys/namereg/v0" | "gno.land/r/sys/namereg/v1" | typeof SAFE;
 

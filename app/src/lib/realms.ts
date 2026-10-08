@@ -21,19 +21,30 @@ const unset = (v: string | undefined): string | undefined => (v === "" ? undefin
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 const NS: string = unset(import.meta.env === undefined ? undefined : import.meta.env.VITE_GNORADIO_NS) ?? unset(runtimeEnv("VITE_GNORADIO_NS")) ?? "gnoradio";
 
-// The release of the rules realms in force (VITE_RULES_VERSION, v1 by default: set it on the site
-// once a release took over, docs/DEPLOY.md). data is permanent: it holds every record and the promo
-// vault, and names the realms in force (data.Writers()).
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-const V: string = unset(import.meta.env === undefined ? undefined : import.meta.env.VITE_RULES_VERSION) ?? unset(runtimeEnv("VITE_RULES_VERSION")) ?? "v1";
+// The release of the rules realms in force. VITE_RULES_VERSION names it (v1 by default) and
+// VITE_RULES_FROM, if set, the unix time it takes over (data.Writers() "at"): before that the
+// previous one is in force, so the site switches on its own at the release's hour (docs/DEPLOY.md).
+// data is permanent: it holds every record and the promo vault, and names the realms in force.
+const env = (name: string): string | undefined =>
+  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  unset(import.meta.env === undefined ? undefined : (import.meta.env as Record<string, string | undefined>)[name]) ?? unset(runtimeEnv(name));
+const RELEASE = env("VITE_RULES_VERSION") ?? "v1";
+const FROM = Number(env("VITE_RULES_FROM") ?? 0);
+/** rulesVersion is the release in force at unix time now (seconds). */
+export function rulesVersion(now = Date.now() / 1000): string {
+  const n = Number(RELEASE.slice(1));
+  return FROM > 0 && now < FROM && n > 1 ? `v${String(n - 1)}` : RELEASE;
+}
+const rules = (role: string): `gno.land/r/${string}` => `gno.land/r/${NS}/${role}/${rulesVersion()}`;
+// Getters: a page (or a warm function) open across the takeover reads the release in force.
 export const REALMS = {
-  home: `gno.land/r/${NS}/home/${V}`,
-  catalog: `gno.land/r/${NS}/catalog/${V}`,
-  radio: `gno.land/r/${NS}/radio/${V}`,
-  tickets: `gno.land/r/${NS}/tickets/${V}`,
-  data: `gno.land/r/${NS}/data`,
-  nft: `gno.land/r/${NS}/tickets/nft`,
-} as const;
+  get home() { return rules("home"); },
+  get catalog() { return rules("catalog"); },
+  get radio() { return rules("radio"); },
+  get tickets() { return rules("tickets"); },
+  data: `gno.land/r/${NS}/data` as const,
+  nft: `gno.land/r/${NS}/tickets/nft` as const,
+};
 
 /** SAFE screens dedications (p/<NS>/safe); the app asks it before signing. */
 export const SAFE = `gno.land/p/${NS}/safe/v0` as const;

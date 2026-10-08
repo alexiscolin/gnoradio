@@ -14,6 +14,7 @@ interface ImportMetaEnv {
   /** Namespace of the GnoRadio packages: "gnoradio" locally, the deployer's on a public chain. */
   readonly VITE_GNORADIO_NS?: string;
   readonly VITE_RULES_VERSION?: string; // the rules release in force: v1 (default), v2...
+  readonly VITE_RULES_FROM?: string; // unix time that release takes over; before it, the previous one
   /** PostHog project key (phc_…, public, write-only): audience measurement; unset, nothing loads. */
   readonly VITE_POSTHOG_KEY?: string;
 }
