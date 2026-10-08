@@ -5,7 +5,7 @@ import { metaOf, parseIDs } from "./refs";
 
 const AUDIUS = { data: [{ id: "Ab1", title: "Midnight Drive", permalink: "/nt/midnight-drive", is_streamable: true, artwork: { "480x480": "https://creatornode.audius.co/a.jpg" }, user: { id: "u1", name: "Night Tapes" } },
   { id: "Off", title: "Gone", is_streamable: false, user: { name: "X" } }] };
-const JAMENDO = { results: [{ id: "42", name: "Sunrise", artist_name: "Lobo", artist_id: "7", album_image: "https://usercontent.jamendo.com/a.jpg", shareurl: "https://www.jamendo.com/track/42", audio: "https://prod-1.storage.jamendo.com/?trackid=42&format=mp32" },
+const JAMENDO = { headers: { status: "success" }, results: [{ id: "42", name: "Sunrise", artist_name: "Lobo", artist_id: "7", album_image: "https://usercontent.jamendo.com/a.jpg", shareurl: "https://www.jamendo.com/track/42", audio: "https://prod-1.storage.jamendo.com/?trackid=42&format=mp32" },
   { id: "66", name: "Elsewhere", audio: "https://evil.example/x.mp3" }] };
 
 let net: ReturnType<typeof vi.fn<(url: string, init?: RequestInit) => Promise<Response>>>;
@@ -39,7 +39,7 @@ describe("metaOf", () => {
     const [audiusURL, init] = net.mock.calls.find(([u]) => u.includes("audius")) ?? [];
     expect(audiusURL).toBe("https://api.audius.co/v1/tracks?id=Ab1&id=Off&id=Nope&app_name=GnoRadio");
     expect((init?.headers as Record<string, string>)["x-api-key"]).toBe("akey");
-    expect(net.mock.calls.find(([u]) => u.includes("jamendo"))?.[0]).toBe("https://api.jamendo.com/v3.0/tracks/?client_id=cid&format=json&limit=100&audioformat=mp32&id=42+66");
+    expect(net.mock.calls.find(([u]) => u.includes("jamendo"))?.[0]).toBe("https://api.jamendo.com/v3.0/tracks/?client_id=cid&format=json&limit=50&audioformat=mp32&id=42+66");
     expect(m["audius:Ab1"]).toEqual({ title: "Midnight Drive", artist: "Night Tapes", artistId: "u1", artwork: "https://creatornode.audius.co/a.jpg", permalink: "https://audius.co/nt/midnight-drive", streamable: true });
     expect(m["audius:Off"]?.streamable).toBe(false);
     expect(m["audius:Nope"]).toBeNull();
@@ -75,5 +75,16 @@ describe("/api/meta and /api/jamendo", () => {
     const down = await get("/api/meta?ids=audius:Ab1");
     expect(down.status).toBe(502);
     expect(down.headers.get("cache-control")).toBe("no-store");
+  });
+});
+
+describe("jamendo limits", () => {
+  it("asks Jamendo 50 ids a call (it refuses more), and a 'failed' answer is an error, not unknown tracks", async () => {
+    await metaOf(Array.from({ length: 60 }, (_, i) => `jamendo:${String(i + 1)}`));
+    const calls = net.mock.calls.map(([u]) => u).filter((u) => u.startsWith("https://api.jamendo.com/"));
+    expect(calls).toHaveLength(2);
+    expect(calls.map((u) => new URL(u).searchParams.get("id")?.split(/[+ ]/).length)).toEqual([50, 10]);
+    net.mockImplementation(() => Promise.resolve(Response.json({ headers: { status: "failed" }, results: [] })));
+    await expect(metaOf(["jamendo:1"])).rejects.toThrow();
   });
 });

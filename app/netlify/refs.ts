@@ -40,13 +40,19 @@ async function audius(ids: string[]): Promise<Map<string, RefMeta>> {
   }]));
 }
 
-/** jamendo reads up to 100 tracks in one call (id=1+2+3); its audio URL is for /api/jamendo only. */
+/** JAMENDO_IDS: Jamendo takes at most 50 values per parameter (checked live: 100 is refused). */
+const JAMENDO_IDS = 50;
+
+/** jamendo reads the tracks 50 ids a call (id=1+2+3); its audio URL is for /api/jamendo only. */
 export async function jamendo(ids: string[]): Promise<Map<string, RefMeta & { audio: string }>> {
   const client = runtimeEnv("JAMENDO_CLIENT_ID");
   if (!client) return new Map();
-  const j = await getJSON<{ results?: JamendoTrack[] }>(
-    `https://api.jamendo.com/v3.0/tracks/?client_id=${encodeURIComponent(client)}&format=json&limit=${String(MAX_IDS)}&audioformat=mp32&id=${ids.join("+")}`);
-  return new Map((j.results ?? []).map((t) => {
+  const chunks = Array.from({ length: Math.ceil(ids.length / JAMENDO_IDS) }, (_, i) => ids.slice(i * JAMENDO_IDS, (i + 1) * JAMENDO_IDS));
+  const pages = await Promise.all(chunks.map((c) => getJSON<{ headers?: { status?: string }; results?: JamendoTrack[] }>(
+    `https://api.jamendo.com/v3.0/tracks/?client_id=${encodeURIComponent(client)}&format=json&limit=${String(JAMENDO_IDS)}&audioformat=mp32&id=${c.join("+")}`)));
+  // Jamendo answers errors with HTTP 200 and headers.status "failed": an error, not "unknown tracks".
+  if (pages.some((j) => j.headers?.status !== "success")) throw new Error("upstream jamendo failed");
+  return new Map(pages.flatMap((j) => j.results ?? []).map((t) => {
     const audio = httpsOn(t.audio, /(^|\.)jamendo\.com$/);
     return [String(t.id), {
       title: t.name ?? "", artist: t.artist_name ?? "", artistId: String(t.artist_id ?? ""),

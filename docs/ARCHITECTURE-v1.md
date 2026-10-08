@@ -555,8 +555,9 @@ Quotas, with N pointers in B = N / 100 buckets (worst case: every bucket holds b
   (10,000 daily listeners only read the cache).
 - Jamendo streams: `/api/jamendo/<id>` answers with a redirect to the track's stream, kept 30
   days in the durable cache: at most one API call per Jamendo track a month (5,000).
-  Jamendo total for N = 5,000: about 11,000 a month, under its 35,000 (it stays under up to
-  about 15,000 Jamendo pointers: 1.2 N + N ≤ 35,000).
+  Jamendo takes at most 50 ids a call (checked live on 2026-10-08: 100 is refused), so a bucket
+  of 100 costs two Jamendo calls. Jamendo total for N = 5,000: about 17,000 a month, under its
+  35,000 (it stays under up to about 10,000 Jamendo pointers: 2.4 N + N ≤ 35,000).
 - Audius: the metadata calls above (6,000 a month for N = 5,000) carry GnoRadio's key, under
   its 500,000. Plays go from the browser to api.audius.co with `app_name` only, so the key's
   quota does not grow with the audience.
@@ -565,9 +566,8 @@ Quotas, with N pointers in B = N / 100 buckets (worst case: every bucket holds b
   10,000 listeners × 2 sessions a day ≈ 0.8 GB a day, 24 GB a month, under the 100 GB. Function
   runs: under 400 a day (meta and stream refreshes), far under 125,000 a month.
 
-Open: Jamendo's documented id list size per call (we ask 100, `limit=100`), and whether a
-stream through its storage host counts against the API quota (the redirect is cached either
-way).
+Open: whether a stream through Jamendo's storage host counts against the API quota (the
+redirect is cached either way).
 
 ### P5 measurements: home/v1
 
