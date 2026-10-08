@@ -92,10 +92,10 @@ func TestHourGenre(cur realm, t *testing.T) {
 		uassert.Equal(t, mainFlow[i], hourGenre(rd(), h*3600+1800), "hour "+text.Itoa64(h))
 		uassert.Equal(t, mainFlow[i], hourGenre(rd(), 86400*400+h*3600)) // any day
 	}
-	// Main stays on mainstream genres all day: never Ambient, Drum & Bass or Metal by default.
+	// Main stays on mainstream genres all day (House, never Techno, for the club hours).
 	for h := int64(0); h < 24; h++ {
 		g := HourGenre(h * 3600)
-		uassert.True(t, g != 3 && g != 6 && g != 12 && g != 16, "hour "+text.Itoa64(h))
+		uassert.True(t, g != 3 && g != 4 && g != 6 && g != 7 && g != 12 && g != 16, "hour "+text.Itoa64(h)) // no Ambient, Techno, D&B, Dubstep, Metal, Cinematic
 	}
 	uassert.Equal(t, 8, HourGenre(3*3600))  // 03:00 clamps to Lo-fi Beats
 	uassert.Equal(t, 5, HourGenre(23*3600)) // 23:00 clamps to House
