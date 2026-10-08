@@ -150,6 +150,26 @@ describe("PickNext", () => {
     expect(screen.getByText("Share")).toBeTruthy();
     schedule = before;
   });
+  it("closes on its own a moment after the push has its answer", async () => {
+    const onClose = vi.fn();
+    function Harness() {
+      const [notice, setNotice] = useState<{ text: string; pending?: boolean; link?: string } | null>(null);
+      return (
+        <>
+          <button onClick={() => { setNotice({ text: "On air", link: "https://gnoscan.io/tx" }); }}>answer</button>
+          <PickNext cat={cat} station={1} me={ME} notice={notice} onPick={() => { setNotice({ text: "Signing…", pending: true }); }} onClose={onClose} />
+        </>
+      );
+    }
+    render(<Harness />);
+    fireEvent.click(await screen.findByText("Fresh Ambient"));
+    fireEvent.click(screen.getByText("Next · Fresh Ambient"));
+    fireEvent.click(screen.getByText("Push on air"));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByText("answer"));
+    await waitFor(() => { expect(onClose).toHaveBeenCalledTimes(1); }, { timeout: 3500 });
+  });
+
   it("on Main, a pick airs right away over the simulcast, and the genre station's picks are not Main's queue", async () => {
     const before = schedule;
     schedule = { station: 0, now: NOW, entries: [

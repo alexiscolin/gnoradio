@@ -140,7 +140,10 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
                   <span className="now-by">
                     <button className="link muted" onClick={() => { go({ k: "artist", id: t.artist }); }}>{t.artistName}</button>
                     {mine ? (
-                      <span className="mypick" role="status">Your pick · on air</span>
+                      <span className="mypick" role="status">
+                        Your pick · on air
+                        <ShareButton compact className="mypick-share" title={t.title} to={{ k: "stations", live: p.station }} refBy={me} text={`My pick "${t.title}" is on air on GnoRadio ${stationName}. Tune in.`} />
+                      </span>
                     ) : note && (note.kind === "pick" || note.kind === "curator" ? (
                       <span key={note.text} className="picked-by"><Shape g="quarter" size={9} fill="var(--blue)" /> {note.kind === "pick" && onAir?.by && !onAir.sponsored ? <>picked by <Who address={onAir.by} shown={who} go={go} /></> : note.text}</span>
                     ) : note.kind === "artist" ? (
@@ -178,20 +181,12 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
         </div>
       </div>
 
-      {(mine || elsewhere) && (
+      {/* Mine on this station: the red flag by the title says it (and shares it). On another one: a way there. */}
+      {elsewhere && (
         <div className="mypick-card" role="status">
-          <span className="lbl">Your pick · on air{elsewhere ? ` on ${cat.stations.find((x) => x.id === elsewhere.station)?.name ?? "the radio"}` : ""}</span>
-          <span>
-            {elsewhere ? <>“{cat.byId.get(elsewhere.track)?.title ?? "Your track"}” is playing for everyone tuned in.</>
-              : onAir?.sponsored ? <>Free pick: {artist?.name ?? "the artist"} refunds you {gnot(onAir.sponsored)} once it has played in full. Collect it here then.</>
-              : artist && tippable(artist) && artist.promo > 0 ? <>Tips sent from the radio while it plays share {artist.promo}% with you (half if they came through someone's link).</>
-                : <>It plays for everyone tuned in. Share it.</>}
-          </span>
-          <span className="head-actions">
-            {elsewhere
-              ? <button className="cta" onClick={() => { p.goLive(elsewhere.station); }}>Tune in</button>
-              : <ShareButton title={t?.title ?? "GnoRadio"} to={{ k: "stations", live: p.station }} refBy={me} text={`My pick "${t?.title ?? ""}" is on air on GnoRadio ${stationName}. Tune in.`} />}
-          </span>
+          <span className="lbl">Your pick · on air on {cat.stations.find((x) => x.id === elsewhere.station)?.name ?? "the radio"}</span>
+          <span>“{cat.byId.get(elsewhere.track)?.title ?? "Your track"}” is playing for everyone tuned in.</span>
+          <span className="head-actions"><button className="cta" onClick={() => { p.goLive(elsewhere.station); }}>Tune in</button></span>
         </div>
       )}
 

@@ -185,6 +185,16 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
   }, [step]);
   const [sent, setSent] = useState(0);
   const [asked, setAsked] = useState(false); // show the action's feedback once this sheet sent one
+  // Once the push has its answer (on air, or why not), the sheet closes on its own after a moment to read it.
+  const settled = asked && notice != null && !notice.pending;
+  const ok = settled && Boolean(notice.link);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose; // the parent's onClose changes every render: the timer must not restart with it
+  useEffect(() => {
+    if (!settled) return;
+    const t = setTimeout(() => { closeRef.current(); }, ok ? 2500 : 5000);
+    return () => { clearTimeout(t); };
+  }, [settled, ok]);
   const [reads, setReads] = useState(0);
   useEffect(() => {
     if (sent && pending === "") { setSent(0); setReads((n) => n + 1); }
