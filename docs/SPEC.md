@@ -232,7 +232,7 @@ func Unqueue(cur realm, stationID, trackID int)  // admin: removes the track fro
 
 - Artist names: ASCII letters + Latin-1 accented letters (À–ÿ except × ÷), digits, space, `. ' - &`; reserved under a skeleton (lowercase, accents removed, full width → ASCII, look-alikes folded: i/l/1, 0, 3, 4, 5, 7, rn, vv, cl). Names holding gnoradio, moderator, moderation, treasury or administrator, or the word admin, staff or official (as skeletons), are refused. Renaming frees the old name; a hidden artist cannot rename.
 - `SetTreasury` refuses the catalog's address and those of the radio, tickets and home realms. `Like` does not add the same address twice to the "early" badges.
-- Radio: a genre change updates all stations (orphan slot set to 0); a track that is not playable is never aired (`NowPlaying`, `ScheduleJSON`). `Queue`: one track per station per hour per wallet; ≤ 7,200 s of upcoming listener programming per station (`CuratorQueue` exempt).
+- Radio: a genre change updates all stations (orphan slot set to 0); a track that is not playable is never aired (`NowPlaying`, `ScheduleJSON`). `Queue`: one track per station every 30 minutes per wallet; ≤ 7,200 s of upcoming listener programming per station (`CuratorQueue` exempt).
 - Tickets: an `upcoming` index sorted by date (added on creation, removed on cancellation or hiding); `Upcoming` and `EventsJSON(upcoming=true)` read it (nearest first); ≤ 10 upcoming non-cancelled concerts per artist. `RefreshArtist(artistID)` (open to all) rereads the artist's visibility in the catalog: concerts of a hidden artist leave the index (hidden spam no longer takes up the 1,000-entry scan), those of a restored artist come back.
 
 ### 4.5 Release 1 (v1): data apart from rules

@@ -52,7 +52,7 @@ const (
 	maxSyncBatch    = 200
 	maxRefreshBatch = 50
 	foldAfter       = 3600          // programmed slots ended this long ago fold into the epoch
-	queueCooldown   = 3600          // a listener may queue once per station per hour
+	queueCooldown   = 1800          // a listener may queue once per station every 30 minutes
 	replayGap       = 3 * 3600      // a track picked on a station cannot be picked there again for 3 hours, by anyone
 	maxAheadAir     = 7200          // listener-programmed airtime ahead on a station, seconds
 	maxNote         = 40            // characters of a dedication

@@ -118,10 +118,10 @@ describe("pickBlock", () => {
   it("lets a wallet pick when nothing blocks it", () => {
     expect(pickBlock([{ start: now - 60, end: now + 120, queued: false, by: "" }], now, ME)).toBe("");
   });
-  it("counts the hour from when the wallet picked, not when its pick aired", () => {
+  it("counts the 30 minutes from when the wallet picked, not when its pick aired", () => {
     const e = [{ start: now - 600, end: now - 400, queued: true, by: ME }];
-    expect(pickBlock(e, now, ME, now - 3000)).toMatch(/pick again at/);
-    expect(pickBlock(e, now, ME, now - 3700)).toBe("");
+    expect(pickBlock(e, now, ME, now - 1500)).toMatch(/pick again at/);
+    expect(pickBlock(e, now, ME, now - 1900)).toBe("");
   });
   it("leaves room for the chosen track only", () => {
     const e = [{ start: now, end: now + 7100, queued: true, by: OTHER }];

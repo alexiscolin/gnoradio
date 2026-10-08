@@ -86,7 +86,7 @@ export const audiences = (ticketFee: boolean): readonly Audience[] => [
     cards: [
       { g: "circle", title: "Tune in", line: "Main, 20 genre stations, New this week and Listeners' choice. Everyone hears the same second. No wallet.", cta: "Tune in", go: { view: { k: "stations", live: 0 } } },
       { g: "square", title: "Play anything", line: "Search the library and play any track, album or playlist, just for you.", cta: "Open the Library", go: { view: { k: "library", genre: 0 } } },
-      { g: "quarter", title: "Be the DJ", line: `Pick a track and it airs for everyone tuned in, next or at a time you choose, ${PICK_WINDOW}. One pick per station per hour. Add a dedication: it scrolls on air, checked automatically before you sign.`, cta: "Pick a track", go: PICK },
+      { g: "quarter", title: "Be the DJ", line: `Pick a track and it airs for everyone tuned in, next or at a time you choose, ${PICK_WINDOW}. One pick per station every 30 minutes. Add a dedication: it scrolls on air, checked automatically before you sign.`, cta: "Pick a track", go: PICK },
       { g: "quarter", title: "Free picks", line: `Some artists refund your pick once it has played in full: look for "free pick" when you choose. For wallets with some pick history, a few a day; collect it within 7 days.`, cta: "Find one", go: PICK },
       { g: "square", title: "A share of tips", line: `When an artist sets a promo share (0 to ${String(MAX_PROMO)}%, off by default), part of each tip made while your pick plays goes to you, and to whoever's link brought the tipper. It is shown before anyone signs.`, cta: "Top curators", go: { view: { k: "community" } } },
       { g: "square", title: "Tip an artist", line: TIP_LINE, cta: "Support an artist", go: { view: { k: "community" } } },

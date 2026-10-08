@@ -211,7 +211,7 @@ func queue(cur realm, caller address, stationID, trackID int, curator, sponsored
 	}
 	if !curator {
 		if last := lastPickAt(t, caller, st.id); last > 0 && ts-last < queueCooldown {
-			panic("radio: you can queue one track per station per hour")
+			panic("radio: you can queue one track per station every 30 minutes")
 		}
 		if at == 0 && ahead+dur > maxAheadAir {
 			panic("radio: this station is programmed two hours ahead, try again later")

@@ -58,7 +58,7 @@ func TestDropSlotAndUnqueue(cur realm, t *testing.T) {
 	uassert.AbortsContains(t, cur, "not in this station", func() { DropSlot(cross(cur), 9, a) })
 }
 
-// Y6: one queue per station per hour per wallet, and at most 2 hours ahead.
+// Y6: one queue per station every 30 minutes per wallet, and at most 2 hours ahead.
 func TestQueueCooldownAndAirtimeCap(cur realm, t *testing.T) {
 	reset(cur)
 	var ids []int
@@ -73,7 +73,7 @@ func TestQueueCooldownAndAirtimeCap(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(fan))
 	Queue(cross(cur), 8, ids[0])
 	testing.SkipHeights(300) // 25 min later: the slot started, nothing is waiting
-	uassert.AbortsContains(t, cur, "one track per station per hour", func() { Queue(cross(cur), 8, ids[1]) })
+	uassert.AbortsContains(t, cur, "one track per station every 30 minutes", func() { Queue(cross(cur), 8, ids[1]) })
 
 	// Distinct wallets, distinct artists: 19-minute tracks hit the 2-hour cap.
 	capped := 0

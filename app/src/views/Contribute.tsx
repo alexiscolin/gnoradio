@@ -97,7 +97,7 @@ export function Contribute({ cat, go, path, actions, isAdmin, openPick }: Props 
         {chosen === "listener" && (
           <div className="contrib two">
             <div className="panel">
-              <h3><Shape g="quarter" size={14} /> Pick what plays next <Help text={`Your pick airs for everyone after the picks already waiting. One per station per hour, ${PICK_COST}.`} /></h3>
+              <h3><Shape g="quarter" size={14} /> Pick what plays next <Help text={`Your pick airs for everyone after the picks already waiting. One per station every 30 minutes, ${PICK_COST}.`} /></h3>
               <p className="muted small">Choose a track and a station. Everyone hears it at the same second.</p>
               <button className="cta blue" onClick={() => { openPick(0); }}>Pick a track</button>
             </div>

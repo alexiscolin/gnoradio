@@ -262,7 +262,7 @@ export function NowPlaying({ cat, player: p, actions, saved, open, onClose, go, 
       {live && (
         <div className="upnext">
           <span className="lbl upnext-head">
-            <span>Up next on {stationName} <Help text={`Listeners program the radio: one pick per station per hour, up to 2 hours ahead. A pick costs ${PICK_COST}.`} /></span>
+            <span>Up next on {stationName} <Help text={`Listeners program the radio: one pick per station every 30 minutes, up to 2 hours ahead. A pick costs ${PICK_COST}.`} /></span>
             <span className="proof">
               <ChainLink href={gnowebOf({ k: "stations", live: p.station })} what={`the ${stationName} schedule`}>Schedule</ChainLink>
             </span>

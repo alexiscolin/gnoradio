@@ -47,7 +47,7 @@ export function fnv(s: string): number {
 
 // Known realm panics and node errors, in plain words. First match wins.
 const PLAIN: readonly (readonly [RegExp, string])[] = [
-  [/one track per station per hour/i, "You already picked on this station in the last hour. Try again later."],
+  [/one track per station every 30 minutes/i, "You already picked on this station in the last 30 minutes. Try again later."],
   [/programmed two hours ahead/i, "Listeners have filled the next 2 hours of this station. Try again a little later."],
   [/already have a track waiting/i, "Your pick is already waiting on this station."],
   [/already programmed/i, "This track is already coming up on this station."],

@@ -59,7 +59,7 @@ export function Community({ cat, go, support, activity, now, onSupport, openPick
 
       <div className="program">
         <Shape g="quarter" size={22} />
-        <div><b>The radio is programmed by its listeners</b><span className="muted small">Pick a track and it airs for everyone tuned in. One pick per station per hour.</span></div>
+        <div><b>The radio is programmed by its listeners</b><span className="muted small">Pick a track and it airs for everyone tuned in. One pick per station every 30 minutes.</span></div>
         <button className="cta blue" onClick={() => { openPick(0); }}>Pick next</button>
       </div>
       <div className="cols">

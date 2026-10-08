@@ -438,7 +438,7 @@ func renderStations() string {
 func pickRules() string {
 	cooldown, replay, ahead, queue, perArtist, bookMin, bookMax, perHour, booked := radio.PickRules()
 	return "## How picks work\n\n" +
-		"- One pick per listener per station per " + strings.TrimPrefix(hours(cooldown), "1 ") + ", and one waiting per station.\n" +
+		"- One pick per listener per station every " + minutes(cooldown) + ", and one waiting per station.\n" +
 		"- " + text.Itoa(perArtist) + " waiting per artist on a station; a track is not picked again on a station within " + hours(replay) + ".\n" +
 		"- Genre stations take only their genre; New this week takes only new tracks.\n" +
 		"- At most " + hours(ahead) + " of picks ahead on a station, " + text.Itoa(queue) + " waiting at most.\n" +
@@ -448,6 +448,9 @@ func pickRules() string {
 
 // hours says a whole number of hours in words: "1 hour", "3 hours".
 func hours(sec int64) string { return plural(int(sec/3600), "hour") }
+
+// minutes says a whole number of minutes in words: "30 minutes".
+func minutes(sec int64) string { return plural(int(sec/60), "minute") }
 
 func renderStation(st int) string {
 	var b strings.Builder

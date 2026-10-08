@@ -48,7 +48,7 @@ export function gmt(unix: number): string {
 }
 
 // The realm's limits on listener picks (radio.gno: queueCooldown, maxAheadAir, maxQueue, replayGap, maxPerArtistQ).
-const PICK_COOLDOWN = 3600;
+const PICK_COOLDOWN = 1800;
 const REPLAY_GAP = 3 * 3600;
 const MAX_TRACK = 1200; // radio.maxTrack: a booked pick may move by up to a track, so the gap around one takes that much more
 const PICK_AHEAD = 7200;
@@ -83,7 +83,7 @@ const NEW_STATION = "New this week";
 /**
  * pickBlock says why a wallet cannot pick on a station, as radio.Queue / QueueAt
  * would: its own pick waiting (booked ones included), its last pick (lastAt,
- * the time it was queued) less than an hour ago, a full queue; for now (at 0)
+ * the time it was queued) less than 30 minutes ago, a full queue; for now (at 0)
  * no room in the 2 h of listener airtime for a track of dur seconds (0: none
  * chosen yet), booked picks aside; for a time, 15 min to 24 h ahead, 4
  * booked per hour and 15 booked per station. "" when it can pick.
