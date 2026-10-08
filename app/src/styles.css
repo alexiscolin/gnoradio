@@ -1474,3 +1474,5 @@ main h3:not([class]), .month { font-size: 18px; font-weight: 500; letter-spacing
   .dedic-run { white-space: normal; display: inline; }
   .dedic-copy, .dedic-run i { display: none; }
 }
+/* Support before the artist is verified: same place, quieter, leads to the artist page. */
+.act.support.soon { background: transparent; border: 1px dashed var(--line); color: var(--mute); }
