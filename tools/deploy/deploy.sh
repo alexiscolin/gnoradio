@@ -2,7 +2,7 @@
 # Deploy GnoRadio's packages to a public chain under your namespace, signed by
 # your own gnokey key (this script never sees the key, gnokey asks for it).
 #
-#   tools/deploy/deploy.sh [--dry-run] [--resubmit] <onyx|mainnet> <gnokey key name> <namespace>
+#   tools/deploy/deploy.sh [--dry-run] [--resubmit] [--release v2] <onyx|mainnet> <gnokey key name> <namespace>
 #
 # e.g. tools/deploy/deploy.sh onyx mykey nym-alexiscolin000 puts them at
 # gno.land/{p,r}/nym-alexiscolin000/gnoradio/..., next to gnogolf.
@@ -14,22 +14,25 @@
 # person does (docs/DEPLOY.md), so the wait can take days: stop with Ctrl-C and
 # run the same command again later, it skips what is live and waits on what is
 # parked. --resubmit sends a parked package again (after fixing it) instead of
-# waiting. --dry-run checks and prints everything, signs nothing.
+# waiting. --dry-run checks and prints everything, signs nothing. --release v2
+# deploys only the four rules realms of a new release, at that version: the
+# rest is on chain already (docs/DEPLOY.md, Upgrading the rules later).
 #
 # Whoever deploys becomes the data realm's owner and guardian and the admin of
 # catalog, radio and tickets (docs/DEPLOY.md: hand the guardian role to a
 # separate key before any public use).
 set -eu
-DRY= RESUBMIT=
+DRY= RESUBMIT= RELEASE=
 while [ $# -gt 0 ]; do
   case $1 in
     --dry-run) DRY=1 ;;
     --resubmit) RESUBMIT=1 ;;
+    --release) RELEASE=$2; shift ;;
     *) break ;;
   esac
   shift
 done
-[ $# -eq 3 ] || { sed -n '2,20p' "$0"; exit 2; }
+[ $# -eq 3 ] || { sed -n '2,23p' "$0"; exit 2; }
 NET=$1 KEY=$2 NS=$3/gnoradio
 case $NET in
   onyx) CHAIN=onyx-1 REMOTE=https://rpc.onyx.testnets.gno.land:443 WEB=https://onyx.testnets.gno.land POLL=5 TRIES=36 ;;
@@ -56,7 +59,7 @@ CAP=100000000 # ugnot, the most one package's storage deposit may take (vm defau
 OUT=build/$NET
 cd "$(dirname "$0")/../.."
 
-DIRS=$(python3 tools/deploy/stage.py "$NS" "$OUT")
+DIRS=$(python3 tools/deploy/stage.py "$NS" "$OUT" $RELEASE)
 touch "$OUT/gnowork.toml" # the staged packages resolve each other locally
 echo "lint ($GNO)"
 (cd "$OUT" && GNOHOME=$LINTHOME "$GNO" lint ./...) || { echo "lint failed: nothing submitted" >&2; exit 1; }
@@ -66,7 +69,8 @@ bytes=$(cat $(for d in $DIRS; do echo "$d"/*.gno; done) | wc -c | tr -d ' ')
 echo "$n packages, $bytes bytes of source, to $CHAIN as $NS"
 echo "fees: $((n * FEE / 1000000)).$((n * FEE % 1000000 / 100000)) GNOT at most ($FEE ugnot each)"
 echo "storage deposit: 100 ugnot per stored byte, charged when a package is enabled;"
-echo "  about 100 GNOT for this release (a devnet measured 91 GNOT for the code, safe/v0's word list alone 30)."
+if [ -n "$RELEASE" ]; then echo "  about 60 GNOT for the four rules realms (the code without p/ and data)."
+else echo "  about 100 GNOT for this release (a devnet measured 91 GNOT for the code, safe/v0's word list alone 30)."; fi
 echo "  Each submission allows up to $((CAP / 1000000)) GNOT; only what is stored is taken."
 
 # live | inert (parked) | absent, read straight from the node (no key needed)
@@ -118,4 +122,10 @@ for dir in $DIRS; do
   done
   echo "live: $path"
 done
-[ -n "$DRY" ] && echo "dry run: nothing was signed" || echo "done: $WEB/r/$NS/home/v1"
+[ -n "$DRY" ] && echo "dry run: nothing was signed" && exit 0
+if [ -n "$RELEASE" ]; then
+  echo "done. Now, as owner, propose them (each takes over once all are Ready, after the data realm's delay):"
+  for r in catalog radio tickets home; do
+    echo "  gnokey maketx call -pkgpath gno.land/r/$NS/data -func Propose -args $r -args gno.land/r/$NS/$r/$RELEASE -gas-fee 30000ugnot -gas-wanted 20000000 -chainid $CHAIN -remote $REMOTE -broadcast $KEY"
+  done
+else echo "done: $WEB/r/$NS/home/v1"; fi

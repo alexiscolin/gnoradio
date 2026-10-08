@@ -443,7 +443,7 @@ func RenounceAdmin(cur realm) {
 // Render points gnoweb visitors to the GnoRadio site; a retired release says
 // which realm took over.
 func Render(_ string) string {
-	home := strings.TrimPrefix(strings.TrimSuffix(self, "tickets/v1"), "gno.land") + "home/v1"
+	home := strings.TrimPrefix(data.Writer("home"), "gno.land") // the home of the release in force
 	out := "# GnoRadio · tickets\n\nThis contract holds GnoRadio's ticket rules; the tickets are NFTs of [" +
 		strings.TrimPrefix(nftPath, "gno.land") + "](" + strings.TrimPrefix(nftPath, "gno.land") +
 		"). The site lives at [" + home + "](" + home + ").\n"
