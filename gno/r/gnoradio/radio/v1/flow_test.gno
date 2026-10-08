@@ -86,23 +86,27 @@ func TestHourGenre(cur realm, t *testing.T) {
 		if i < 0 {
 			i = 0
 		}
-		if i > len(energy)-1 {
-			i = len(energy) - 1
+		if i > len(mainFlow)-1 {
+			i = len(mainFlow) - 1
 		}
-		uassert.Equal(t, energy[i], hourGenre(rd(), h*3600+1800), "hour "+text.Itoa64(h))
-		uassert.Equal(t, energy[i], hourGenre(rd(), 86400*400+h*3600)) // any day
+		uassert.Equal(t, mainFlow[i], hourGenre(rd(), h*3600+1800), "hour "+text.Itoa64(h))
+		uassert.Equal(t, mainFlow[i], hourGenre(rd(), 86400*400+h*3600)) // any day
 	}
-	uassert.Equal(t, 3, HourGenre(3*3600))   // 03:00 clamps to Ambient
-	uassert.Equal(t, 12, HourGenre(23*3600)) // 23:00 clamps to Metal & Punk
+	// Main stays on mainstream genres all day: never Ambient, Drum & Bass or Metal by default.
+	for h := int64(0); h < 24; h++ {
+		g := HourGenre(h * 3600)
+		uassert.True(t, g != 3 && g != 6 && g != 12 && g != 16, "hour "+text.Itoa64(h))
+	}
+	uassert.Equal(t, 8, HourGenre(3*3600))  // 03:00 clamps to Lo-fi Beats
+	uassert.Equal(t, 5, HourGenre(23*3600)) // 23:00 clamps to House
 	edit(cur, func(t *tx) {
-		t.setFlowAt(fLive+16, 1, 0) // Cinematic & Classical
-		t.setFlowAt(fLive+15, 1, 0) // Folk & Acoustic
+		t.setFlowAt(fLive+14, 1, 0) // Jazz & Blues
+		t.setFlowAt(fLive+8, 1, 0)  // Lo-fi Beats
 	})
-	uassert.Equal(t, 3, hourGenre(rd(), 5*3600))  // Cinematic is empty: Ambient, one step calmer
-	uassert.Equal(t, 14, hourGenre(rd(), 0*3600)) // Folk and Cinematic empty: Jazz & Blues
+	uassert.Equal(t, 15, hourGenre(rd(), 1*3600)) // Jazz and Lo-fi empty: Folk & Acoustic, the nearest
 	liveAll(cur, 0)
 	uassert.Equal(t, 0, hourGenre(rd(), 0))
-	edit(cur, func(t *tx) { t.setFlowAt(fLive+12, 1, 1) }) // only Metal & Punk, the far end
+	edit(cur, func(t *tx) { t.setFlowAt(fLive+12, 1, 1) }) // only Metal & Punk: Main still plays
 	for h := int64(0); h < 24; h++ {
 		uassert.Equal(t, 12, hourGenre(rd(), h*3600))
 	}
