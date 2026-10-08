@@ -22,6 +22,12 @@ import subprocess
 import sys
 import urllib.request
 
+# Sign with the chains' gnokey release, the one tools/deploy/deploy.sh builds (an older
+# gnokey on PATH may not match the chains); PATH's gnokey if it is not built yet.
+GNOKEY = os.environ.get("GNOKEY") or (
+    lambda p: p if os.access(p, os.X_OK) else "gnokey")(
+    os.path.expanduser("~/.cache/gno-toolchains/onyx-v1.5.0/gnokey"))
+
 NETS = {"onyx": ("onyx-1", "https://rpc.onyx.testnets.gno.land:443"),
         "mainnet": ("gnoland-1", "https://rpc.gno.land:443")}
 # gno practice: simulate, then gas wanted = gas used x 1.5, fee = that gas at the live price + a
@@ -72,7 +78,7 @@ def first_int(s):
 
 def call(net, key, pkg, func, args, password, dry, fee, gas, deposit):
     chain, remote = NETS[net]
-    cmd = ["gnokey", "maketx", "call", "-pkgpath", pkg, "-func", func]
+    cmd = [GNOKEY, "maketx", "call", "-pkgpath", pkg, "-func", func]
     for a in args:
         cmd += ["-args", str(a)]
     cmd += ["-gas-fee", "%dugnot" % fee, "-gas-wanted", str(gas), "-max-deposit", "%dugnot" % deposit,
