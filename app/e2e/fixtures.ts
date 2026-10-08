@@ -66,7 +66,8 @@ const PIXEL = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQ
 
 /**
  * offline keeps the suite off the internet: remote audio becomes a silent WAV (Range
- * honoured, so seeking works), remote images a pixel, any other remote call a 404.
+ * honoured, so seeking works), remote images a pixel, any other remote call a 404,
+ * /api/meta an empty answer.
  */
 async function offline(page: Page) {
   await page.route((u) => u.origin !== ORIGIN, async (route) => {
@@ -87,6 +88,8 @@ async function offline(page: Page) {
       body: WAV.subarray(from, to + 1),
     });
   });
+  // Audius and Jamendo pointers: no platform answer, so they keep their placeholder names.
+  await page.route("**/api/meta?*", (route) => route.fulfill({ status: 200, contentType: "application/json", body: "{}" }));
 }
 
 // ---- Fixtures ----
@@ -94,7 +97,7 @@ async function offline(page: Page) {
 interface Fixtures {
   /** errors collects console.error and page errors; the test fails if any remain at the end. */
   errors: string[];
-  /** jingles lists the /jingles/*.mp3 URLs requested so far. */
+  /** jingles lists the jingle URLs (archive.org gnoradio-jingles/*.mp3) requested so far. */
   jingles: string[];
   mobile: boolean;
 }
@@ -103,7 +106,7 @@ export const test = base.extend<Fixtures>({
   mobile: async ({ isMobile }, use) => { await use(isMobile); },
   jingles: async ({ page }, use) => {
     const seen: string[] = [];
-    page.on("request", (r) => { if (/\/jingles\/[^/]+\.mp3/.test(r.url())) seen.push(r.url()); });
+    page.on("request", (r) => { if (/\/gnoradio-jingles\/[^/]+\.mp3/.test(r.url())) seen.push(r.url()); });
     await use(seen);
   },
   errors: [async ({ page }, use) => {

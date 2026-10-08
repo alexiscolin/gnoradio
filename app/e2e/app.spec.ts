@@ -106,7 +106,7 @@ test("3. radio: Listen tunes in with the jingle, stations switch, media session 
   await expect(stop).toContainText("Stop");
   await expect(p.getByRole("button", { name: "Live" })).toHaveAttribute("aria-pressed", "true");
   await expect.poll(() => jingles.length).toBe(1);
-  expect(jingles[0]).toMatch(/\/jingles\/main(-\d)?\.mp3$/);
+  expect(jingles[0]).toMatch(/\/gnoradio-jingles\/main(-\d)?\.mp3$/);
 
   // The OS media session names what is on air: the player's title, and a track of Main's schedule now.
   const meta = await page.evaluate(() => navigator.mediaSession.metadata?.title ?? "");
@@ -126,7 +126,7 @@ test("3. radio: Listen tunes in with the jingle, stations switch, media session 
   p = await player(page, mobile);
   await expect(p.getByRole("button", { name: st.name, exact: true })).toBeVisible();
   await expect.poll(() => jingles.length).toBe(2);
-  expect(jingles[1]).toMatch(/\/jingles\/[a-z0-9-]+\.mp3$/);
+  expect(jingles[1]).toMatch(/\/gnoradio-jingles\/[a-z0-9-]+\.mp3$/);
   await expect.poll(() => page.evaluate(() => navigator.mediaSession.metadata?.album ?? "")).toBe(`${st.name} · live on GnoRadio`);
 });
 
@@ -162,7 +162,8 @@ test("4. library: search, play (no jingle), drag the dial", async ({ page, mobil
 test("5. pick next sheet: genre list, step 2, dedication check, time, wallet ask", async ({ page, mobile }) => {
   const { st, sheet } = await openPick(page, mobile);
   const inGenre = await rpc.tracks((t) => t.genre === st.genre);
-  const titles = inGenre.map((t) => t.title);
+  // A pointer shows its placeholder name (/api/meta answers nothing under test).
+  const titles = inGenre.map((t) => t.title || (t.audio.startsWith("jamendo:") ? "Jamendo track" : "Audius track"));
 
   // Step 1: only the station's genre.
   const rows = sheet.locator("button[aria-pressed]"); // the track rows
