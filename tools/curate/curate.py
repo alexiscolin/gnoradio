@@ -4,7 +4,7 @@
   curate.py fetch  [--seeds seeds.json] [--only SRC[,SRC]] [--seed ID] [--max-items N] [--include-review]
   curate.py hash   [--max N]                 sha256 (+ LUFS if ffmpeg) for non-Audius candidates
   curate.py batch  [--approved approved.json] [--dry-run]
-                                             build import_batch.json for catalog.ImportTrack;
+                                             build import_batch.json for radio.ImportTrack;
                                              every row is checked against the realm's rules first
   curate.py devseed [--per N] [--batch N]    local devnet only: Audius trending tracks per genre
                                              -> gno/r/gnoradio/devseed/v0/data.gno (gitignored)
@@ -150,7 +150,7 @@ def spdx_license(url):
 
 
 # ---------------------------------------------------------------- realm rules
-# Mirrors gno/r/gnoradio/catalog/v0/validate.gno so a batch never panics on chain.
+# Mirrors gno/r/gnoradio/catalog/v1/validate.gno so a batch never panics on chain.
 
 TEXT_PUNCT = set(" .,'-!?:/&")
 NAME_PUNCT = set(" .'-&")
@@ -257,7 +257,7 @@ def attribution(title, artist, spdx, via=""):
 
 
 def track_problems(t):
-    """Every reason catalog.ImportTrack would panic on this batch row."""
+    """Every reason radio.ImportTrack would panic on this batch row."""
     out = []
     if not text_ok(t["title"], 1, MAX_TITLE):
         out.append("title")

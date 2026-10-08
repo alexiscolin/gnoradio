@@ -9,16 +9,22 @@ path constants), without tests and without the dev-only devseed realm.
 
     python3 tools/deploy/stage.py nym-alexiscolin000/gnoradio build/onyx
 
-Deploy order (each package imports only earlier ones): p/text, p/svg, p/store,
-p/safe, p/blocks, r/catalog, r/radio, r/tickets, r/home. The app then builds
-with VITE_GNORADIO_NS set to the same namespace.
+Deploy order (each package imports only earlier ones): ORDER below. The data
+realm has no version: it is never replaced (docs/ARCHITECTURE-v1.md). Deploy
+release 1 right after data: data names <ns>/{catalog,radio,tickets,home}/v1 its
+writers from the start, so nobody else may publish to those paths. The app
+then builds with VITE_GNORADIO_NS set to the same namespace.
 """
 import pathlib
 import re
 import shutil
 import sys
 
-ORDER = ["p/text", "p/svg", "p/store", "p/safe", "p/blocks", "r/catalog", "r/radio", "r/tickets", "r/home"]
+ORDER = [
+    "p/text/v0", "p/svg/v0", "p/store/v0", "p/safe/v0", "p/blocks/v0", "p/role/v0",
+    "r/data",
+    "r/catalog/v1", "r/tickets/nft", "r/tickets/v1", "r/radio/v1", "r/home/v1",
+]
 
 
 def stage(ns: str, out: pathlib.Path) -> list[pathlib.Path]:
@@ -29,10 +35,10 @@ def stage(ns: str, out: pathlib.Path) -> list[pathlib.Path]:
         shutil.rmtree(out)
     staged = []
     for pkg in ORDER:
-        kind, name = pkg.split("/")
-        dst = out / kind / ns / name / "v0"
+        kind, rest = pkg.split("/", 1)
+        dst = out / kind / ns / rest
         dst.mkdir(parents=True)
-        for f in sorted((src / kind / "gnoradio" / name / "v0").iterdir()):
+        for f in sorted((src / kind / "gnoradio" / rest).iterdir()):
             if f.name.endswith("_test.gno") or f.suffix not in (".gno", ".toml"):
                 continue
             text = f.read_text()

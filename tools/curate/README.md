@@ -1,6 +1,6 @@
 # Picking the launch catalog
 
-This pipeline produces the tracks the admin imports with `catalog.ImportTrack` (see `docs/SPEC.md` §5).
+This pipeline produces the tracks the admin imports with `radio.ImportTrack` (see `docs/SPEC.md` §5).
 It only uses the Python 3 standard library; `ffmpeg` is optional (loudness in LUFS).
 
 **Golden rule: everything starts from the allowlist `seeds.json`.** The pipeline never runs an open search.
