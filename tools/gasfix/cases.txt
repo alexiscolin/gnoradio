@@ -1,0 +1,126 @@
+# The gas filetests tools/gasfix/gen.py writes: a header line
+# realm|name|sizes, then the body of main, indented by a tab. Each case
+# becomes <realm>/v1/filetests/z_gas_<name>_<size>_filetest.gno: the
+# realm's template (radio.tmpl, catalog.tmpl) for that size, then main.
+radio|noop|5k,20k
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
+
+radio|note|5k,20k
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
+	radio.QueueWithNote(cross(cur), 5, track(5, 5, 9), "for Marie", t0+600, fanCert)
+
+radio|publish|5k,20k
+	testing.SetRealm(testing.NewUserRealm(owner(2)))
+	radio.PublishTrack(cross(cur), "New song", 3, "3:30", "cc by", "none", "", ipfs, "", "", "", "", "yes")
+
+radio|import1|5k,20k
+	testing.SetRealm(testing.NewUserRealm(catalog.Admin()))
+	a := strconv.Itoa(catalog.CreateArtist(cross(cur), catalog.OriginCurated, "Launch Band", "", ""))
+	radio.ImportTracks(cross(cur), a+"\tLaunch song\t3\t3:30\tCC0-1.0\t\t"+ipfs+"\t\t\t\thttps://archive.org/details/launch\tLaunch by the band")
+
+radio|import25|5k,20k
+	testing.SetRealm(testing.NewUserRealm(catalog.Admin()))
+	a := strconv.Itoa(catalog.CreateArtist(cross(cur), catalog.OriginCurated, "Launch Band", "", ""))
+	b := a + "\tLaunch song\t3\t3:30\tCC0-1.0\t\t" + ipfs + "\t\t\t\thttps://archive.org/details/launch\tLaunch by the band"
+	for i := 1; i < 25; i++ {
+		b += "\n" + a + "\tLaunch song\t3\t3:30\tCC0-1.0\t\t" + ipfs + "\t\t\t\thttps://archive.org/details/launch\tLaunch by the band"
+	}
+	radio.ImportTracks(cross(cur), b)
+
+radio|queue|5k,20k
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
+	radio.Queue(cross(cur), 5, track(5, 5, 9))
+
+radio|queueat|5k,20k
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
+	radio.QueueAt(cross(cur), 5, track(5, 5, 9), t0+3600)
+
+radio|queuemain|5k,20k
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
+	radio.Queue(cross(cur), 0, track(5, 5, 9))
+
+radio|report|5k,20k
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("reporter")))
+	radio.ReportNote(cross(cur), 7, t0+210)
+
+radio|skip|5k,20k
+	testing.SkipHeights(720)
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
+
+radio|sponsored|5k,20k
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("spon")))
+	radio.QueueSponsored(cross(cur), 5, track(5, 5, 9))
+
+radio|refresh|5k,20k
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
+	radio.Refresh(cross(cur), track(5, 3, 2))
+
+radio|sync|5k,20k
+	testing.SkipHeights(720)
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
+	radio.Sync(cross(cur), 20)
+
+radio|tip|5k,20k
+	testing.SkipHeights(50)
+	testing.IssueCoins(radioAddr, chain.Coins{{"ugnot", 1_000_000}})
+	testing.SetOriginSend(chain.Coins{{"ugnot", 1_000_000}})
+	testing.SetRealm(testing.NewUserRealm(testutils.TestAddress("fan")))
+	radio.TipOnAir(cross(cur), 6, track(6, 0, 1), 0, "")
+
+catalog|follow|5k
+	testing.SetRealm(testing.NewUserRealm(fan))
+	catalog.Follow(cross(cur), 1)
+
+catalog|like|5k,20k
+	testing.SetRealm(testing.NewUserRealm(fan))
+	catalog.Like(cross(cur), 123)
+
+catalog|like2|5k,20k
+	testing.SetRealm(testing.NewUserRealm(chain.PackageAddress("gno.land/r/seed/u0")))
+	catalog.Like(cross(cur), 2) // the same range as its like of track 1
+
+catalog|noop|5k,20k
+	_ = catalog.TrackCount()
+
+catalog|publish|5k,20k
+	testing.SetRealm(testing.NewUserRealm(owner(1)))
+	testing.SetRealm(testing.NewCodeRealm("gno.land/r/gnoradio/radio/v1")) // radio.PublishTrack does this
+	catalog.PublishFor(cross(cur), owner(1), "Song", 2, "3:30", "cc by", "none", "", ipfs, "", "", "", "", "yes")
+
+catalog|regpub|5k
+	w := testutils.TestAddress("newartist")
+	testing.SetRealm(testing.NewUserRealm(w))
+	catalog.RegisterArtist(cross(cur), "Fresh One", "")
+	testing.SetRealm(testing.NewUserRealm(w))
+	testing.SetRealm(testing.NewCodeRealm("gno.land/r/gnoradio/radio/v1")) // radio.PublishTrack does this
+	catalog.PublishFor(cross(cur), w, "Song", 2, "3:30", "cc by", "none", "", ipfs, "", "", "", "", "yes")
+
+catalog|tip|5k,20k
+	testing.IssueCoins(chain.PackageAddress("gno.land/r/gnoradio/catalog/v1"), chain.Coins{{"ugnot", 1_000_000}})
+	testing.SetOriginSend(chain.Coins{{"ugnot", 1_000_000}})
+	testing.SetRealm(testing.NewUserRealm(fan))
+	catalog.Tip(cross(cur), 123)
+
+catalog|tracks20|5k,20k
+	println(len(catalog.TracksJSON(0, 20)) > 0)
+
+radio|act10|5k
+	println(len(radio.ActivityJSON(10)) > 0)
+
+radio|act64|5k
+	println(len(radio.ActivityJSON(64)) > 0)
+
+radio|sched|5k
+	println(len(radio.ScheduleJSON(0, 3600)) > 0)
+
+catalog|act10|5k
+	println(len(catalog.ActivityJSON(10)) > 0)
+
+catalog|act64|5k
+	println(len(catalog.ActivityJSON(64)) > 0)
+
+radio|nowplaying|5k,20k
+	testing.SkipHeights(6 * 3600 / 5)
+	println(len(radio.ScheduleJSON(0, 7200)) > 0)
+	id, _, _ := radio.NowPlaying(0)
+	println(id > 0)
