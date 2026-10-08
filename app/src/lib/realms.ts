@@ -21,13 +21,16 @@ const unset = (v: string | undefined): string | undefined => (v === "" ? undefin
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 const NS: string = unset(import.meta.env === undefined ? undefined : import.meta.env.VITE_GNORADIO_NS) ?? unset(runtimeEnv("VITE_GNORADIO_NS")) ?? "gnoradio";
 
-// Release 1 of the rules realms. data is permanent: it holds every record and
-// the promo vault, and names the realms in force (data.Writers()).
+// The release of the rules realms in force (VITE_RULES_VERSION, v1 by default: set it on the site
+// once a release took over, docs/DEPLOY.md). data is permanent: it holds every record and the promo
+// vault, and names the realms in force (data.Writers()).
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+const V: string = unset(import.meta.env === undefined ? undefined : import.meta.env.VITE_RULES_VERSION) ?? unset(runtimeEnv("VITE_RULES_VERSION")) ?? "v1";
 export const REALMS = {
-  home: `gno.land/r/${NS}/home/v1`,
-  catalog: `gno.land/r/${NS}/catalog/v1`,
-  radio: `gno.land/r/${NS}/radio/v1`,
-  tickets: `gno.land/r/${NS}/tickets/v1`,
+  home: `gno.land/r/${NS}/home/${V}`,
+  catalog: `gno.land/r/${NS}/catalog/${V}`,
+  radio: `gno.land/r/${NS}/radio/${V}`,
+  tickets: `gno.land/r/${NS}/tickets/${V}`,
   data: `gno.land/r/${NS}/data`,
   nft: `gno.land/r/${NS}/tickets/nft`,
 } as const;
