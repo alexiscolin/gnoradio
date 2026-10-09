@@ -15,12 +15,12 @@ Built by tools/curate/albums.py from archive.org; created on chain by tools/depl
 | Aquatone | Alpha Song | 2018 | 10 | — |
 | Aquatone | Autumn | 2019 | 11 | — |
 | Aquatone | Mental Images | 2018 | 12 | — |
-| Artem Folevski | Solid Paranoid / The Sense (Remixes) | 2008 | 3 | yes |
+| Artem Folevski | Solid Paranoid / The Sense - Remixes | 2008 | 3 | yes |
 | Berestez | Plokcity EP | 2003 | 3 | — |
 | berio molina | Fola | 2005 | 7 | — |
-| Brad Sucks | Guess Who's a Mess (mariteaux Remaster) | 2012 | 11 | yes |
-| Brad Sucks | I Don't Know What I'm Doing (mariteaux Remaster) | 2003 | 13 | yes |
-| Brad Sucks | Out of It (mariteaux Remaster) | 2008 | 10 | yes |
+| Brad Sucks | Guess Who's a Mess - mariteaux Remaster | 2012 | 11 | yes |
+| Brad Sucks | I Don't Know What I'm Doing - mariteaux Remaster | 2003 | 13 | yes |
+| Brad Sucks | Out of It - mariteaux Remaster | 2008 | 10 | yes |
 | Broke For Free | Directionless EP | 2011 | 6 | yes |
 | Broke For Free | Grass Hop | 2012 | 6 | yes |
 | Broke For Free | Slam Funk | 2010 | 12 | yes |
@@ -40,13 +40,13 @@ Built by tools/curate/albums.py from archive.org; created on chain by tools/depl
 | Come Taste The Misery | Stone Dead Ballerina | 2020 | 5 | yes |
 | Dexter Britain | Creative Commons Selection | 2012 | 15 | yes |
 | Dexter Britain | Creative Commons Volume. 5 | 2012 | 10 | yes |
-| Disco Romancin' | Disco Romance (TDCDV003) | 2011 | 8 | — |
-| Disco Romancin' | DiscoTech D'Amour (TDC043) | 2011 | 8 | — |
+| Disco Romancin' | Disco Romance | 2011 | 8 | — |
+| Disco Romancin' | DiscoTech D'Amour | 2011 | 8 | — |
 | Do | Tokitik kanpo | 2006 | 3 | — |
 | Dub Terminator | Watch Your Dubstep - EP | 2009 | 4 | yes |
 | DuBoLoGy | Dub Lab | 2011 | 8 | yes |
 | Edward J. Powley | Generative I: Conway's Game Of Life | 2006 | 4 | yes |
-| Floating Mind | FloatingMind "Human Kalor" | 2017 | 3 | yes |
+| Floating Mind | Human Kalor | 2017 | 3 | yes |
 | Fonkdongo | Demondongod | 2012 | 7 | yes |
 | Geese | We Be Geese | 2013 | 8 | yes |
 | genetic-trance | Fandorin Projet 2 | 2012 | 13 | yes |
@@ -59,15 +59,15 @@ Built by tools/curate/albums.py from archive.org; created on chain by tools/depl
 | Jahzzar | Kuddelmuddel | 2015 | 7 | yes |
 | Jahzzar | Message | 2015 | 10 | yes |
 | Jahzzar | Sele | 2013 | 9 | yes |
-| Jahzzar | Smoke Factory (Excerpt) | 2012 | 3 | yes |
+| Jahzzar | Smoke Factory - Excerpt | 2012 | 3 | yes |
 | Jazz Friends | Guitars in Jazz | 2013 | 8 | yes |
 | Jonathan Coulton | Smoking Monkey | 2003 | 12 | yes |
 | Josh Woodward | Crawford Street | 2005 | 21 | yes |
 | Josh Woodward | Here Today | 2008 | 8 | yes |
 | Josh Woodward | Josh Woodward Selection | 2011 | 15 | — |
-| Josh Woodward | The Simple Life (Part 2) | 2008 | 16 | yes |
+| Josh Woodward | The Simple Life - Part 2 | 2008 | 16 | yes |
 | K.M.Krebs | The Jade Furnace I | 2006 | 16 | yes |
-| Kai Engel | Calls and Echoes (LP, 2014) | 2014 | 9 | yes |
+| Kai Engel | Calls and Echoes - LP, 2014 | 2014 | 9 | yes |
 | Kai Engel | Deathless: The Renaissance | 2014 | 9 | yes |
 | Kai Engel | Idea | 2018 | 5 | yes |
 | Kai Engel | Rain Catcher | 2014 | 7 | — |
@@ -97,7 +97,7 @@ Built by tools/curate/albums.py from archive.org; created on chain by tools/depl
 | Monplaisir | American Dreams Original Soundtrack | 2019 | 9 | — |
 | Monplaisir | On ne court plus | 2017 | 15 | yes |
 | Monplaisir | Relaxing Ukulele | 2017 | 8 | yes |
-| Monplaisir | Surtout Ne Pas Se Perdre ( 2011-2016) | 2017 | 28 | yes |
+| Monplaisir | Surtout Ne Pas Se Perdre - 2011-2016 | 2017 | 28 | yes |
 | Muflon Dub Sound System | Hopeful Dub | 2014 | 8 | yes |
 | Muflon Dub Sound System | Massive Sound To Mash Down Jericho Walls | 2013 | 3 | yes |
 | mystified | Fractal Diner 3 | 2005 | 8 | yes |
@@ -120,7 +120,7 @@ Built by tools/curate/albums.py from archive.org; created on chain by tools/depl
 | Stellardrone | Light Years | 2013 | 10 | yes |
 | Stray Dogg | Almost | 2011 | 9 | yes |
 | Sugar Mama Blues | Adiós Universal | 2015 | 3 | yes |
-| The Alpha Conspiracy | Cipher (Sampler) | 2003 | 4 | — |
+| The Alpha Conspiracy | Cipher - Sampler | 2003 | 4 | — |
 | The Freak Fandango Orchestra | Love, death and a drunken monkey | 2011 | 6 | yes |
 | The Freak Fandango Orchestra | Tales Of A Dead Fish | 2011 | 6 | yes |
 | Timecrawler 82 | Infinity | 2021 | 5 | yes |
