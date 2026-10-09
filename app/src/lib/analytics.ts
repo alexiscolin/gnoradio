@@ -19,7 +19,8 @@ type Props = Record<string, string | number | boolean | null | undefined>;
 /** GnoRadio's own events: what autocapture and the pageviews can't say. */
 export interface Events {
   /** Sound starts: on a station (live) or a track of the library. */
-  listen: { mode: "live" | "library"; station?: number };
+  /** station and genre are names (dashboards read them as they are), not ids. */
+  listen: { mode: "live" | "library"; station?: string; genre?: string };
   /** An on-chain action (useActions' label: Like, Pick next, Tip…) as it goes. */
   action: { label: string; stage: "sent" | "ok" | "cancelled" | "failed"; via: "adena" | "session" | "gnokey" };
   /** A link shared, by what it points at. */
@@ -29,7 +30,7 @@ export interface Events {
   /** A track saved in this browser, or unsaved. */
   save: { on: boolean };
   /** The pick sheet, step by step: open, a track chosen, pushed, or closed at a step without pushing. */
-  pick_step: { step: "open" | "track" | "push" | "close"; at?: 1 | 2; dedication?: boolean; booked?: boolean; sponsored?: boolean };
+  pick_step: { step: "open" | "track" | "push" | "close"; at?: 1 | 2; station?: string; genre?: string; dedication?: boolean; booked?: boolean; sponsored?: boolean };
   /** A dedication the on-chain word filter refused before signing (never its text). */
   dedication_refused: { by: "filter" };
   /** A library search, by how many tracks it found (never what was typed). */

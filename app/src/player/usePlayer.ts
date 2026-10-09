@@ -231,7 +231,8 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
       const live = ids.filter((id) => !isDead(catalog.current?.byId.get(id)));
       const first = [...ids.slice(start), ...ids.slice(0, start)].find((id) => live.includes(id));
       if (first === undefined) return;
-      track("listen", { mode: "library" });
+      const c = catalog.current;
+      track("listen", { mode: "library", genre: c?.genres.find((g) => g.id === c.byId.get(first)?.genre)?.name ?? "" });
       stopLive();
       latest.current = { ...latest.current, mode: "library" };
       setMode("library");
@@ -363,7 +364,7 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
 
   const goLive = useCallback(
     (st: number) => {
-      track("listen", { mode: "live", station: st });
+      track("listen", { mode: "live", station: catalog.current?.stations.find((x) => x.id === st)?.name ?? `#${String(st)}` });
       const same = st === latest.current.station && latest.current.mode === "live"; // entries read are this station's
       if (st !== latest.current.station) setSynced(false);
       stopFade(audioFade);

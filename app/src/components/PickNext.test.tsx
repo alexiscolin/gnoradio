@@ -28,6 +28,7 @@ const t = (id: number, title: string, genre: number, artist = 1) => ({ id, title
 const tracks = [t(1, "On Air", 11), t(2, "Their Pick", 11), t(3, "Fresh Ambient", 11, 7), t(4, "Loud Rock", 2), t(5, "Old Ambient", 11)];
 const cat = {
   stations: [{ id: 1, name: "Ambient", genre: 11 }],
+  genres: [{ id: 11, name: "Ambient" }],
   tracks,
   byId: new Map(tracks.map((x) => [x.id, x])),
   artists: new Map([[7, { id: 7, owner: "g1owner", verified: true, promo: 10 }]]),

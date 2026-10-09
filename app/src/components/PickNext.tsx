@@ -273,7 +273,7 @@ export function PickNext({ cat, station: initial, suggest, me = "", pending = ""
     setSent(chosen.id);
     setAsked(true);
     pushed.current = true;
-    track("pick_step", { step: "push", dedication: !sponsoredPick && note.trim() !== "", booked: when > 0, sponsored: sponsoredPick });
+    track("pick_step", { step: "push", station: name, genre: cat.genres.find((g) => g.id === chosen.genre)?.name ?? "", dedication: !sponsoredPick && note.trim() !== "", booked: when > 0, sponsored: sponsoredPick });
     onPick(chosen, station, sponsoredPick ? "" : note.trim(), sponsoredPick, when);
   };
   const timing = picks.length === 0 ? (takeover ? "right away" : "plays next") : `after ${String(picks.length)} pick${picks.length > 1 ? "s" : ""}`;
