@@ -76,7 +76,7 @@ export function sharedValue(tracks: readonly Track[], of: (t: Track) => string):
  * TrackRows lists tracks to play in order. What all rows share (one artist,
  * one license, as in an album) is said once by the page, not on every row.
  */
-export function TrackRows({ tracks, player, actions, saved }: { readonly tracks: readonly Track[]; readonly player: Player; readonly actions: Actions; readonly saved: Saved }) {
+export function TrackRows({ tracks, player, actions, saved, go }: { readonly tracks: readonly Track[]; readonly player: Player; readonly actions: Actions; readonly saved: Saved; readonly go?: Navigate }) {
   const ids = tracks.map((t) => t.id);
   const oneArtist = sharedValue(tracks, (t) => t.artistName) !== "";
   const oneRights = sharedValue(tracks, rightsLabel) !== "";
@@ -102,9 +102,16 @@ export function TrackRows({ tracks, player, actions, saved }: { readonly tracks:
               <Cover t={t} size="40px" />
               <span className="tt">
                 <b>{t.title}{isDead(t) && <span className="sr"> · {UNAVAILABLE}</span>}</b>
-                {!(oneArtist && oneRights) && <span className="muted">{[oneArtist ? "" : t.artistName, oneRights ? "" : rightsLabel(t)].filter(Boolean).join(" · ")}</span>}
+                {!(oneArtist && oneRights) && <span className={`muted${go && !oneArtist ? " under" : ""}`}>{[oneArtist ? "" : t.artistName, oneRights ? "" : rightsLabel(t)].filter(Boolean).join(" · ")}</span>}
               </span>
             </button>
+            {/* The artist opens their page: a link over the row's play button, on the same line (the text under it is hidden). */}
+            {go && !oneArtist && (
+              <span className="tt-meta muted">
+                <button className="link" onClick={() => { go({ k: "artist", id: t.artist }); }}>{t.artistName}</button>
+                {!oneRights && ` · ${rightsLabel(t)}`}
+              </span>
+            )}
             <span className="muted likes">{t.likes > 0 && `♥ ${String(t.likes)}`}</span>
             <span className="row-acts">
               <button className="row-act like" aria-pressed={like.on} aria-busy={like.busy} disabled={like.busy} aria-label={`Like ${t.title}`} title={`${like.on ? "Unlike" : "Like"} · public, on-chain`} onClick={like.toggle}>

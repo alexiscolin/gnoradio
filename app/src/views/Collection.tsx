@@ -43,7 +43,7 @@ export function CollectionView({ cat, player, go, actions, saved, list }: { read
         </nav>
         {tracks.length > 1 && <button className="cta small" onClick={() => { player.playList(tracks.map((t) => t.id), 0); }}>Play all</button>}
       </h3>
-      {tracks.length === 0 ? <Empty text={empty}><button className="cta" onClick={() => { go({ k: "library", genre: 0 }); }}>Open the Library <Icon name="arrow-right" size={16} className="nudge" /></button></Empty> : <TrackRows key={list} tracks={tracks} player={player} actions={actions} saved={saved} />}
+      {tracks.length === 0 ? <Empty text={empty}><button className="cta" onClick={() => { go({ k: "library", genre: 0 }); }}>Open the Library <Icon name="arrow-right" size={16} className="nudge" /></button></Empty> : <TrackRows key={list} tracks={tracks} player={player} actions={actions} saved={saved} go={go} />}
     </section>
   );
 }

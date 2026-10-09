@@ -272,7 +272,7 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
           {found.tracks.length > 0 && (
             <>
               <h3 className="sub">Tracks <span className="muted small">· Enter plays the first</span></h3>
-              <TrackRows tracks={found.tracks} player={player} actions={actions} saved={saved} />
+              <TrackRows tracks={found.tracks} player={player} actions={actions} saved={saved} go={go} />
             </>
           )}
           {found.lists.length > 0 && (
@@ -311,7 +311,7 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
           {genre === 0 ? <h3 className="sub sub-row">All tracks {orders}</h3> : inGenre.length > 0 && (
             <div className="head-actions genre-play"><PlayButton label="Play all" tracks={inGenre} onClick={() => { player.playList(inGenre.map((t) => t.id), 0); }} />{orders}</div>
           )}
-          {inGenre.length === 0 ? <Empty text={NO_TRACK}><MakeMusic go={go} /></Empty> : <TrackRows key={`${String(genre)}/${order}`} tracks={inGenre} player={player} actions={actions} saved={saved} />}
+          {inGenre.length === 0 ? <Empty text={NO_TRACK}><MakeMusic go={go} /></Empty> : <TrackRows key={`${String(genre)}/${order}`} tracks={inGenre} player={player} actions={actions} saved={saved} go={go} />}
           {cat.albums.length > 0 && (
             <>
               <h3 className="sub">Albums</h3>

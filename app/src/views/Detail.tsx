@@ -162,7 +162,7 @@ export function AlbumView({ cat, player, go, id, actions, saved, openSupport }: 
           <Proof page={gnowebOf({ k: "album", id: al.id })} code={codeURL("publish")} label={al.title} />
         </div>
       </div>
-      <TrackRows tracks={tracks} player={player} actions={actions} saved={saved} />
+      <TrackRows tracks={tracks} player={player} actions={actions} saved={saved} go={go} />
     </section>
   );
 }
@@ -180,7 +180,7 @@ export function PlaylistView({ cat, player, go, id, actions, saved }: DetailProp
       <Head a={pl.title} note={<>Public playlist by <Who address={pl.owner} shown={who} go={go} /> · {plural(pl.tracks.length, "track")}</>}
         right={<div className="head-actions"><PlayButton tracks={plTracks} onClick={() => { player.playList(pl.tracks, 0); }} /><ShareButton title={pl.title} refBy={walletOf(actions)} />{mine && <button className="btn" aria-expanded={editing} onClick={() => { setEditing(!editing); }}>Edit</button>}</div>} />
       {editing && <PlaylistForm cat={cat} actions={actions} edit={pl} onDone={() => { setEditing(false); }} />}
-      <TrackRows tracks={plTracks} player={player} actions={actions} saved={saved} />
+      <TrackRows tracks={plTracks} player={player} actions={actions} saved={saved} go={go} />
       <Proof page={gnowebOf({ k: "playlist", id: pl.id })} code={codeURL("playlist")} label={pl.title} />
     </section>
   );

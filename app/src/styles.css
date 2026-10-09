@@ -83,6 +83,11 @@ a { color: inherit; }
 .tt { display: flex; flex-direction: column; min-width: 0; }
 .tt b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tt span { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the meta line with a clickable artist: drawn over the play button's own (kept for its height, hidden) */
+.tt span.under { visibility: hidden; }
+.tt-meta { grid-column: 3; grid-row: 1; align-self: end; margin-bottom: 1px; position: relative; z-index: 1; pointer-events: none; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.tt-meta .link { pointer-events: auto; color: inherit; font: inherit; }
+.tt-meta .link:hover { color: var(--ink); text-decoration: underline; }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 .card { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
