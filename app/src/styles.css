@@ -74,7 +74,7 @@ a { color: inherit; }
 .rows { display: flex; flex-direction: column; }
 .track { position: relative; display: grid; grid-template-columns: 30px 40px minmax(0, 1fr) 54px auto 46px; gap: 12px; align-items: center; border-top: 1px solid var(--soft); }
 /* the row is a container: its play button spans the first three columns and covers the whole row (::after) */
-.track-play { grid-column: 1 / 4; display: grid; grid-template-columns: subgrid; align-items: center; min-width: 0; }
+.track-play { grid-column: 1 / 4; grid-row: 1; display: grid; grid-template-columns: subgrid; align-items: center; min-width: 0; }
 .track-play::after { content: ""; position: absolute; inset: 0; border-radius: 14px; }
 .track-play:focus-visible { outline: none; }
 .track-play:focus-visible::after { outline: 2px solid var(--ink); outline-offset: -2px; }
@@ -85,9 +85,9 @@ a { color: inherit; }
 .tt span { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 /* the meta line with a clickable artist: drawn over the play button's own (kept for its height, hidden) */
 .tt span.under { visibility: hidden; }
-.tt-meta { grid-column: 3; grid-row: 1; align-self: end; margin-bottom: 1px; position: relative; z-index: 1; pointer-events: none; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.tt-meta .link { pointer-events: auto; color: inherit; font: inherit; }
-.tt-meta .link:hover { color: var(--ink); text-decoration: underline; }
+.tt-meta { grid-column: 3; grid-row: 1; align-self: end; position: relative; z-index: 1; pointer-events: none; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.tt-meta .link { pointer-events: auto; color: inherit; font: inherit; text-decoration: none; padding: 0; } /* looks like the line it was */
+.tt-meta .link:hover { color: var(--ink); }
 
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; }
 .card { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
