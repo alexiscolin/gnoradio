@@ -1,4 +1,4 @@
-# Curated albums (133)
+# Curated albums (131)
 
 Built by tools/curate/albums.py from archive.org; created on chain by tools/deploy/albums.py.
 
@@ -31,8 +31,7 @@ Built by tools/curate/albums.py from archive.org; created on chain by tools/depl
 | Chris Zabriskie | Divider | 2011 | 6 | yes |
 | Chris Zabriskie | I Am a Man Who Will Fight for Your Honor | 2009 | 7 | yes |
 | Chris Zabriskie | Preludes | 2009 | 6 | yes |
-| Chris Zabriskie | Reappear | 2012 | 3 | yes |
-| Chris Zabriskie | Reappear | 2012 | 5 | yes |
+| Chris Zabriskie | Reappear | 2012 | 8 | yes |
 | Chris Zabriskie | The Dark Glow of the Mountains | 2009 | 5 | yes |
 | Cloudkicker | A New Heavenly Body | 2011 | 3 | yes |
 | Cloudkicker | Beacons | 2010 | 10 | yes |
@@ -74,8 +73,7 @@ Built by tools/curate/albums.py from archive.org; created on chain by tools/depl
 | Kellee Maize | Age of Feminine | 2007 | 8 | yes |
 | Kellee Maize | Aligned Archetype | 2010 | 6 | yes |
 | Kellee Maize | Kellee Maize Selection | 2011 | 10 | — |
-| Kimiko Ishizaka | The Open Goldberg Variations | 2012 | 23 | yes |
-| Kimiko Ishizaka | The Open Goldberg Variations | 2012 | 17 | yes |
+| Kimiko Ishizaka | The Open Goldberg Variations | 2012 | 40 | yes |
 | Komiku | It's Time For Adventure! Vol 2 | 2018 | 15 | yes |
 | Komiku | Poupi's incredible adventures ! | 2018 | 23 | yes |
 | Lee Rosevere | Play 3 | 2007 | 4 | — |
@@ -128,7 +126,7 @@ Built by tools/curate/albums.py from archive.org; created on chain by tools/depl
 | Tinyfolk | Black Bears | 2010 | 11 | yes |
 | Tricky Diesel | Give Me a Beat | 2013 | 12 | yes |
 | Tryad | Listen | 2006 | 13 | yes |
-| Tryad | Public Domain | 2005 | 12 | yes |
+| Tryad | Public Domain | 2005 | 14 | yes |
 | UltraCat | Disco High | 2010 | 3 | — |
 | Various Artists | Assembly EP | 2003 | 5 | — |
 | Various Artists | Avaruusromua EP | 2003 | 4 | — |

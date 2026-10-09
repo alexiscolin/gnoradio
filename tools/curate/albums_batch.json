@@ -211,20 +211,6 @@
    ]
   },
   {
-   "artist_key": "archive:chris zabriskie",
-   "artist": "Chris Zabriskie",
-   "item": "ChrisZabriskieReappear",
-   "title": "Reappear",
-   "year": 2012,
-   "cover": "https://archive.org/download/ChrisZabriskieReappear/cover.jpg",
-   "cover_sha256": "937e34457f738b350944a94a9e00033d2e53849f5f96e63754def66972c02e2c",
-   "audios": [
-    "https://archive.org/download/ChrisZabriskieReappear/Chris%20Zabriskie%20-%20Reappear%20-%2001%20Unfoldment%2C%20Revealment%2C%20Evolution%2C%20Exposition%2C%20Integration%2C%20Arson.mp3",
-    "https://archive.org/download/ChrisZabriskieReappear/Chris%20Zabriskie%20-%20Reappear%20-%2002%20Readers%21%20Do%20You%20Read-.mp3",
-    "https://archive.org/download/ChrisZabriskieReappear/Chris%20Zabriskie%20-%20Reappear%20-%2006%20Chance%2C%20Luck%2C%20Errors%20in%20Nature%2C%20Destruction%20as%20a%20Finale.mp3"
-   ]
-  },
-  {
    "artist_key": "archive:cloudkicker",
    "artist": "Cloudkicker",
    "item": "CloudkickerBeacons",
@@ -1097,7 +1083,24 @@
     "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-27Variatio26A2Clav..mp3",
     "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-28Variatio27A2Clav.CanoneAllaNona-Variatio28A2Clav..mp3",
     "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-29Variatio29A1Ovvero2Clav..mp3",
-    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-30Variatio30A1Clav.Quodlibet.mp3"
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-30Variatio30A1Clav.Quodlibet.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_01_-_Aria.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_14_-_Variatio_13_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_16_-_Variatio_15_a_1_Clav_Canone_alla_Quinta.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_17_-_Variatio_16_a_1_Clav_Ouverture.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_18_-_Variatio_17_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_19_-_Variatio_18_a_1_Clav_Canone_alla_Sexta.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_21_-_Variatio_20_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_22_-_Variatio_21_Canone_alla_Settima.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_23_-_Variatio_22_a_1_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_25_-_Variatio_24_a_1_Clav_Canone_allOttava.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_26_-_Variatio_25_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_27_-_Variatio_26_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_28_-_Variatio_27_a_2_Clav_Canone_alla_Nona.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_29_-_Variatio_28_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_30_-_Variatio_29_a_1_ovvero_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_31_-_Variatio_30_a_1_Clav_Quodlibet.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_32_-_Aria_da_Capo__Fine.mp3"
    ]
   },
   {
@@ -1123,9 +1126,12 @@
    "item": "Reappear-11948",
    "title": "Reappear",
    "year": 2012,
-   "cover": "https://archive.org/download/Reappear-11948/Reappear-11948.jpg",
-   "cover_sha256": "dea142a9dfe8b70db6462b65cf75fb1a02c5ca4615e4220d8a493679854667fd",
+   "cover": "https://archive.org/download/ChrisZabriskieReappear/cover.jpg",
+   "cover_sha256": "937e34457f738b350944a94a9e00033d2e53849f5f96e63754def66972c02e2c",
    "audios": [
+    "https://archive.org/download/ChrisZabriskieReappear/Chris%20Zabriskie%20-%20Reappear%20-%2001%20Unfoldment%2C%20Revealment%2C%20Evolution%2C%20Exposition%2C%20Integration%2C%20Arson.mp3",
+    "https://archive.org/download/ChrisZabriskieReappear/Chris%20Zabriskie%20-%20Reappear%20-%2002%20Readers%21%20Do%20You%20Read-.mp3",
+    "https://archive.org/download/ChrisZabriskieReappear/Chris%20Zabriskie%20-%20Reappear%20-%2006%20Chance%2C%20Luck%2C%20Errors%20in%20Nature%2C%20Destruction%20as%20a%20Finale.mp3",
     "https://archive.org/download/Reappear-11948/Chris_Zabriskie_-_03_-_Out_of_the_Skies_Under_the_Earth.mp3",
     "https://archive.org/download/Reappear-11948/Chris_Zabriskie_-_04_-_Is_That_You_or_Are_You_You.mp3",
     "https://archive.org/download/Reappear-11948/Chris_Zabriskie_-_05_-_What_True_Self_Feels_Bogus_Lets_Watch_Jason_X.mp3",
@@ -1489,34 +1495,6 @@
     "https://archive.org/download/The_Ferret_Show-13047/Goto80_and_the_Uwe_Schenk_Band_-_02_-_Cable_Swingin_Ferret.mp3",
     "https://archive.org/download/The_Ferret_Show-13047/Goto80_and_the_Uwe_Schenk_Band_-_04_-_Thriller_Iller.mp3",
     "https://archive.org/download/The_Ferret_Show-13047/Goto80_and_the_Uwe_Schenk_Band_-_05_-_Volksing_Ferretismico.mp3"
-   ]
-  },
-  {
-   "artist_key": "archive:kimiko ishizaka",
-   "artist": "Kimiko Ishizaka",
-   "item": "The_Open_Goldberg_Variations-11823",
-   "title": "The Open Goldberg Variations",
-   "year": 2012,
-   "cover": "https://archive.org/download/The_Open_Goldberg_Variations-11823/The_Open_Goldberg_Variations-11823.jpg",
-   "cover_sha256": "0f9bf157ac5f0b1cf045eda84439e0da67f144753ea976bdca48c322615005f8",
-   "audios": [
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_01_-_Aria.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_14_-_Variatio_13_a_2_Clav.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_16_-_Variatio_15_a_1_Clav_Canone_alla_Quinta.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_17_-_Variatio_16_a_1_Clav_Ouverture.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_18_-_Variatio_17_a_2_Clav.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_19_-_Variatio_18_a_1_Clav_Canone_alla_Sexta.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_21_-_Variatio_20_a_2_Clav.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_22_-_Variatio_21_Canone_alla_Settima.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_23_-_Variatio_22_a_1_Clav.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_25_-_Variatio_24_a_1_Clav_Canone_allOttava.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_26_-_Variatio_25_a_2_Clav.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_27_-_Variatio_26_a_2_Clav.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_28_-_Variatio_27_a_2_Clav_Canone_alla_Nona.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_29_-_Variatio_28_a_2_Clav.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_30_-_Variatio_29_a_1_ovvero_2_Clav.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_31_-_Variatio_30_a_1_Clav_Quodlibet.mp3",
-    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_32_-_Aria_da_Capo__Fine.mp3"
    ]
   },
   {
@@ -2389,9 +2367,11 @@
    "item": "pandacd-88-public-domain",
    "title": "Public Domain",
    "year": 2005,
-   "cover": "https://archive.org/download/pandacd-88-public-domain/%5Bcover%5D%20Tryad%20-%20Public%20Domain.jpg",
-   "cover_sha256": "612f2f65cd2f0495fb5f07f2cff4cba6dd1327ba7def5eae06f901e067723509",
+   "cover": "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_Public_Domain_-_Cover.jpg",
+   "cover_sha256": "0bec1ddb4ae48e72ded852749ea0296cec21d95ce74fba9ad83de5fb36bedab9",
    "audios": [
+    "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_07_-_Beat_Into_Submission_-_Solo.mp3",
+    "https://archive.org/download/Tryad_-_Public_Domain/Tryad_-_10_-_My_Piano_Sings_-_Part_4_-_with_Joana_Smith.mp3",
     "https://archive.org/download/pandacd-88-public-domain/01%20-%20The%20Final%20Rewind.mp3",
     "https://archive.org/download/pandacd-88-public-domain/02%20-%20I%20See.mp3",
     "https://archive.org/download/pandacd-88-public-domain/03%20-%20Our%20Lives%20Change.mp3",

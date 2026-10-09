@@ -82,12 +82,23 @@ def main(path):
     groups = {}
     for t in batch["tracks"]:
         groups.setdefault((item_of(t["source_url"]), t["artist_key"]), []).append(t)
-    albums = []
+    # One release may sit in several archive.org items (an album and its bonus tracks uploaded apart):
+    # items of one artist with the same title make one album.
+    releases = {}
     for (item, key), tracks in sorted(groups.items()):
-        if not item or len(tracks) < MIN_TRACKS or any(k in item.lower() for k in SKIP_ITEMS):
+        if not item or any(k in item.lower() for k in SKIP_ITEMS):
             continue
         md = metadata(item)
         title = clean_title(md.get("title", ""), names[key], item)
+        r = releases.setdefault((key, title.lower()), {"title": title, "md": md, "item": item, "tracks": [], "size": 0})
+        if len(tracks) > r["size"]:  # the biggest item gives the year and the cover
+            r.update(md=md, item=item, size=len(tracks))
+        r["tracks"] += tracks
+    albums = []
+    for (key, _), r in sorted(releases.items(), key=lambda kv: (kv[1]["item"], kv[0][0])):
+        tracks, title, md, item = r["tracks"], r["title"], r["md"], r["item"]
+        if len(tracks) < MIN_TRACKS:
+            continue
         cover = next((t for t in tracks if t["cover"] and t["cover_sha256"]), {"cover": "", "cover_sha256": ""})
         parts = [tracks[i:i + MAX_TRACKS] for i in range(0, len(tracks), MAX_TRACKS)]
         for n, part in enumerate(parts, 1):
