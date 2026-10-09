@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Create the curated catalog's albums (tools/curate/albums_batch.json) with your gnokey key.
 
-    tools/deploy/albums.py [--dry-run] [--password-once] <onyx|mainnet> <gnokey key name> <namespace>
+    tools/deploy/albums.py [--dry-run] [--password-once] [--first N] <onyx|mainnet> <gnokey key name> <namespace>
+
+--first N creates only the next N albums (to check how they look before the rest).
 
 As the catalog admin (who may edit an unclaimed artist): catalog.CreateAlbum for each
 album whose tracks are not in an album yet. Tracks are found on chain by their audio
@@ -35,6 +37,8 @@ def chain_tracks(remote, catalog):
 def main(argv):
     dry = "--dry-run" in argv
     once = "--password-once" in argv
+    limit = int(argv[argv.index("--first") + 1]) if "--first" in argv else 0
+    argv = [a for i, a in enumerate(argv) if not (i > 0 and argv[i - 1] == "--first")]
     args = [a for a in argv if not a.startswith("--")]
     if len(args) != 3 or args[0] not in imp.NETS:
         sys.exit(__doc__)
@@ -52,10 +56,12 @@ def main(argv):
             print("skip (a track is not on chain): %s · %s" % (a["artist"], a["title"]))
         elif all(al == 0 for _, al in ids):
             todo.append((a, [i for i, _ in ids]))
+    done = len(albums) - len(todo)
+    todo = todo[:limit] if limit else todo
     price = imp.gas_price(remote)
     cost = sum(imp.fee(price, GAS_BASE + GAS_TRACK * len(ids)) for _, ids in todo)
     print("%d albums to create (%d done already), at most %.1f GNOT of fees + about %.1f GNOT of deposits" % (
-        len(todo), len(albums) - len(todo), cost / 1e6, len(todo) * 0.05))
+        len(todo), done, cost / 1e6, len(todo) * 0.05))
     password = imp.getpass.getpass("gnokey password for %s: " % key) if once and not dry else None
     for n, (a, ids) in enumerate(todo, 1):
         aid = imp.first_int(imp.qeval(remote, "%s.ArtistByName(%s)" % (catalog, json.dumps(a["artist"]))))
