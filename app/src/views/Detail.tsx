@@ -1,6 +1,6 @@
 import { Icon } from "../components/Icons";
 import { useNames } from "../lib/names";
-import { Confirm, type Crumb, Crumbs, Empty, FollowButton, Head, LIBRARY, LikeButton, Proof, ShareButton, TrackCards, TrackRows, Who, rightsLabel, sharedValue, walletOf } from "../components/common";
+import { albumFace, Confirm, type Crumb, Crumbs, Empty, FollowButton, Head, LIBRARY, LikeButton, Proof, ShareButton, TrackCards, TrackRows, Who, rightsLabel, sharedValue, walletOf } from "../components/common";
 import { Cover } from "../components/Cover";
 import { tracksOf } from "../lib/catalog";
 import { clock, gnot, hostOf, licenseLabel, licenseURL, plural, shortAddr } from "../lib/format";
@@ -76,7 +76,10 @@ export function ArtistView({ cat, player, go, id, actions, openSupport }: Detail
   if (!a) return <Unavailable kind="artist" id={id} go={go} />;
   const [first = a.name, ...rest] = a.name.split(" ");
   const tracks = tracksOf(cat, a.tracks);
-  const albums = cat.albums.filter((al) => a.albums.includes(al.id));
+  // The albums themselves name their artist: a cached artist record may not list a new one yet.
+  const albums = cat.albums.filter((al) => al.artist === a.id).sort((x, y) => y.year - x.year || y.id - x.id);
+  const inAlbum = new Set(albums.flatMap((al) => al.tracks));
+  const loose = tracks.filter((t) => !inAlbum.has(t.id)); // the albums above already show theirs
   const paid = tippable(a);
   return (
     <section className="artist-page">
@@ -113,7 +116,7 @@ export function ArtistView({ cat, player, go, id, actions, openSupport }: Detail
             {albums.map((al) => (
               <div key={al.id} className="album-card">
                 <button className="album-open" onClick={() => { go({ k: "album", id: al.id }); }}>
-                  <Cover t={cat.byId.get(al.tracks[0] ?? 0)} size="100%" />
+                  <Cover t={albumFace(al, cat.byId.get(al.tracks[0] ?? 0))} size="100%" />
                   <b>{al.title}</b>
                   <span className="muted small">{al.year} · {plural(al.tracks.length, "track")}</span>
                 </button>
@@ -127,8 +130,12 @@ export function ArtistView({ cat, player, go, id, actions, openSupport }: Detail
           </div>
         </>
       )}
-      <h3 className="sub">Tracks</h3>
-      <TrackCards tracks={tracks} player={player} meta={(t) => `${clock(t.duration)} · ♥ ${String(t.likes)}`} />
+      {loose.length > 0 && (
+        <>
+          <h3 className="sub">{albums.length > 0 ? "Other tracks" : "Tracks"}</h3>
+          <TrackCards tracks={loose} player={player} meta={(t) => `${clock(t.duration)} · ♥ ${String(t.likes)}`} />
+        </>
+      )}
     </section>
   );
 }
@@ -144,7 +151,7 @@ export function AlbumView({ cat, player, go, id, actions, saved, openSupport }: 
     <section>
       <Crumbs trail={[LIBRARY, artistCrumb(cat, al.artist), { label: al.title }]} go={go} />
       <div className="album-head of-album">
-        <Cover t={tracks[0]} size="220px" />
+        <Cover t={albumFace(al, tracks[0])} size="220px" />
         <div>
           <span className="muted small">Album · {al.year}</span>
           <h1 className="album-title">{al.title}</h1>

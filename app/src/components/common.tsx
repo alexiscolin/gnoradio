@@ -151,13 +151,16 @@ export function TrackCards({ tracks, player, meta }: { readonly tracks: readonly
   );
 }
 
+/** albumFace is the track an album's cover is drawn from: its first, wearing the album's own cover when it has one. */
+export const albumFace = (al: Pick<Album, "cover">, first: Track | undefined): Track | undefined => (first && al.cover ? { ...first, cover: al.cover } : first);
+
 /** AlbumCards shows albums as covers (their first track's) with title, artist and year; a click opens the album. */
 export function AlbumCards({ albums, cat, go }: { readonly albums: readonly Album[]; readonly cat: Pick<Catalog, "byId" | "artists">; readonly go: Navigate }) {
   return (
     <div className="grid">
       {albums.map((al) => (
         <button key={al.id} className="card" onClick={() => { go({ k: "album", id: al.id }); }}>
-          <Cover t={cat.byId.get(al.tracks[0] ?? 0)} />
+          <Cover t={albumFace(al, cat.byId.get(al.tracks[0] ?? 0))} />
           <b>{al.title}</b>
           <span className="muted">{[cat.artists.get(al.artist)?.name, al.year > 0 ? String(al.year) : ""].filter(Boolean).join(" · ")}</span>
         </button>
