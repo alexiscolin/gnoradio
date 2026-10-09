@@ -2,6 +2,7 @@ import { bucket, track } from "../lib/analytics";
 import { Icon } from "../components/Icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { type TrackOrder, sortTracks } from "../lib/catalog";
+import { albumsIn } from "../lib/albums";
 import { AlbumCards, BigList, type Crumb, Count, Crumbs, Empty, Head, MakeMusic, NOTHING_ON_AIR, NO_TRACK, Proof, TrackCards, TrackRows } from "../components/common";
 import { ProofMark } from "../components/Verify";
 import { useFees } from "../lib/fees";
@@ -24,7 +25,8 @@ import type { Actions } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
 import { useWant } from "../lib/refs";
 
-const ALBUMS_SHOWN = 12; // the album grid shows this many, then "Show all"
+const ALBUMS_SHOWN = 12; // the album grid shows this many first,
+const ALBUMS_MORE = 24; // then this many more a click: thousands of albums never render at once
 
 interface ViewProps {
   readonly cat: Catalog;
@@ -220,13 +222,9 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
   for (const t of cat.tracks) counts.set(t.genre, (counts.get(t.genre) ?? 0) + 1);
   const [order, setOrder] = useState<TrackOrder>("mix");
   const inGenre = useMemo(() => sortTracks(genre ? cat.tracks.filter((t) => t.genre === genre) : cat.tracks, order), [cat.tracks, genre, order]);
-  // An album belongs to the genre most of its tracks have; newest first.
-  const albumsHere = useMemo(() => cat.albums.filter((al) => {
-    if (!genre) return true;
-    const g = al.tracks.filter((id) => cat.byId.get(id)?.genre === genre).length;
-    return g * 2 > al.tracks.length;
-  }).sort((a, b) => b.year - a.year || b.id - a.id), [cat.albums, cat.byId, genre]);
-  const [allAlbums, setAllAlbums] = useState(false);
+  const albumsHere = useMemo(() => albumsIn(cat.albums, cat.byId, genre), [cat.albums, cat.byId, genre]);
+  const [albumsShown, setAlbumsShown] = useState(ALBUMS_SHOWN);
+  useEffect(() => { setAlbumsShown(ALBUMS_SHOWN); }, [genre]);
   const orders = (
     <div className="chips sort-tabs" role="group" aria-label="Order">
       {ORDERS.map(([o, label]) => <button key={o} className="chip" aria-pressed={o === order} onClick={() => { setOrder(o); }}>{label}</button>)}
@@ -321,10 +319,10 @@ export function Library({ cat, player, go, genre, actions, saved }: ViewProps & 
           {albumsHere.length > 0 && (
             <>
               <h3 className="sub sub-row">Albums <span className="muted small">{String(albumsHere.length)}</span></h3>
-              <AlbumCards albums={allAlbums ? albumsHere : albumsHere.slice(0, ALBUMS_SHOWN)} cat={cat} go={go} />
-              {albumsHere.length > ALBUMS_SHOWN && (
-                <button className="more" onClick={() => { setAllAlbums((v) => !v); }}>
-                  {allAlbums ? "Show fewer albums" : `Show all ${String(albumsHere.length)} albums`}
+              <AlbumCards albums={albumsHere.slice(0, albumsShown)} cat={cat} go={go} />
+              {albumsHere.length > albumsShown && (
+                <button className="more" onClick={() => { setAlbumsShown((n) => n + ALBUMS_MORE); }}>
+                  Show {String(Math.min(ALBUMS_MORE, albumsHere.length - albumsShown))} more albums <span className="muted">· {String(albumsHere.length - albumsShown)} left</span>
                 </button>
               )}
             </>
