@@ -124,6 +124,7 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
   const gotMeta = useRef(false); // some source of this load answered: an error after that is the network, not a dead file
   const audioFade = useRef<Fade | null>(null); // the main element's running fade
   const warmTimer = useRef(0);
+  const originOf = (id: number): string => catalog.current?.byId.get(id)?.origin ?? "";
   const awaiting = useRef(0); // the Jamendo pointer whose stream URL is being fetched
   const loadRef = useRef<(id: number, at?: number, autoplay?: boolean, live?: boolean, retried?: boolean) => void>(() => undefined);
   const warmed = useRef<HTMLAudioElement | null>(null); // the next track's file, fetched ahead
@@ -175,6 +176,7 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
           return;
         }
         setBuffering(false);
+        track("player_issue", { kind: "no_source", origin: t.origin });
         setError("This track has no playable source.");
         return;
       }
@@ -517,7 +519,7 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
       // Every source failed and none ever answered for this load: the track is dead, its buttons
       // grey out everywhere. One that answered then dropped is the network, not the file.
       // A Jamendo stream is a signed URL that may have expired: forget the bucket's meta once, the next want() fetches it again.
-      if (audio.src.includes("jamendo.com")) { dropBucket(loadedId.current); void want([{ id: loadedId.current }]); } else if (!gotMeta.current) markDead(loadedId.current);
+      if (audio.src.includes("jamendo.com")) { dropBucket(loadedId.current); void want([{ id: loadedId.current }]); } else if (!gotMeta.current) { markDead(loadedId.current); track("player_issue", { kind: "dead", origin: originOf(loadedId.current) }); }
       // Every source failed: stop, and in an album or playlist go on with the next track
       // (twice in a row at most: more is the network, not the files). The note stays until sound.
       audio.pause();
@@ -530,7 +532,7 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
       }
       // Say it only if no sound came back within 6 s: a short drop is not worth a red line.
       window.clearTimeout(failNote.current);
-      failNote.current = window.setTimeout(() => { setError(NOT_RESPONDING); }, NOT_RESPONDING_AFTER_MS);
+      failNote.current = window.setTimeout(() => { setError(NOT_RESPONDING); track("player_issue", { kind: "not_responding", origin: originOf(loadedId.current) }); }, NOT_RESPONDING_AFTER_MS);
     };
     const onPause = () => { wantsPlay.current = false; setPlaying(false); setBuffering(false); };
     const onPlay = () => { wantsPlay.current = true; setPlaying(true); };

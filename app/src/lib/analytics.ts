@@ -25,6 +25,8 @@ export interface Events {
   action: { label: string; stage: "sent" | "ok" | "cancelled" | "failed"; via: "adena" | "session" | "gnokey" };
   /** A link shared, by what it points at. */
   share: { what: string };
+  /** The player could not play: no source yet, a file that never answered (dead), or no sound for 6 s. origin: curated, audius, jamendo… */
+  player_issue: { kind: "no_source" | "dead" | "not_responding"; origin: string };
   /** Where a shared link went from the share sheet. */
   share_to: { to: string };
   /** A track saved in this browser, or unsaved. */
