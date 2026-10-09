@@ -115,7 +115,7 @@ func main(cur realm) {
 }
 
 // Gas:
-// 1929293597
+// 1929294362
 
 // Output:
 // true

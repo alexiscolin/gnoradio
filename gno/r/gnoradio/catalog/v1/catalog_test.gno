@@ -218,6 +218,19 @@ func TestLikesFollowsAlbumsPlaylists(cur realm, t *testing.T) {
 	uassert.AbortsContains(t, cur, "only the artist", func() {
 		CreateAlbum(cross(cur), aid, "Fake", "", "", 2026, text.Itoa(b))
 	})
+	// A later track joins the album; one already in it, or another artist's, does not.
+	testing.SetRealm(testing.NewUserRealm(alice))
+	c := publish(cur, alice, "Three")
+	uassert.AbortsContains(t, cur, "already in an album", func() { AddToAlbum(cross(cur), al, text.Itoa(a)) })
+	testing.SetRealm(testing.NewUserRealm(carol))
+	uassert.AbortsContains(t, cur, "only the artist", func() { AddToAlbum(cross(cur), al, text.Itoa(c)) })
+	testing.SetRealm(testing.NewUserRealm(alice))
+	AddToAlbum(cross(cur), al, text.Itoa(c))
+	uassert.Equal(t, 3, len(getAlbum(rd(), al).Tracks))
+	uassert.Equal(t, c, getAlbum(rd(), al).Tracks[2])
+	uassert.Equal(t, al, getTrack(rd(), c).Album)
+	uassert.AbortsContains(t, cur, "unknown album", func() { AddToAlbum(cross(cur), al+99, text.Itoa(c)) })
+	testing.SetRealm(testing.NewUserRealm(carol))
 
 	// Public playlist in one signature.
 	p := PublishPlaylist(cross(cur), "Late night", text.Itoa(b)+","+text.Itoa(a))
@@ -229,7 +242,7 @@ func TestLikesFollowsAlbumsPlaylists(cur realm, t *testing.T) {
 	testing.SetRealm(testing.NewUserRealm(bob))
 	uassert.AbortsContains(t, cur, "not your playlist", func() { UpdatePlaylist(cross(cur), p, "Mine", text.Itoa(a)) })
 
-	urequire.True(t, strings.Contains(strings.ReplaceAll(AlbumJSON(al), " ", ""), `"tracks":[`+text.Itoa(a)+","+text.Itoa(b)+"]")) // ids are space-padded in storage
+	urequire.True(t, strings.Contains(strings.ReplaceAll(AlbumJSON(al), " ", ""), `"tracks":[`+text.Itoa(a)+","+text.Itoa(b)+","+text.Itoa(c)+"]")) // ids are space-padded in storage
 	urequire.True(t, strings.Contains(PlaylistJSON(p), `"title":"Late night v2"`))
 	urequire.True(t, strings.Contains(UserJSON(carol), `"playlists":[`+text.Itoa(p)+`]`))
 }

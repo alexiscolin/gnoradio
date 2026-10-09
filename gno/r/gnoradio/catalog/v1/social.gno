@@ -251,6 +251,39 @@ func CreateAlbum(cur realm, artistID int, title, cover, coverSHA string, year in
 	return al.ID
 }
 
+// AddToAlbum appends tracks of the album's artist that are in no album yet,
+// in play order ("15,16"). The artist (or the admin for an unclaimed artist)
+// adds them: a new single joins its album, a release uploaded in two parts
+// becomes one.
+func AddToAlbum(cur realm, albumID int, trackIDs string) {
+	caller := userCaller(cur)
+	noPayment()
+	t := rd()
+	al := getAlbum(t, albumID)
+	if al == nil {
+		panic("catalog: unknown album")
+	}
+	if !mayEdit(caller, mustArtist(t, al.Artist)) {
+		panic("catalog: only the artist can edit its albums")
+	}
+	ids := parseIDs(trackIDs, maxAlbumTracks)
+	if len(al.Tracks)+len(ids) > maxAlbumTracks {
+		panic("catalog: an album holds " + text.Itoa(maxAlbumTracks) + " tracks at most")
+	}
+	for _, id := range ids {
+		tr := mustTrack(t, id)
+		if tr.Artist != al.Artist || tr.Album != 0 {
+			panic("catalog: track " + text.Itoa(id) + " is not this artist's or already in an album")
+		}
+		tr.Album = albumID
+		putTrack(t, tr)
+	}
+	al.Tracks = append(al.Tracks, ids...)
+	putAlbum(t, al)
+	save(cur, t)
+	emitEvent("AlbumTracksAdded", "id", text.Itoa(albumID), "count", text.Itoa(len(ids)))
+}
+
 // ---- Playlists ----
 
 // PublishPlaylist makes a public playlist in one signature; trackIDs is

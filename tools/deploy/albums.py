@@ -49,13 +49,16 @@ def main(argv):
     albums = json.load(open(os.path.join(os.path.dirname(__file__), "..", "curate", "albums_batch.json")))["albums"]
     print("reading the catalog's tracks on %s..." % net)
     tracks = chain_tracks(remote, catalog)
-    todo = []
+    todo, grow = [], []
     for a in albums:
         ids = [tracks.get(u, (0, 0)) for u in a["audios"]]
+        held = {al for _, al in ids if al}
         if any(i == 0 for i, _ in ids):
             print("skip (a track is not on chain): %s · %s" % (a["artist"], a["title"]))
-        elif all(al == 0 for _, al in ids):
+        elif not held:
             todo.append((a, [i for i, _ in ids]))
+        elif len(held) == 1 and any(al == 0 for _, al in ids):  # made earlier, a part of it missing
+            grow.append((a, held.pop(), [i for i, al in ids if al == 0]))
     done = len(albums) - len(todo)
     todo = todo[:limit] if limit else todo
     price = imp.gas_price(remote)
@@ -73,6 +76,12 @@ def main(argv):
         if not imp.call(net, key, catalog, "CreateAlbum", [aid, a["title"], a["cover"], a["cover_sha256"], a["year"], ",".join(map(str, ids))],
                         password, dry, imp.fee(price, gas), gas, DEPOSIT):
             sys.exit("CreateAlbum failed for %r: fix it and run again (done albums are skipped)" % a["title"])
+    # Tracks of an album made before from fewer items (catalog.AddToAlbum: a release with it, not onyx's v1/v2).
+    for a, album, ids in grow:
+        gas = GAS_BASE + GAS_TRACK * len(ids)
+        print("add %d tracks to album %d: %s · %s" % (len(ids), album, a["artist"], a["title"]))
+        if not imp.call(net, key, catalog, "AddToAlbum", [album, ",".join(map(str, ids))], password, dry, imp.fee(price, gas), gas, DEPOSIT):
+            print("  AddToAlbum failed (a release without it?): skipped")
     print("dry run: nothing was signed" if dry else "done")
 
 
