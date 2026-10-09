@@ -183,6 +183,9 @@ Checked on 2026-10-08 (block 642,481):
    (`gnokey query vm/qpkgmeta_json -data <path> -remote https://rpc.gno.land:443`: `inert` means
    parked) and the approval queue (`vm/qinertpaths`). Ctrl-C and run again later is fine.
 3. Setup calls with gnokey, guardian on its second key **before** opening.
+3b. Catalog: `tools/deploy/import.py --password-once mainnet <key> <ns>` for the curated batch, then
+   `tools/curate/pointers_batch.json`, then the albums: `tools/deploy/albums.py --password-once mainnet <key> <ns>`
+   (133 albums from `tools/curate/albums_batch.json`, about 23 GNOT; `--first 2` to check them first).
 4. Netlify site for mainnet, `VITE_NETWORK=mainnet`.
 
 ## Netlify

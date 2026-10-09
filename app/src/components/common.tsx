@@ -8,7 +8,7 @@ import { clock, licenseLabel } from "../lib/format";
 import { UNAVAILABLE, checkWhenSeen, isDead, usePlayable } from "../lib/playable";
 import { viewToPath } from "../lib/router";
 import type { Saved } from "../lib/saved";
-import type { Navigate, Track, View } from "../lib/types";
+import type { Album, Catalog, Navigate, Track, View } from "../lib/types";
 import { type Actions, DEPOSIT } from "../player/useActions";
 import type { Player } from "../player/usePlayer";
 import { Cover } from "./Cover";
@@ -145,6 +145,21 @@ export function TrackCards({ tracks, player, meta }: { readonly tracks: readonly
           <Cover t={t} />
           <b>{t.title}{isDead(t) && <span className="sr"> · {UNAVAILABLE}</span>}</b>
           <span className="muted">{meta(t)}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/** AlbumCards shows albums as covers (their first track's) with title, artist and year; a click opens the album. */
+export function AlbumCards({ albums, cat, go }: { readonly albums: readonly Album[]; readonly cat: Pick<Catalog, "byId" | "artists">; readonly go: Navigate }) {
+  return (
+    <div className="grid">
+      {albums.map((al) => (
+        <button key={al.id} className="card" onClick={() => { go({ k: "album", id: al.id }); }}>
+          <Cover t={cat.byId.get(al.tracks[0] ?? 0)} />
+          <b>{al.title}</b>
+          <span className="muted">{[cat.artists.get(al.artist)?.name, al.year > 0 ? String(al.year) : ""].filter(Boolean).join(" · ")}</span>
         </button>
       ))}
     </div>
