@@ -18,7 +18,7 @@ from importlib import import_module  # noqa: E402
 
 imp = import_module("import")  # tools/deploy/import.py: qeval, gas price, gnokey call
 
-GAS_BASE, GAS_TRACK = 50000000, 6000000  # CreateAlbum rewrites each track's record
+GAS_BASE, GAS_TRACK = 45000000, 2000000  # measured on onyx: 37M for 6 tracks, 49M for 16 (about 30M + 1.2M a track), with margin
 DEPOSIT = 3000000  # ugnot: the album record and the tracks' album field
 
 
