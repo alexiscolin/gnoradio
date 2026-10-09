@@ -16,6 +16,8 @@ import sys
 import unicodedata
 import urllib.request
 
+# archive.org items that are a catch-all rather than a release: no album.
+SKIP_ITEMS = {"incompetech"}
 MIN_TRACKS = 3
 MAX_TRACKS = 40   # catalog maxAlbumTracks
 MAX_TITLE = 64    # catalog maxTitle, in characters
@@ -69,7 +71,7 @@ def main(path):
         groups.setdefault((item_of(t["source_url"]), t["artist_key"]), []).append(t)
     albums = []
     for (item, key), tracks in sorted(groups.items()):
-        if not item or len(tracks) < MIN_TRACKS:
+        if not item or len(tracks) < MIN_TRACKS or any(k in item.lower() for k in SKIP_ITEMS):
             continue
         md = metadata(item)
         title = clean_title(md.get("title", ""), names[key], item)

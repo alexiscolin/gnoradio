@@ -1,4 +1,4 @@
-# Curated albums (135)
+# Curated albums (133)
 
 Built by tools/curate/albums.py from archive.org; created on chain by tools/deploy/albums.py.
 
@@ -74,8 +74,6 @@ Built by tools/curate/albums.py from archive.org; created on chain by tools/depl
 | Kellee Maize | Age of Feminine | 2007 | 8 | yes |
 | Kellee Maize | Aligned Archetype | 2010 | 6 | yes |
 | Kellee Maize | Kellee Maize Selection | 2011 | 10 | — |
-| Kevin MacLeod | Incompetech royalty-free music (part 1) | 2016 | 40 | — |
-| Kevin MacLeod | Incompetech royalty-free music (part 2) | 2016 | 20 | — |
 | Kimiko Ishizaka | The Open Goldberg Variations | 2012 | 23 | yes |
 | Kimiko Ishizaka | The Open Goldberg Variations | 2012 | 17 | yes |
 | Komiku | It's Time For Adventure! Vol 2 | 2018 | 15 | yes |
