@@ -473,7 +473,15 @@ export function usePlayer(cat: Catalog | null, onMissing?: (trackId: number) => 
   useEffect(() => {
     if (mode !== "live") return;
     const id = window.setInterval(() => { if (!document.hidden) void syncLive(station, !audio.paused); }, RESYNC_MS);
-    return () => { window.clearInterval(id); };
+    // A background tab's timers are throttled or frozen: coming back, read what is on air now.
+    const onBack = () => { if (!document.hidden) void syncLive(station, !audio.paused); };
+    document.addEventListener("visibilitychange", onBack);
+    window.addEventListener("pageshow", onBack);
+    return () => {
+      window.clearInterval(id);
+      document.removeEventListener("visibilitychange", onBack);
+      window.removeEventListener("pageshow", onBack);
+    };
   }, [audio, mode, station, syncLive]);
 
   // ---- element events ----

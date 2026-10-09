@@ -40,7 +40,9 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
   const { support: fees, known } = useFees();
   const main = cat.stations[0];
   const goal = support.goal > 0 ? support.goal : DEFAULT_GOAL;
-  const onAir = main ? cat.byId.get(main.now.track) : undefined;
+  // Tuned to Main, the player knows what is on air now; otherwise the catalog's snapshot of Main.
+  const following = player.mode === "live" && player.station === 0 && player.current > 0;
+  const onAir = main ? cat.byId.get(following ? player.current : main.now.track) : undefined;
   const fresh = [...cat.tracks].sort((a, b) => b.id - a.id).slice(0, 8);
   const claimed = [...cat.artists.values()].filter((a) => a.verified && a.owner && a.tracks.length > 0).sort((a, b) => b.tips - a.tips).slice(0, 4);
   return (
@@ -50,7 +52,7 @@ export function Listen({ cat, player, go, activity, support, now, openSupport, o
           <span className="chip red"><Shape g="circle" size={9} fill="#fff" /> On air · Main</span>
           <span className="onair-eq" aria-hidden="true"><i /><i /><i /><i /></span>
           <span className="onair-title">{onAir?.title ?? "Nothing on air yet"}</span>
-          <span className="muted">{onAir && main ? `${onAir.artistName} · ${clock(main.now.offset)} in · everyone hears the same second` : "Publish the first track: it goes on air in the same transaction."}</span>
+          <span className="muted">{onAir && main ? `${onAir.artistName} · ${following ? "on air now" : `${clock(main.now.offset)} in`} · everyone hears the same second` : "Publish the first track: it goes on air in the same transaction."}</span>
           {onAir && <span className="muted small">Or play any track just for you in the Library.</span>}
           <span className="go">{onAir ? "Listen" : "Make music"} <Icon name="arrow-right" size={16} className="nudge" /></span>
         </button>

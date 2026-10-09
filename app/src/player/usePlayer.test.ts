@@ -193,6 +193,17 @@ describe("usePlayer live, player fixes", () => {
     expect(result.current.error).toBe("");
     expect(result.current.audio.src).toContain("jamendo.com");
   });
+  it("reads the schedule again when the tab comes back", async () => {
+    fake();
+    const { result } = renderHook(() => usePlayer(cat));
+    await act(() => vi.advanceTimersByTimeAsync(100));
+    act(() => { result.current.goLive(0); });
+    await act(() => vi.advanceTimersByTimeAsync(10));
+    const before = loadSchedule.mock.calls.length;
+    act(() => { document.dispatchEvent(new Event("visibilitychange")); });
+    await act(() => vi.advanceTimersByTimeAsync(10));
+    expect(loadSchedule.mock.calls.length).toBeGreaterThan(before);
+  });
   it("the next gateway starts at the chain's place, not the failed element's", async () => {
     fake();
     const alt = { ...cat, byId: new Map([[1, { id: 1, audio: "https://media.example/1.mp3", alt: "https://alt.example/1.mp3", duration: 300 }], [2, cat.byId.get(2)]] as never) } as unknown as Catalog;
