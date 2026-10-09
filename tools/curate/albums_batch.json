@@ -1,0 +1,2646 @@
+{
+ "albums": [
+  {
+   "artist_key": "archive:quantum jazz",
+   "artist": "Quantum Jazz",
+   "item": "01-intro_202201",
+   "title": "End Of The Line",
+   "year": 2011,
+   "cover": "https://archive.org/download/01-intro_202201/cover.png",
+   "cover_sha256": "56d372524f1ec42e6f92341aa6cfec24e6ee3c8b18ced8a40d347769bf2c56bb",
+   "audios": [
+    "https://archive.org/download/01-intro_202201/01%20-%20Intro.mp3",
+    "https://archive.org/download/01-intro_202201/02%20-%20If%20I%20Can_t%20Dance%20Is%20Not%20My%20Revolution.mp3",
+    "https://archive.org/download/01-intro_202201/03%20-%20Jingle%20Jazz.mp3",
+    "https://archive.org/download/01-intro_202201/04%20-%20All%20About%20The%20Sun.mp3",
+    "https://archive.org/download/01-intro_202201/06%20-%20Balcarabic%20Chicken.mp3",
+    "https://archive.org/download/01-intro_202201/07%20-%20Orbiting%20A%20Distant%20Planet.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:peter rudenko",
+   "artist": "Peter Rudenko",
+   "item": "15_Etudes-11839",
+   "title": "15 Etudes",
+   "year": 2012,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_01_-_If.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_02_-_500_AM.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_03_-_Counterclockwise.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_04_-_The_Painter.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_05_-_Four_Sides.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_06_-_Night_Palette.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_07_-_Waiting.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_08_-_The_Fall.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_09_-_The_Undo_Spell.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_10_-_Fern_Flower.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_11_-_What_Follows_Me.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_12_-_Snowing.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_13_-_Unawaken.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_14_-_Night_Palette_Reprise.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_15_-_Transparent.mp3",
+    "https://archive.org/download/15_Etudes-11839/Peter_Rudenko_-_16_-_Closing.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:alaclair ensemble",
+   "artist": "Alaclair Ensemble",
+   "item": "499-11230",
+   "title": "4,99",
+   "year": 2010,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_02_-_Guerre_nuclaire.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_03_-_Ouin.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_04_-_Alaclair.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_05_-_Moi_chu_down.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_06_-_Viande_de_chval.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_07_-_Piles_comprises_Mash_remlange.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_08_-_Fussy_fuss.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_09_-_Cauchemars.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_10_-_Nourcy.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_11_-_Jtann_dattendre.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_12_-_Lord_Finesse_vs_Percee_P.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_13_-_Les_Brizasseurs_de_fizzoules.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_14_-_Pour_toi_Michel.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_15_-_Ntoun_de_ipop_su_lv.mp3",
+    "https://archive.org/download/499-11230/Alaclair_Ensemble_-_16_-_Piste_boni_-_Les_Brizasseurs_de_fizzoules_Thu_remlange.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:jahzzar",
+   "artist": "Jahzzar",
+   "item": "4_naked_songs_4_autumn_rainy_days-11366",
+   "title": "4 naked songs 4 autumn rainy days",
+   "year": 2012,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/4_naked_songs_4_autumn_rainy_days-11366/Jahzzar_-_01_-_Bed.mp3",
+    "https://archive.org/download/4_naked_songs_4_autumn_rainy_days-11366/Jahzzar_-_02_-_Room_with_a_view.mp3",
+    "https://archive.org/download/4_naked_songs_4_autumn_rainy_days-11366/Jahzzar_-_03_-_Joke.mp3",
+    "https://archive.org/download/4_naked_songs_4_autumn_rainy_days-11366/Jahzzar_-_04_-_Sunday_morning.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:hayvanlar alemi",
+   "artist": "Hayvanlar Alemi",
+   "item": "666-2250",
+   "title": "666",
+   "year": 2009,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/666-2250/Hayvanlar_Alemi_-_01_-_Ineffable_Dresscode.mp3",
+    "https://archive.org/download/666-2250/Hayvanlar_Alemi_-_02_-_Krallar_Gibi_VIP.mp3",
+    "https://archive.org/download/666-2250/Hayvanlar_Alemi_-_03_-_Karpuzkafa_777.mp3",
+    "https://archive.org/download/666-2250/Hayvanlar_Alemi_-_04_-_Pet_Sisede_Cin_Tonik.mp3",
+    "https://archive.org/download/666-2250/Hayvanlar_Alemi_-_05_-_Neptune_Sunset_Casino.mp3",
+    "https://archive.org/download/666-2250/Hayvanlar_Alemi_-_06_-_Med_Cezir.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:cloudkicker",
+   "artist": "Cloudkicker",
+   "item": "A_New_Heavenly_Body-9232",
+   "title": "A New Heavenly Body",
+   "year": 2011,
+   "cover": "https://archive.org/download/A_New_Heavenly_Body-9232/A_New_Heavenly_Body-9232.jpg",
+   "cover_sha256": "4fe430e522a89a793539f9ab11a011348e8bc4f8d3a9de2734458135074a47a7",
+   "audios": [
+    "https://archive.org/download/A_New_Heavenly_Body-9232/Cloudkicker_-_01_-_What_It_Is_Impossible_Not_to_Know_and_What_It_Is_No_Longer_Permissible_To_Believe_in_the_United_States.mp3",
+    "https://archive.org/download/A_New_Heavenly_Body-9232/Cloudkicker_-_02_-_A_Hymn_to_the_Projectile.mp3",
+    "https://archive.org/download/A_New_Heavenly_Body-9232/Cloudkicker_-_03_-_One_Enemy_Among_Twenty-Five_Million_Friends.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kellee maize",
+   "artist": "Kellee Maize",
+   "item": "Age_of_Feminine-13285",
+   "title": "Age of Feminine",
+   "year": 2007,
+   "cover": "https://archive.org/download/Age_of_Feminine-13285/Age_of_Feminine-13285.jpg",
+   "cover_sha256": "5f36101ae68f74154e5e61715cddb3fc0f74f7342bc74a6cf74d655156760599",
+   "audios": [
+    "https://archive.org/download/Age_of_Feminine-13285/Kellee_Maize_-_01_-_Winding_Road.mp3",
+    "https://archive.org/download/Age_of_Feminine-13285/Kellee_Maize_-_02_-_Age_of_Feminine.mp3",
+    "https://archive.org/download/Age_of_Feminine-13285/Kellee_Maize_-_03_-_Story_of_Me.mp3",
+    "https://archive.org/download/Age_of_Feminine-13285/Kellee_Maize_-_04_-_Yesterday.mp3",
+    "https://archive.org/download/Age_of_Feminine-13285/Kellee_Maize_-_05_-_Raja.mp3",
+    "https://archive.org/download/Age_of_Feminine-13285/Kellee_Maize_-_06_-_Please_Remember.mp3",
+    "https://archive.org/download/Age_of_Feminine-13285/Kellee_Maize_-_08_-_Internal_Trouble.mp3",
+    "https://archive.org/download/Age_of_Feminine-13285/Kellee_Maize_-_10_-_Struggle.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kellee maize",
+   "artist": "Kellee Maize",
+   "item": "Aligned_Archetype-13248",
+   "title": "Aligned Archetype",
+   "year": 2010,
+   "cover": "https://archive.org/download/Aligned_Archetype-13248/Aligned_Archetype-13248.jpg",
+   "cover_sha256": "014a377f8d16785a415f54dd083df2a0868241c763e8e06a25cac970f7a34114",
+   "audios": [
+    "https://archive.org/download/Aligned_Archetype-13248/Kellee_Maize_-_12_-_12_Thought_to_Thing.mp3",
+    "https://archive.org/download/Aligned_Archetype-13248/Kellee_Maize_-_15_-_15_Something_Sacred.mp3",
+    "https://archive.org/download/Aligned_Archetype-13248/Kellee_Maize_-_16_-_16_Evolution_Remix.mp3",
+    "https://archive.org/download/Aligned_Archetype-13248/Kellee_Maize_-_17_-_17_Pulse.mp3",
+    "https://archive.org/download/Aligned_Archetype-13248/Kellee_Maize_-_18_-_18_Eleven_11.mp3",
+    "https://archive.org/download/Aligned_Archetype-13248/Kellee_Maize_-_20_-_20_Big_Plans_Remix.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:stray dogg",
+   "artist": "Stray Dogg",
+   "item": "Almost-9248",
+   "title": "Almost",
+   "year": 2011,
+   "cover": "https://archive.org/download/Almost-9248/Almost-9248.jpg",
+   "cover_sha256": "5e3591c11414c2b3f6a51e4bc458648d0dff92feb3d132f990e8d9d8d4d6b4b4",
+   "audios": [
+    "https://archive.org/download/Almost-9248/Stray_Dogg_-_01_-_Drunk.mp3",
+    "https://archive.org/download/Almost-9248/Stray_Dogg_-_02_-_Crimson_Moon.mp3",
+    "https://archive.org/download/Almost-9248/Stray_Dogg_-_03_-_Smile.mp3",
+    "https://archive.org/download/Almost-9248/Stray_Dogg_-_04_-_Almost.mp3",
+    "https://archive.org/download/Almost-9248/Stray_Dogg_-_05_-_Dart.mp3",
+    "https://archive.org/download/Almost-9248/Stray_Dogg_-_06_-_Break.mp3",
+    "https://archive.org/download/Almost-9248/Stray_Dogg_-_07_-_Goddess.mp3",
+    "https://archive.org/download/Almost-9248/Stray_Dogg_-_08_-_She_Said.mp3",
+    "https://archive.org/download/Almost-9248/Stray_Dogg_-_09_-_Eye.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:tinyfolk",
+   "artist": "Tinyfolk",
+   "item": "Black_Bears-7725",
+   "title": "Black Bears",
+   "year": 2010,
+   "cover": "https://archive.org/download/Black_Bears-7725/Black_Bears-7725.jpg",
+   "cover_sha256": "5543b5d603a728ba6f4507ba900517ffed0143887f304e83da76b6cefae8b9c1",
+   "audios": [
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_01_-_Illinois_Illinois.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_02_-_We_all_are_Bears.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_03_-_Pinch_Hitting.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_04_-_I_am_a_Monster.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_05_-_Make_it_Rain.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_06_-_In_the_Museum.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_07_-_I_was_a_Black_Bear.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_08_-_There_were_Crows.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_09_-_In_Submarines.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_11_-_Ashby.mp3",
+    "https://archive.org/download/Black_Bears-7725/Tinyfolk_-_12_-_Amygdala.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:chris zabriskie",
+   "artist": "Chris Zabriskie",
+   "item": "ChrisZabriskieDirectToVideo",
+   "title": "Direct To Video",
+   "year": 2015,
+   "cover": "https://archive.org/download/ChrisZabriskieDirectToVideo/cover.jpg",
+   "cover_sha256": "7db5640b09a715d4c794134016747e6cf67883b0478817f0f000c04a85a2e8ab",
+   "audios": [
+    "https://archive.org/download/ChrisZabriskieDirectToVideo/Chris%20Zabriskie%20-%20Direct%20to%20Video%20-%2001%20Direct%20to%20Video.mp3",
+    "https://archive.org/download/ChrisZabriskieDirectToVideo/Chris%20Zabriskie%20-%20Direct%20to%20Video%20-%2002%20What%20Does%20Anybody%20Know%20About%20Anything.mp3",
+    "https://archive.org/download/ChrisZabriskieDirectToVideo/Chris%20Zabriskie%20-%20Direct%20to%20Video%20-%2004%20I%20Want%20to%20Fall%20in%20Love%20on%20Snapchat.mp3",
+    "https://archive.org/download/ChrisZabriskieDirectToVideo/Chris%20Zabriskie%20-%20Direct%20to%20Video%20-%2005%20But%20Enough%20About%20Me%2C%20Bill%20Paxton.mp3",
+    "https://archive.org/download/ChrisZabriskieDirectToVideo/Chris%20Zabriskie%20-%20Direct%20to%20Video%20-%2007%20It%27s%20Always%20Too%20Late%20to%20Start%20Over.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:chris zabriskie",
+   "artist": "Chris Zabriskie",
+   "item": "ChrisZabriskieReappear",
+   "title": "Reappear",
+   "year": 2012,
+   "cover": "https://archive.org/download/ChrisZabriskieReappear/cover.jpg",
+   "cover_sha256": "937e34457f738b350944a94a9e00033d2e53849f5f96e63754def66972c02e2c",
+   "audios": [
+    "https://archive.org/download/ChrisZabriskieReappear/Chris%20Zabriskie%20-%20Reappear%20-%2001%20Unfoldment%2C%20Revealment%2C%20Evolution%2C%20Exposition%2C%20Integration%2C%20Arson.mp3",
+    "https://archive.org/download/ChrisZabriskieReappear/Chris%20Zabriskie%20-%20Reappear%20-%2002%20Readers%21%20Do%20You%20Read-.mp3",
+    "https://archive.org/download/ChrisZabriskieReappear/Chris%20Zabriskie%20-%20Reappear%20-%2006%20Chance%2C%20Luck%2C%20Errors%20in%20Nature%2C%20Destruction%20as%20a%20Finale.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:cloudkicker",
+   "artist": "Cloudkicker",
+   "item": "CloudkickerBeacons",
+   "title": "Beacons",
+   "year": 2010,
+   "cover": "https://archive.org/download/CloudkickerBeacons/cover.jpg",
+   "cover_sha256": "bc9f85374a7735f7ae027ad670fa28fa36e8040803b101b955dea34235008182",
+   "audios": [
+    "https://archive.org/download/CloudkickerBeacons/02%20Here%2C%20wait%20a%20minute%21%20Damn%20it%21.mp3",
+    "https://archive.org/download/CloudkickerBeacons/03%20We%27re%20goin%27%20in.%20We%27re%20going%20down..mp3",
+    "https://archive.org/download/CloudkickerBeacons/04%20Oh%2C%20god..mp3",
+    "https://archive.org/download/CloudkickerBeacons/05%20I%20admit%20it%20now.%20I%20was%20scared..mp3",
+    "https://archive.org/download/CloudkickerBeacons/06%20We%20were%20all%20scared..mp3",
+    "https://archive.org/download/CloudkickerBeacons/07%20Push%20it%20way%20up%21.mp3",
+    "https://archive.org/download/CloudkickerBeacons/08%20...it%27s%20just%20wide-open%20field..mp3",
+    "https://archive.org/download/CloudkickerBeacons/09%20It%27s%20bad.%20We%27re%20hit%2C%20man%2C%20we%20are%20hit..mp3",
+    "https://archive.org/download/CloudkickerBeacons/10%20Amy%2C%20I%20love%20you..mp3",
+    "https://archive.org/download/CloudkickerBeacons/11%20%5Buntitled%5D.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:cloudkicker",
+   "artist": "Cloudkicker",
+   "item": "CloudkickerLetYourselfBeHuge",
+   "title": "Let Yourself Be Huge",
+   "year": 2011,
+   "cover": "https://archive.org/download/CloudkickerLetYourselfBeHuge/cover.jpg",
+   "cover_sha256": "8e3a8281dc877da2d9942e04a37a07cd6277fdfca58bc1bb464d0f2327e2a650",
+   "audios": [
+    "https://archive.org/download/CloudkickerLetYourselfBeHuge/01%20Welcome%20Back.mp3",
+    "https://archive.org/download/CloudkickerLetYourselfBeHuge/02%20Explore%2C%20Be%20Curious.mp3",
+    "https://archive.org/download/CloudkickerLetYourselfBeHuge/03%20The%20Word%20Water.mp3",
+    "https://archive.org/download/CloudkickerLetYourselfBeHuge/04%20You%20and%20Yours.mp3",
+    "https://archive.org/download/CloudkickerLetYourselfBeHuge/06%20It%27s%20Inside%20Me%2C%20and%20I%27m%20Inside%20It.mp3",
+    "https://archive.org/download/CloudkickerLetYourselfBeHuge/08%20Let%20Yourself%20Be%20Huge.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:josh woodward",
+   "artist": "Josh Woodward",
+   "item": "Crawford_Street-17897",
+   "title": "Crawford Street",
+   "year": 2005,
+   "cover": "https://archive.org/download/Crawford_Street-17897/Crawford_Street-17897.jpg",
+   "cover_sha256": "ba6f88cf9327ac5defdc85de232f710fc96e695ed31b296648083aab87e8f10d",
+   "audios": [
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_01_-_Fight_the_Sea.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_02_-_Fight_The_Sea_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_03_-_Cherry.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_04_-_Cherry_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_06_-_Cant_Take_Our_Love_Away_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_07_-_Big_Disco_Ball.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_08_-_Big_Disco_Ball_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_10_-_The_Pawnbrokers_Stepdaughter_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_12_-_Spirit_World_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_14_-_Shower_Scene_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_15_-_Swimming_to_Cambodia.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_16_-_Swimming_to_Cambodia_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_18_-_Twelve_Monkeys_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_20_-_Hey_Ruth_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_21_-_Thanks_For_Coming.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_22_-_Thanks_For_Coming_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_23_-_Sundown.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_24_-_Sundown_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_26_-_Frannie_Instrumental_Version.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_27_-_Waiting_Takes_Time.mp3",
+    "https://archive.org/download/Crawford_Street-17897/Josh_Woodward_-_28_-_Waiting_Takes_Time_Instrumental_Version.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:dexter britain",
+   "artist": "Dexter Britain",
+   "item": "Creative_Commons_Selection-11312",
+   "title": "Creative Commons Selection",
+   "year": 2012,
+   "cover": "https://archive.org/download/Creative_Commons_Selection-11312/Creative_Commons_Selection-11312.jpg",
+   "cover_sha256": "8ce2c0dc4438ff488eae594fdcd25de93c726ec9874319528300a2578e425b91",
+   "audios": [
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_01_-_Slow_Motion_Strut_Version_Two.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_03_-_Perfect_I_Am_Not.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_05_-_Chasing_Time.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_07_-_The_Time_To_Run.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_08_-_Collapsing_Time.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_09_-_From_Truth.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_10_-_Train.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_11_-_Forever_Pit.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_12_-_The_Lost_Ones.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_15_-_Calling.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_15_-_Who_Are_We_To_Care.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_16_-_What_Its_All_About.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_17_-_Waking_Up.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_18_-_Arcade_On_Fire.mp3",
+    "https://archive.org/download/Creative_Commons_Selection-11312/Dexter_Britain_-_19_-_Calling_Instrumental.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:dexter britain",
+   "artist": "Dexter Britain",
+   "item": "Creative_Commons_Volume_5-13062",
+   "title": "Creative Commons Volume. 5",
+   "year": 2012,
+   "cover": "https://archive.org/download/Creative_Commons_Volume_5-13062/Creative_Commons_Volume_5-13062.jpg",
+   "cover_sha256": "7235de9da06931f1edd210213096a9327f658c066588d910769642ce824f4fe3",
+   "audios": [
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_01_-_The_Time_To_Run_Finale.mp3",
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_03_-_In_The_Electric_Fields.mp3",
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_05_-_The_War_In_My_Head.mp3",
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_06_-_Safe_In_Glass_Houses.mp3",
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_07_-_Losing_Love.mp3",
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_08_-_Running_Through_Tunnels.mp3",
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_09_-_Going_Under.mp3",
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_10_-_Together_In_The_Empty.mp3",
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_11_-_The_Fresh_Monday.mp3",
+    "https://archive.org/download/Creative_Commons_Volume_5-13062/Dexter_Britain_-_12_-_Telling_Stories.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:fonkdongo",
+   "artist": "Fonkdongo",
+   "item": "Demondongod-6234",
+   "title": "Demondongod",
+   "year": 2012,
+   "cover": "https://archive.org/download/Demondongod-6234/Demondongod-6234.jpg",
+   "cover_sha256": "b1b23e3142063deafeb5b147d4e58591ace696eecf766bed70fdf9c85e8c6b33",
+   "audios": [
+    "https://archive.org/download/Demondongod-6234/Fonkdongo_-_03_-_Comenzando_la_semana_ft_Bzmbzdim.mp3",
+    "https://archive.org/download/Demondongod-6234/Fonkdongo_-_07_-_Demodemani.mp3",
+    "https://archive.org/download/Demondongod-6234/Fonkdongo_-_10_-_Paso_Numero_Dos_ft_Elerreme.mp3",
+    "https://archive.org/download/Demondongod-6234/Fonkdongo_-_11_-_Cementerio_ft_Deep_Strato.mp3",
+    "https://archive.org/download/Demondongod-6234/Fonkdongo_-_13_-_Jazz_is_dead.mp3",
+    "https://archive.org/download/Demondongod-6234/Fonkdongo_-_15_-_powerplant_off.mp3",
+    "https://archive.org/download/Demondongod-6234/Fonkdongo_-_17_-_playing_guitar_bonus_track.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:broke for free",
+   "artist": "Broke For Free",
+   "item": "Directionless_EP-8295",
+   "title": "Directionless EP",
+   "year": 2011,
+   "cover": "https://archive.org/download/Directionless_EP-8295/Directionless_EP-8295.jpg",
+   "cover_sha256": "1358563c8c5afa955d2db456d85471895d3150f6c30fc549829b185d03bd6e61",
+   "audios": [
+    "https://archive.org/download/Directionless_EP-8295/Broke_For_Free_-_01_-_Night_Owl.mp3",
+    "https://archive.org/download/Directionless_EP-8295/Broke_For_Free_-_02_-_My_Always_Mood.mp3",
+    "https://archive.org/download/Directionless_EP-8295/Broke_For_Free_-_03_-_Day_Bird.mp3",
+    "https://archive.org/download/Directionless_EP-8295/Broke_For_Free_-_04_-_My_Luck.mp3",
+    "https://archive.org/download/Directionless_EP-8295/Broke_For_Free_-_05_-_Mells_Parade.mp3",
+    "https://archive.org/download/Directionless_EP-8295/Broke_For_Free_-_06_-_Only_Instrumental.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:ultracat",
+   "artist": "UltraCat",
+   "item": "Disco_High-7879",
+   "title": "Disco High",
+   "year": 2010,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/Disco_High-7879/UltraCat_-_01_-_Disco_High.mp3",
+    "https://archive.org/download/Disco_High-7879/UltraCat_-_02_-_One_Nice_Thing_Once_a_Day.mp3",
+    "https://archive.org/download/Disco_High-7879/UltraCat_-_03_-_Unexpected_Little_Happenings.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:chris zabriskie",
+   "artist": "Chris Zabriskie",
+   "item": "Divider-10058",
+   "title": "Divider",
+   "year": 2011,
+   "cover": "https://archive.org/download/Divider-10058/Divider-10058.jpg",
+   "cover_sha256": "6a6cf7f251c2d7752d63870b7c4fdbf50ee26f20f5e63a725d0b40768c4f5e84",
+   "audios": [
+    "https://archive.org/download/Divider-10058/Chris_Zabriskie_-_01_-_Heliograph.mp3",
+    "https://archive.org/download/Divider-10058/Chris_Zabriskie_-_02_-_Candlepower.mp3",
+    "https://archive.org/download/Divider-10058/Chris_Zabriskie_-_03_-_CGI_Snake.mp3",
+    "https://archive.org/download/Divider-10058/Chris_Zabriskie_-_04_-_Wonder_Cycle.mp3",
+    "https://archive.org/download/Divider-10058/Chris_Zabriskie_-_05_-_Oxygen_Garden.mp3",
+    "https://archive.org/download/Divider-10058/Chris_Zabriskie_-_06_-_Divider.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:dubology",
+   "artist": "DuBoLoGy",
+   "item": "Dub_Lab-10191",
+   "title": "Dub Lab",
+   "year": 2011,
+   "cover": "https://archive.org/download/Dub_Lab-10191/Dub_Lab-10191.jpg",
+   "cover_sha256": "9d3e86ab215113f5842c2ef259405eeea3aced6e3bb3dc0855822c81322c90ad",
+   "audios": [
+    "https://archive.org/download/Dub_Lab-10191/DuBoLoGy_-_01_-_Dub_Atao.mp3",
+    "https://archive.org/download/Dub_Lab-10191/DuBoLoGy_-_02_-_Black_Monday.mp3",
+    "https://archive.org/download/Dub_Lab-10191/DuBoLoGy_-_03_-_Freakonomics_Dub.mp3",
+    "https://archive.org/download/Dub_Lab-10191/DuBoLoGy_-_04_-_Chacha_Dub.mp3",
+    "https://archive.org/download/Dub_Lab-10191/DuBoLoGy_-_05_-_Dub_Action.mp3",
+    "https://archive.org/download/Dub_Lab-10191/DuBoLoGy_-_06_-_Walk_In_Forest.mp3",
+    "https://archive.org/download/Dub_Lab-10191/DuBoLoGy_-_07_-_Epic_Dub.mp3",
+    "https://archive.org/download/Dub_Lab-10191/DuBoLoGy_-_08_-_Swan_Lake_Dub.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:jahzzar",
+   "artist": "Jahzzar",
+   "item": "Dune-13188",
+   "title": "Dune",
+   "year": 2013,
+   "cover": "https://archive.org/download/Dune-13188/Dune-13188.jpg",
+   "cover_sha256": "d8d5581d85f0e6540453b04c5c6989a4e07adc41f36b9da4c08b7b50ba654af5",
+   "audios": [
+    "https://archive.org/download/Dune-13188/01_-_Dune.mp3",
+    "https://archive.org/download/Dune-13188/02_-_Baroque.mp3",
+    "https://archive.org/download/Dune-13188/03_-_Revolver.mp3",
+    "https://archive.org/download/Dune-13188/04_-_master_trip.mp3",
+    "https://archive.org/download/Dune-13188/05_-_Bones.mp3",
+    "https://archive.org/download/Dune-13188/06_-_Wizard.mp3",
+    "https://archive.org/download/Dune-13188/07_-_Parfum.mp3",
+    "https://archive.org/download/Dune-13188/08_-_Lowrider.mp3",
+    "https://archive.org/download/Dune-13188/09_-_master_spin.mp3",
+    "https://archive.org/download/Dune-13188/10_-_Fuzz.mp3",
+    "https://archive.org/download/Dune-13188/11_-_Beloved.mp3",
+    "https://archive.org/download/Dune-13188/12_-_Circus.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:robodub",
+   "artist": "Robodub",
+   "item": "Durbar_Dub-16564",
+   "title": "Durbar Dub",
+   "year": 2015,
+   "cover": "https://archive.org/download/Durbar_Dub-16564/Durbar_Dub-16564.jpg",
+   "cover_sha256": "d3a1bf70b78ff917d4c8b0248bc2c97d3c47e88409b92493c0e90504d885378e",
+   "audios": [
+    "https://archive.org/download/Durbar_Dub-16564/Robodub_-_01_-_Portasound_Dub.mp3",
+    "https://archive.org/download/Durbar_Dub-16564/Robodub_-_03_-_Sabbath_Dub.mp3",
+    "https://archive.org/download/Durbar_Dub-16564/Robodub_-_04_-_Grindia__Vodka_in_Dub.mp3",
+    "https://archive.org/download/Durbar_Dub-16564/Robodub_-_05_-_Chiefs_Welcome.mp3",
+    "https://archive.org/download/Durbar_Dub-16564/Robodub_-_06_-_Circuit_Breakdown.mp3",
+    "https://archive.org/download/Durbar_Dub-16564/Robodub_-_08_-_Sacrifice.mp3",
+    "https://archive.org/download/Durbar_Dub-16564/Robodub_-_09_-_Flying_Saucer_Attack.mp3",
+    "https://archive.org/download/Durbar_Dub-16564/Robodub_-_10_-_Timkat.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:mc cullah",
+   "artist": "MC Cullah",
+   "item": "E-MC_Cullah-18176",
+   "title": "E-MC Cullah",
+   "year": 2009,
+   "cover": "https://archive.org/download/E-MC_Cullah-18176/E-MC_Cullah-18176.jpg",
+   "cover_sha256": "4186bff46a772ff85d0017681fc4977f7fcf939d96f0403879cb100f68b556e9",
+   "audios": [
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_02_-_Rocket_Into_The_Future.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_03_-_Sound_Perception.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_04_-_A_Mess_These_Days.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_05_-_Soul_Hip_Hop.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_06_-_Microphone_City.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_07_-_Mance_Daster.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_08_-_The_Beat_Influence.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_10_-_The_Skies_Dont_Lie_But_I_Does.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_11_-_Reigning_Fire.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_12_-_The_Power_of_Flight.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_13_-_Gloriful.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_14_-_10248.mp3",
+    "https://archive.org/download/E-MC_Cullah-18176/MC_Cullah_-_15_-_Straight_to_Heaven.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:revolution void",
+   "artist": "Revolution Void",
+   "item": "Effects_of_Elevation-7872",
+   "title": "Effects of Elevation",
+   "year": 2010,
+   "cover": "https://archive.org/download/Effects_of_Elevation-7872/Effects_of_Elevation-7872.jpg",
+   "cover_sha256": "7f8f48307c871b7bfd9c59e30f248dd14ae341331229b85701499958cd198bdf",
+   "audios": [
+    "https://archive.org/download/Effects_of_Elevation-7872/Revolution_Void_-_01_-_Effects_of_Elevation.mp3",
+    "https://archive.org/download/Effects_of_Elevation-7872/Revolution_Void_-_02_-_Effects_of_Elevation_Citizen.mp3",
+    "https://archive.org/download/Effects_of_Elevation-7872/Revolution_Void_-_03_-_Effects_of_Elevation_Sevenles.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:voyageurs",
+   "artist": "voyageurs",
+   "item": "FREAK_CAVE-9697",
+   "title": "Freak Cave",
+   "year": 2011,
+   "cover": "https://archive.org/download/FREAK_CAVE-9697/FREAK_CAVE-9697.jpg",
+   "cover_sha256": "10c6d4b73a0c6acf0e23aa34fb68e245bb8259c12ca30ccc132af345df7d0095",
+   "audios": [
+    "https://archive.org/download/FREAK_CAVE-9697/voyageurs_-_01_-_Envy_is_Inevitable.mp3",
+    "https://archive.org/download/FREAK_CAVE-9697/voyageurs_-_03_-_Lazy_Kiss_on_a_Bus_Bench.mp3",
+    "https://archive.org/download/FREAK_CAVE-9697/voyageurs_-_04_-_Slime_Patrol.mp3",
+    "https://archive.org/download/FREAK_CAVE-9697/voyageurs_-_05_-_Freak_Cave.mp3",
+    "https://archive.org/download/FREAK_CAVE-9697/voyageurs_-_06_-_Maximum_Roadhead.mp3",
+    "https://archive.org/download/FREAK_CAVE-9697/voyageurs_-_07_-_Shame_About_Her_Face.mp3",
+    "https://archive.org/download/FREAK_CAVE-9697/voyageurs_-_08_-_Bone_Zone.mp3",
+    "https://archive.org/download/FREAK_CAVE-9697/voyageurs_-_10_-_Warp.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:edward j. powley",
+   "artist": "Edward J. Powley",
+   "item": "Generative_I",
+   "title": "Generative I: Conway's Game Of Life",
+   "year": 2006,
+   "cover": "https://archive.org/download/Generative_I/a_front.jpg",
+   "cover_sha256": "f513ce798a65e8672c0573aae1e80fc7d49bd75ebf402378b5cd4367c7d8f42c",
+   "audios": [
+    "https://archive.org/download/Generative_I/02-rabbits.mp3",
+    "https://archive.org/download/Generative_I/03-deadin658.mp3",
+    "https://archive.org/download/Generative_I/04-rpentomino.mp3",
+    "https://archive.org/download/Generative_I/05-gospergun.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:tricky diesel",
+   "artist": "Tricky Diesel",
+   "item": "Give_Me_a_Beat-13303",
+   "title": "Give Me a Beat",
+   "year": 2013,
+   "cover": "https://archive.org/download/Give_Me_a_Beat-13303/Give_Me_a_Beat-13303.jpg",
+   "cover_sha256": "8722a75cda8d31186942c72cd55971f43c96e1d36d63eecbbcff978ccd3fea58",
+   "audios": [
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_01_-_Dont_You_Worry.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_02_-_Heat.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_03_-_Bullit.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_04_-_Yup.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_05_-_Dark_Kingdom.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_06_-_Freestyle_Joint.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_07_-_King_of_the_Streets.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_08_-_World_of_Concrete.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_09_-_My_Love.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_11_-_Still_Balling.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_12_-_Trying_to_Understand.mp3",
+    "https://archive.org/download/Give_Me_a_Beat-13303/Tricky_Diesel_-_13_-_trickydiesel_-_So_Much_Pain.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:jahzzar",
+   "artist": "Jahzzar",
+   "item": "Grab_Bag-12446",
+   "title": "Grab Bag",
+   "year": 2012,
+   "cover": "https://archive.org/download/Grab_Bag-12446/Grab_Bag-12446.jpg",
+   "cover_sha256": "34140d49ce58c9611ae6c57e67171292ec28c6cdc5da62a2a256851c26f09762",
+   "audios": [
+    "https://archive.org/download/Grab_Bag-12446/01_-_Dummy.mp3",
+    "https://archive.org/download/Grab_Bag-12446/02_-_Candlelight.mp3",
+    "https://archive.org/download/Grab_Bag-12446/03_-_Trust.mp3",
+    "https://archive.org/download/Grab_Bag-12446/04_-_Guilty.mp3",
+    "https://archive.org/download/Grab_Bag-12446/05_-_Storm.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:broke for free",
+   "artist": "Broke For Free",
+   "item": "Grass_Hop-10919",
+   "title": "Grass Hop",
+   "year": 2012,
+   "cover": "https://archive.org/download/Grass_Hop-10919/Grass_Hop-10919.jpg",
+   "cover_sha256": "aa55a31a8d98b1779e5a70a9a1583826dceaf15d75e23492c967f23401d81bac",
+   "audios": [
+    "https://archive.org/download/Grass_Hop-10919/Broke_For_Free_-_01_-_Warm_Up_Suit.mp3",
+    "https://archive.org/download/Grass_Hop-10919/Broke_For_Free_-_02_-_Black_Lung.mp3",
+    "https://archive.org/download/Grass_Hop-10919/Broke_For_Free_-_03_-_Bring_Me_The_Night.mp3",
+    "https://archive.org/download/Grass_Hop-10919/Broke_For_Free_-_04_-_Breakfast_With_Tiffany.mp3",
+    "https://archive.org/download/Grass_Hop-10919/Broke_For_Free_-_05_-_Nola.mp3",
+    "https://archive.org/download/Grass_Hop-10919/Broke_For_Free_-_06_-_Over_Easy.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:hayvanlar alemi",
+   "artist": "Hayvanlar Alemi",
+   "item": "Hayvanlar_Alemi_Tatilde-1865",
+   "title": "Hayvanlar Alemi Tatilde",
+   "year": 2008,
+   "cover": "https://archive.org/download/Hayvanlar_Alemi_Tatilde-1865/Hayvanlar_Alemi_Tatilde-1865.jpg",
+   "cover_sha256": "6fe7deb0c7be43047bd8abcb3ecc58a0adabf3ec07bf6b67fc52e1909b354893",
+   "audios": [
+    "https://archive.org/download/Hayvanlar_Alemi_Tatilde-1865/Hayvanlar_Alemi_-_01_-_Hayalgc_Spor_Kulb.mp3",
+    "https://archive.org/download/Hayvanlar_Alemi_Tatilde-1865/Hayvanlar_Alemi_-_02_-_Akkan_Misafirler_ki.mp3",
+    "https://archive.org/download/Hayvanlar_Alemi_Tatilde-1865/Hayvanlar_Alemi_-_03_-_Gve_Diskosu.mp3",
+    "https://archive.org/download/Hayvanlar_Alemi_Tatilde-1865/Hayvanlar_Alemi_-_04_-_Ver_Elini_Hayvanlar_Alemi.mp3",
+    "https://archive.org/download/Hayvanlar_Alemi_Tatilde-1865/Hayvanlar_Alemi_-_05_-_Crossroad_Metamorphosis.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:chris zabriskie",
+   "artist": "Chris Zabriskie",
+   "item": "I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050",
+   "title": "I Am a Man Who Will Fight for Your Honor",
+   "year": 2009,
+   "cover": "https://archive.org/download/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050.jpg",
+   "cover_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "audios": [
+    "https://archive.org/download/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050/Chris_Zabriskie_-_01_-_Androids_Always_Escape.mp3",
+    "https://archive.org/download/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050/Chris_Zabriskie_-_02_-_The_Sun_Is_Schedule_to_Come_Out_Tomorrow.mp3",
+    "https://archive.org/download/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050/Chris_Zabriskie_-_03_-_I_Am_Running_with_Temporary_Success_from_a_Monstrous_Vacuum_in_Pursuit.mp3",
+    "https://archive.org/download/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050/Chris_Zabriskie_-_04_-_I_Am_Running_a_Marathon_with_Thousands_of_Other_Highly_Qualified_People_Who_Are_All_Trying_to_Defeat_Me.mp3",
+    "https://archive.org/download/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050/Chris_Zabriskie_-_05_-_I_Am_Running_Down_the_Long_Hallway_of_Viewmont_Elementary.mp3",
+    "https://archive.org/download/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050/Chris_Zabriskie_-_06_-_Laserdisc.mp3",
+    "https://archive.org/download/I_Am_a_Man_Who_Will_Fight_for_Your_Honor-10050/Chris_Zabriskie_-_07_-_I_Am_a_Man_Who_Will_Fight_for_Your_Honor.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kevin macleod",
+   "artist": "Kevin MacLeod",
+   "item": "Incompetech",
+   "title": "Incompetech royalty-free music (part 1)",
+   "year": 2016,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/8bit%20Dungeon%20Boss.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/8bit%20Dungeon%20Level.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Accralate.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Aces%20High.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Achaidh%20Cheide.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/AcidJazz.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Action.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Adventure%20Meme.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Aftermath.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Agnus%20Dei%20X.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/AhDah.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Air%20Prelude.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Airport%20Lounge.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Airship%20Serenity.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Aitech.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Alien%20Restaurant.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/All%20This.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Allada.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Amazing%20Grace%202011.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Americana.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Anamalie.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Angels%20We%20Have%20Heard%20%28piano%29.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Angels%20We%20Have%20Heard.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Angevin%20B.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Angevin.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Anguish.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Anxiety.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Arcadia.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Arcane.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Aretes.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Arid%20Foothills.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Artifact.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/As%20I%20Figure.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Ascending%20the%20Vale.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Asian%20Drums.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/At%20Launch.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/At%20Rest.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Atlantean%20Twilight.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Aurea%20Carmina.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Autumn%20Day.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kevin macleod",
+   "artist": "Kevin MacLeod",
+   "item": "Incompetech",
+   "title": "Incompetech royalty-free music (part 2)",
+   "year": 2016,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Avec%20Soin.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Awaiting%20Return.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Awesome%20Call.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Baba%20Yaga.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Babylon.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Backed%20Vibes%20Clean.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Backed%20Vibes.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Balzan%20Groove.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Bama%20Country.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Basement%20Floor.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Basic%20Implosion.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Bass%20Vibes.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Bass%20Walker.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Bathed%20in%20the%20Light.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Batty%20McFaddin%20-%20Slower.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Batty%20McFaddin.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Beachfront%20Celebration.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Bent%20and%20Broken.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Bet%20You%20Can%20ver%202.mp3",
+    "https://archive.org/download/Incompetech/mp3-royaltyfree/Bet%20You%20Can.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:peter rudenko",
+   "artist": "Peter Rudenko",
+   "item": "Incomplete-12589",
+   "title": "Incomplete",
+   "year": 2012,
+   "cover": "https://archive.org/download/Incomplete-12589/Incomplete-12589.jpg",
+   "cover_sha256": "a8b0faa7a6879634ee4168e58ba28d14458fe773560361cca55d3473bc23b80e",
+   "audios": [
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_01_-_Smile_On.mp3",
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_02_-_Winter_Sun.mp3",
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_03_-_When_It_Rains.mp3",
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_04_-_Inhale.mp3",
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_05_-_Last_Days_Of_Summer.mp3",
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_06_-_Back_Home.mp3",
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_08_-_Lights_Out.mp3",
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_09_-_Them.mp3",
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_10_-_Incomplete.mp3",
+    "https://archive.org/download/Incomplete-12589/Peter_Rudenko_-_11_-_Them_Part_2.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:k.m.krebs",
+   "artist": "K.M.Krebs",
+   "item": "Jade_Furnace_I",
+   "title": "The Jade Furnace I",
+   "year": 2006,
+   "cover": "https://archive.org/download/Jade_Furnace_I/the_jade_furnace_I.jpg",
+   "cover_sha256": "d22df79f55d102f59fa27fc818baa9db91b677065e89534c245e4c2654724902",
+   "audios": [
+    "https://archive.org/download/Jade_Furnace_I/02_Ashi.mp3",
+    "https://archive.org/download/Jade_Furnace_I/03_Odic.mp3",
+    "https://archive.org/download/Jade_Furnace_I/04_Ttlicastic.mp3",
+    "https://archive.org/download/Jade_Furnace_I/05_Unscal.mp3",
+    "https://archive.org/download/Jade_Furnace_I/06_Lustal.mp3",
+    "https://archive.org/download/Jade_Furnace_I/08_Ofilatinte.mp3",
+    "https://archive.org/download/Jade_Furnace_I/09_Occurainch.mp3",
+    "https://archive.org/download/Jade_Furnace_I/10_Psulty.mp3",
+    "https://archive.org/download/Jade_Furnace_I/12_Pulsam.mp3",
+    "https://archive.org/download/Jade_Furnace_I/13_Psieldinal.mp3",
+    "https://archive.org/download/Jade_Furnace_I/14_Younateles.mp3",
+    "https://archive.org/download/Jade_Furnace_I/15_Edgemerams.mp3",
+    "https://archive.org/download/Jade_Furnace_I/16_Riveal.mp3",
+    "https://archive.org/download/Jade_Furnace_I/17_Ious.mp3",
+    "https://archive.org/download/Jade_Furnace_I/18_Amal.mp3",
+    "https://archive.org/download/Jade_Furnace_I/20_Chisan.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:jahzzar",
+   "artist": "Jahzzar",
+   "item": "Jahzzar-Message",
+   "title": "Message",
+   "year": 2015,
+   "cover": "https://archive.org/download/Jahzzar-Message/cover.jpg",
+   "cover_sha256": "df0f2538ae304f54272fd162b0e07ea97b37acc605324d75a5b71e75deedd0f2",
+   "audios": [
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2001%20What-.mp3",
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2003%20Gonzo.mp3",
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2004%20March%20Madness.mp3",
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2005%20A%20Message.mp3",
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2006%20Wastecnology.mp3",
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2007%20Dory%20Honey.mp3",
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2008%201000%20Miles.mp3",
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2009%20Placeholder.mp3",
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2010%20In%20My%20Pocket.mp3",
+    "https://archive.org/download/Jahzzar-Message/Jahzzar%20-%20Message%20-%2012%20Black%20Jar.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:jahzzar",
+   "artist": "Jahzzar",
+   "item": "Jahzzar_Sele",
+   "title": "Sele",
+   "year": 2013,
+   "cover": "https://archive.org/download/Jahzzar_Sele/cover.jpg",
+   "cover_sha256": "3b81be51fe530274cee064128ef46412fc6bad061a3e965b22054a5475f471e0",
+   "audios": [
+    "https://archive.org/download/Jahzzar_Sele/Jahzzar%20-%20Sele%20-%2001%20Eve.mp3",
+    "https://archive.org/download/Jahzzar_Sele/Jahzzar%20-%20Sele%20-%2002%20Family%20Tree.mp3",
+    "https://archive.org/download/Jahzzar_Sele/Jahzzar%20-%20Sele%20-%2003%20Snowman.mp3",
+    "https://archive.org/download/Jahzzar_Sele/Jahzzar%20-%20Sele%20-%2005%20Avientu.mp3",
+    "https://archive.org/download/Jahzzar_Sele/Jahzzar%20-%20Sele%20-%2006%20%231%20Wish.mp3",
+    "https://archive.org/download/Jahzzar_Sele/Jahzzar%20-%20Sele%20-%2007%20Clap%20Your%20Hands.mp3",
+    "https://archive.org/download/Jahzzar_Sele/Jahzzar%20-%20Sele%20-%2008%20Playtime.mp3",
+    "https://archive.org/download/Jahzzar_Sele/Jahzzar%20-%20Sele%20-%2009%20Xmas%20Carol.mp3",
+    "https://archive.org/download/Jahzzar_Sele/Jahzzar%20-%20Sele%20-%2010%20The%20Next%20Day.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:josh woodward",
+   "artist": "Josh Woodward",
+   "item": "JoshWoodward-HereToday",
+   "title": "Here Today",
+   "year": 2008,
+   "cover": "https://archive.org/download/JoshWoodward-HereToday/coverJoshWoodward-HereToday.jpg",
+   "cover_sha256": "5f0d59152956ed62c082808baf319716097b2a3c48c64c9ebc14dc93d460f63d",
+   "audios": [
+    "https://archive.org/download/JoshWoodward-HereToday/01-Incoherent.ogg",
+    "https://archive.org/download/JoshWoodward-HereToday/02-MonaLisa.ogg",
+    "https://archive.org/download/JoshWoodward-HereToday/03-Dust.ogg",
+    "https://archive.org/download/JoshWoodward-HereToday/04-Troublemaker.ogg",
+    "https://archive.org/download/JoshWoodward-HereToday/05-HouseInMyHead.ogg",
+    "https://archive.org/download/JoshWoodward-HereToday/06-LearnToFly.ogg",
+    "https://archive.org/download/JoshWoodward-HereToday/07-NothingInTheDark.ogg",
+    "https://archive.org/download/JoshWoodward-HereToday/08-SoftOrangeGlow.ogg"
+   ]
+  },
+  {
+   "artist_key": "archive:josh woodward",
+   "artist": "Josh Woodward",
+   "item": "JoshWoodwardSelection",
+   "title": "Josh Woodward Selection",
+   "year": 2011,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/JoshWoodwardSelection/01-JoshWoodward-Ashes-02-Cherubs.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/03-JoshWoodward-Breadcrumbs-02-2020.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/04-JoshWoodward-Breadcrumbs-04-PrivateHurricane.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/05-JoshWoodward-Breadcrumbs-09-OnceTomorrow.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/06-JoshWoodward-TheSimpleLife-02-Go.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/07-JoshWoodward-TheSimpleLife-03-Saturday.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/08-JoshWoodward-TheSimpleLife-08-MorningBlue.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/09-JoshWoodward-TheSimpleLife-17-ShadowsInTheMoonlight.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/11-JoshWoodward-NotQuiteConnected-02-Effortless.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/12-JoshWoodward-NotQuiteConnected-05-SymmetryAndThePocketOfAngels.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/13-JoshWoodward-NotQuiteConnected-11-RiverWentDry.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/15-JoshWoodward-OnlyWhispering-02-AdventuresOfTheDeafDreamer.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/16-JoshWoodward-OnlyWhispering-08-EastSideBar.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/17-JoshWoodward-CrawfordStreet-02-Cherry.mp3",
+    "https://archive.org/download/JoshWoodwardSelection/20-JoshWoodward-HereToday-01-Incoherent.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kellee maize",
+   "artist": "Kellee Maize",
+   "item": "KelleeMaizeSelection",
+   "title": "Kellee Maize Selection",
+   "year": 2011,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/KelleeMaizeSelection/02-KelleeMaize-MadHumans-Integration-Jamendo.mp3",
+    "https://archive.org/download/KelleeMaizeSelection/03-KelleeMaize-BigPlans-AlignedArchetype-Jamendo.mp3",
+    "https://archive.org/download/KelleeMaizeSelection/04-KelleeMaize-TheFactIs-Integration-Jamendo.mp3",
+    "https://archive.org/download/KelleeMaizeSelection/05-KelleeMaize-HastaAbajo-Integration-Jamendo.mp3",
+    "https://archive.org/download/KelleeMaizeSelection/07-KelleeMaize-AgeOfFeminine-AgeOfFeminine-Kelleemaize.com.mp3",
+    "https://archive.org/download/KelleeMaizeSelection/08-KelleeMaize-CityOfChampions-AlignedArchetype-Jamendo.mp3",
+    "https://archive.org/download/KelleeMaizeSelection/09-KelleeMaize-Signs-AlignedArchetype-Jamendo.mp3",
+    "https://archive.org/download/KelleeMaizeSelection/10-KelleeMaize-BigPlansRemix-AlignedArchetype-Jamendo.mp3",
+    "https://archive.org/download/KelleeMaizeSelection/11-KelleeMaize-Eleven-Integration-Jamendo.mp3",
+    "https://archive.org/download/KelleeMaizeSelection/12-KelleeMaize-Yesterday-AgeOfFeminine-Kelleemaize.com.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:komiku",
+   "artist": "Komiku",
+   "item": "Komiku-ItsTimeForAdventureVol2",
+   "title": "It's Time For Adventure! Vol 2",
+   "year": 2018,
+   "cover": "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_Its_time_for_adventure__vol_2_-_20161101115121009.jpg",
+   "cover_sha256": "99ce189a55a1e7bfd6ee99e6b7ef50c98a4ab619b2d774c6ca480377a4fb489a",
+   "audios": [
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_01_-_Balance.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_02_-_Chill_Out_Theme.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_03_-_Battle_Theme.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_04_-_Time.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_05_-_Down_the_river.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_06_-_Filthy.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_07_-_Frozen_Jungle.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_08_-_Dreaming_of_you.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_09_-_This_one_is_tough.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_10_-_Something_to_save.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_11_-_Remember_this_shadow.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_12_-_Tension.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_13_-_Fight_run_breath_deeply.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_14_-_Sad_walk_with_sad_melodica.mp3",
+    "https://archive.org/download/Komiku-ItsTimeForAdventureVol2/Komiku_-_15_-_Victory.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:komiku",
+   "artist": "Komiku",
+   "item": "Komiku-Poupis_incredible_adventures",
+   "title": "Poupi's incredible adventures !",
+   "year": 2018,
+   "cover": "https://archive.org/download/Komiku-Poupis_incredible_adventures/a0606555560_16.jpg",
+   "cover_sha256": "d3c0622bfa406495e92ef55cd17673fabc7708d76b12b988349ad5d87e1a5b70",
+   "audios": [
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-03TimeForTheWalkOfTheDay.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-05Surfing.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-18DanceContestToTheMeowsic.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-28JeniferTheGame.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-33SpaceMtv.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-54EscapingLikeIndianaJones.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-61AMazeThatSmellsFruits.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-62TheChallenge.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-65BigCrumble.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-67TheMomentOfTruth.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku-PoupisIncredibleAdventures-70Ending.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_14_-_Fracture_of_the_universe_will_happen_soon.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_15_-_Cat_City.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_34_-_Serenity_Temple.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_36_-_Intensive_puzzle_resolution.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_37_-_Im_on_a_boat_.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_39_-_Swimming_with_the_fish.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_41_-_Merfolks_Song.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_43_-_Travel_to_the_Horizon.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_49_-_Land_of_comestible_people.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_51_-_Chocolate_Valley.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_52_-_Cave_of_time.mp3",
+    "https://archive.org/download/Komiku-Poupis_incredible_adventures/Komiku_-_57_-_Quiet_Saturday.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:jahzzar",
+   "artist": "Jahzzar",
+   "item": "Kuddelmuddel",
+   "title": "Kuddelmuddel",
+   "year": 2015,
+   "cover": "https://archive.org/download/Kuddelmuddel/cover.jpg",
+   "cover_sha256": "2335ad60aefaa18f84dc060bc8c89a63c3b052c3aba7ff22fdbb214231664ee1",
+   "audios": [
+    "https://archive.org/download/Kuddelmuddel/Jahzzar%20-%20Kuddelmuddel%20-%2001%202014.mp3",
+    "https://archive.org/download/Kuddelmuddel/Jahzzar%20-%20Kuddelmuddel%20-%2002%20Forgiven%20Not%20Forgotten.mp3",
+    "https://archive.org/download/Kuddelmuddel/Jahzzar%20-%20Kuddelmuddel%20-%2003%20Invisible.mp3",
+    "https://archive.org/download/Kuddelmuddel/Jahzzar%20-%20Kuddelmuddel%20-%2004%20L%26H.mp3",
+    "https://archive.org/download/Kuddelmuddel/Jahzzar%20-%20Kuddelmuddel%20-%2005%20Missing%20You.mp3",
+    "https://archive.org/download/Kuddelmuddel/Jahzzar%20-%20Kuddelmuddel%20-%2006%20Superconductivity.mp3",
+    "https://archive.org/download/Kuddelmuddel/Jahzzar%20-%20Kuddelmuddel%20-%2007%20Not%20Today%2C%20Once%20Again.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:the freak fandango orchestra",
+   "artist": "The Freak Fandango Orchestra",
+   "item": "Love_death_and_a_drunken_monkey-10394",
+   "title": "Love, death and a drunken monkey",
+   "year": 2011,
+   "cover": "https://archive.org/download/Love_death_and_a_drunken_monkey-10394/Love_death_and_a_drunken_monkey-10394.jpg",
+   "cover_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+   "audios": [
+    "https://archive.org/download/Love_death_and_a_drunken_monkey-10394/The_Freak_Fandango_Orchestra_-_01_-_Monkey_Said.mp3",
+    "https://archive.org/download/Love_death_and_a_drunken_monkey-10394/The_Freak_Fandango_Orchestra_-_02_-_Nevermore.mp3",
+    "https://archive.org/download/Love_death_and_a_drunken_monkey-10394/The_Freak_Fandango_Orchestra_-_03_-_Sad_Passangers_Waltz.mp3",
+    "https://archive.org/download/Love_death_and_a_drunken_monkey-10394/The_Freak_Fandango_Orchestra_-_04_-_The_Hug.mp3",
+    "https://archive.org/download/Love_death_and_a_drunken_monkey-10394/The_Freak_Fandango_Orchestra_-_05_-_A_Russian_Circus_Story.mp3",
+    "https://archive.org/download/Love_death_and_a_drunken_monkey-10394/The_Freak_Fandango_Orchestra_-_06_-_La_Polka_Del_Amor_live_at_ScannerFm.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:loyalty freak music",
+   "artist": "Loyalty Freak Music",
+   "item": "LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON",
+   "title": "INSTRUMENTAL R&B BEATS TO SING OR RAP ON",
+   "year": 2018,
+   "cover": "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty_Freak_Music_-_INSTRUMENTAL_RB_BEATS_TO_SING_OR_RAP_ON_-_2018051541837121.jpg",
+   "cover_sha256": "b90d2e105bc352342f4d7fe395396adb149f18e85051d9255cf33274d3083f03",
+   "audios": [
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2001%20Sunglasses.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2002%20Friend%20to%20friend.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2003%20Sensual%20Melancholia.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2004%20Dirty%20shoes%20blues.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2005%20The%20candle.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2006%20Talk%20to%20me.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2007%20Don%27t%20listen%20to%20the%20words%20they%20say.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2008%20I%20care.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2009%20Dancing%20Fool.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2010%20Slow%20Pogo.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2011%20Let%27s%20be%20serious%20a%20second.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2012%20Enby.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2013%20Harsh%20Love.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2014%20The%20Decision.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2015%20Walking%20Shoes.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2016%20Hope%20and%20Love.mp3",
+    "https://archive.org/download/LoyaltyFreakMusic-INSTRUMENTALRBBEATSTOSINGORRAPON/Loyalty%20Freak%20Music%20-%20INSTRUMENTAL%20R%26B%20BEATS%20TO%20SING%20OR%20RAP%20ON%20-%2017%20Summer%20Pride.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:floating mind",
+   "artist": "Floating Mind",
+   "item": "Monokrak201FloatingMind_Human_Kalor",
+   "title": "FloatingMind \"Human Kalor\"",
+   "year": 2017,
+   "cover": "https://archive.org/download/Monokrak201FloatingMind_Human_Kalor/monoKraK201_cover.JPG",
+   "cover_sha256": "194468131cc9b785b20773f60fef14606d6c81fcc25d0a32a03df1aede3a90b3",
+   "audios": [
+    "https://archive.org/download/Monokrak201FloatingMind_Human_Kalor/%5Bmonokrak201%5D_FloatingMind_Loubidou.mp3",
+    "https://archive.org/download/Monokrak201FloatingMind_Human_Kalor/%5Bmonokrak201%5D_FloatingMind_Sempre_Dire_Mai.mp3",
+    "https://archive.org/download/Monokrak201FloatingMind_Human_Kalor/%5Bmonokrak201%5D_FloatingMind_Tango_Aleatoire.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:monplaisir",
+   "artist": "Monplaisir",
+   "item": "Monplaisir-AmericanDreamsOriginalSoundtrack",
+   "title": "American Dreams Original Soundtrack",
+   "year": 2019,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/Monplaisir-AmericanDreamsOriginalSoundtrack/Monplaisir%20-%20American%20Dreams%20Original%20Soundtrack%20-%2002%20There%20is%20no%20place%20like%20Home.mp3",
+    "https://archive.org/download/Monplaisir-AmericanDreamsOriginalSoundtrack/Monplaisir%20-%20American%20Dreams%20Original%20Soundtrack%20-%2005%20Saturday%27s%20church.mp3",
+    "https://archive.org/download/Monplaisir-AmericanDreamsOriginalSoundtrack/Monplaisir%20-%20American%20Dreams%20Original%20Soundtrack%20-%2007%20Home%27s%20church.mp3",
+    "https://archive.org/download/Monplaisir-AmericanDreamsOriginalSoundtrack/Monplaisir%20-%20American%20Dreams%20Original%20Soundtrack%20-%2008%20Chicken.mp3",
+    "https://archive.org/download/Monplaisir-AmericanDreamsOriginalSoundtrack/Monplaisir%20-%20American%20Dreams%20Original%20Soundtrack%20-%2009%20Not%20in%20the%20costume.mp3",
+    "https://archive.org/download/Monplaisir-AmericanDreamsOriginalSoundtrack/Monplaisir%20-%20American%20Dreams%20Original%20Soundtrack%20-%2013%20Pretending.mp3",
+    "https://archive.org/download/Monplaisir-AmericanDreamsOriginalSoundtrack/Monplaisir%20-%20American%20Dreams%20Original%20Soundtrack%20-%2015%20Brotherhood.mp3",
+    "https://archive.org/download/Monplaisir-AmericanDreamsOriginalSoundtrack/Monplaisir%20-%20American%20Dreams%20Original%20Soundtrack%20-%2016%20To%20Fail.mp3",
+    "https://archive.org/download/Monplaisir-AmericanDreamsOriginalSoundtrack/Monplaisir%20-%20American%20Dreams%20Original%20Soundtrack%20-%2017%20To%20Start%20Again.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:monplaisir",
+   "artist": "Monplaisir",
+   "item": "Monplaisir-RelaxingUkulele",
+   "title": "Relaxing Ukulele",
+   "year": 2017,
+   "cover": "https://archive.org/download/Monplaisir-RelaxingUkulele/cover.jpg",
+   "cover_sha256": "6dba414574cf77aeb660404c96154e5ff2d8eb3a6db0e962cd7ddfb2b03d0607",
+   "audios": [
+    "https://archive.org/download/Monplaisir-RelaxingUkulele/Monplaisir%20-%20Relaxing%20Ukulele%20-%2001%20Red%20Hair%2C%20Blue%20Sky.mp3",
+    "https://archive.org/download/Monplaisir-RelaxingUkulele/Monplaisir%20-%20Relaxing%20Ukulele%20-%2002%20Sincere%20Love.mp3",
+    "https://archive.org/download/Monplaisir-RelaxingUkulele/Monplaisir%20-%20Relaxing%20Ukulele%20-%2003%20Time%20Gap.mp3",
+    "https://archive.org/download/Monplaisir-RelaxingUkulele/Monplaisir%20-%20Relaxing%20Ukulele%20-%2004%20First.mp3",
+    "https://archive.org/download/Monplaisir-RelaxingUkulele/Monplaisir%20-%20Relaxing%20Ukulele%20-%2005%20Stay%20Quiet.mp3",
+    "https://archive.org/download/Monplaisir-RelaxingUkulele/Monplaisir%20-%20Relaxing%20Ukulele%20-%2006%20On%20the%20road%2C%20looking%20at%20your%20feet.mp3",
+    "https://archive.org/download/Monplaisir-RelaxingUkulele/Monplaisir%20-%20Relaxing%20Ukulele%20-%2007%20Floating%20Temple.mp3",
+    "https://archive.org/download/Monplaisir-RelaxingUkulele/Monplaisir%20-%20Relaxing%20Ukulele%20-%2008%20Hop.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:monplaisir",
+   "artist": "Monplaisir",
+   "item": "MonplaisirOnNeCourtPlus",
+   "title": "On ne court plus",
+   "year": 2017,
+   "cover": "https://archive.org/download/MonplaisirOnNeCourtPlus/cover.jpg",
+   "cover_sha256": "3bfc9ebf7885a155f56a1fb0260aff576d24e15a5d40dfb1af0d88cb21e4d3b1",
+   "audios": [
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2001%20Ne%20pas%20courir.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2002%20Je%20ne%20suis%20rien.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2004%20Tu%20n%27as%20pas%20de%20non.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2005%20La%20B%C3%AAte%20te%20survivra.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2006%20Chrono.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2007%20Le%20jeu%20de%20la%20conversation.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2008%20This%20is%20so%20vain.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2009%20C.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2010%20Strike.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2011%20FUCK%20ME.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2012%20Forbidden%20VHS.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2013%20Love%20you%20like.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2014%20Walk.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2015%20Call%20from%20outerearth.mp3",
+    "https://archive.org/download/MonplaisirOnNeCourtPlus/Monplaisir%20-%20On%20ne%20court%20plus%20-%2016%20To%20dream%20a%20super%20market.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:monplaisir",
+   "artist": "Monplaisir",
+   "item": "MonplaisirSurtoutNePasSePerdre20112016",
+   "title": "Surtout Ne Pas Se Perdre ( 2011-2016)",
+   "year": 2017,
+   "cover": "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/pochettefma.jpg",
+   "cover_sha256": "7b141d567610b05f8d4f48fb21a8092582e3f9f5d938d6c7d62ea611bf8b5882",
+   "audios": [
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2001%20Everything%20is%20true.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2002%20a%3Dlandmine.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2003%20Tu%20peux%20partir%20si%20tu%20veux.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2004%20Grande%20vue.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2005%20In%20the%20name%20of%20loneliness.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2007%20Untitled%20%231.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2008%20Catapulte.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2009%20Chat%20dans%20la%20gorge.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2010%20Carelage%20facile.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2012%20Lumi%C3%A8re%20jaune.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2013%20Le%20meilleur%20des%20mondes.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2014%20Untitled%20%232.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2015%20Crack%20Crikiti%20Crouk.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2016%20La%20bagarre.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2017%20Encore%20la%20bagarre.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2018%20Oui%20mais.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2019%20Well%20end%20blues.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2020%20Untitled%20%233.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2021%20Quand%20tu%20es%20l%C3%A0%2C%20il%20fait%20chaud%20et%20frais.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2022%20Rock%20Alternatif%20de%20haute%20qualit%C3%A9.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2023%20A%20vault.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2024%20Ambiant%20Do%20R%C3%A9.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2025%20Fr%28ustr%29ance.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2026%20Untitled%20%234.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2027%20La%20balade%20du%20gentil%20robot.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2028%20Pourquoi%20Tu.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2031%20Pas%20de%20repos.mp3",
+    "https://archive.org/download/MonplaisirSurtoutNePasSePerdre20112016/Monplaisir%20-%20Surtout%20ne%20pas%20se%20perdre%20%282011-2016%29%20-%2032%20Percer%20la%20main.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:voyageurs",
+   "artist": "voyageurs",
+   "item": "Nude_Vegas-8364",
+   "title": "Nude Vegas",
+   "year": 2011,
+   "cover": "https://archive.org/download/Nude_Vegas-8364/Nude_Vegas-8364.jpg",
+   "cover_sha256": "77414a83eedac891881a12c327759ee76fcabf2b8a9904683a3a085619818cc2",
+   "audios": [
+    "https://archive.org/download/Nude_Vegas-8364/voyageurs_-_01_-_MONSTERS_COMING_HOME.mp3",
+    "https://archive.org/download/Nude_Vegas-8364/voyageurs_-_02_-_DEMON_WINGS.mp3",
+    "https://archive.org/download/Nude_Vegas-8364/voyageurs_-_03_-_CLUB_ADDICT.mp3",
+    "https://archive.org/download/Nude_Vegas-8364/voyageurs_-_04_-_ISLAND_UNIVERSE.mp3",
+    "https://archive.org/download/Nude_Vegas-8364/voyageurs_-_05_-_WET_DREAMS.mp3",
+    "https://archive.org/download/Nude_Vegas-8364/voyageurs_-_06_-_WILD_SISTERS.mp3",
+    "https://archive.org/download/Nude_Vegas-8364/voyageurs_-_07_-_KOMFORT.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:pierlo",
+   "artist": "Pierlo",
+   "item": "Olivetti_Prodest-7908",
+   "title": "Olivetti Prodest",
+   "year": 2010,
+   "cover": "https://archive.org/download/Olivetti_Prodest-7908/Olivetti_Prodest-7908.jpg",
+   "cover_sha256": "44a041def6553961befff04a54c2c7c42d13c2ad20c610df7360ae725c916646",
+   "audios": [
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_01_-_Deleuze.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_02_-_Profi_70s.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_03_-_BMX_Hero.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_04_-_Intrusion.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_05_-_San_Diego_Cruisin.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_07_-_Venga_Bus.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_08_-_King_of_The_Kitchen.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_09_-_Xor.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_10_-_Barbarian.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_11_-_Skyroads.mp3",
+    "https://archive.org/download/Olivetti_Prodest-7908/Pierlo_-_12_-_Ocramancer.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kimiko ishizaka",
+   "artist": "Kimiko Ishizaka",
+   "item": "OpenGoldbergVariations",
+   "title": "The Open Goldberg Variations",
+   "year": 2012,
+   "cover": "https://archive.org/download/OpenGoldbergVariations/cover.jpg",
+   "cover_sha256": "f3934fbc5ce7d2a35e5d52185f1d0095b5c1e0dfce36e8490b05a9edfaf78dd4",
+   "audios": [
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2002%20Variatio%201%20a%201%20Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2003%20Variatio%202%20a%201%20Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2004%20Variatio%203%20a%201%20Clav.%20Canone%20all%20Unisuono.mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2006%20Variatio%205%20a%201%20ovvero%202%20Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2007%20Variatio%206%20a%201%20Clav.%20Canone%20alla%20Seconda.mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2008%20Variatio%207%20a%201%20ovvero%202%20Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2009%20Variatio%208%20a%202%20Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2010%20Variatio%209%20a%201%20Clav.%20Canone%20alla%20Terza.mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2011%20Variatio%2010%20a%201%20Clav.%20Fughetta.mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2012%20Variatio%2011%20a%202%20Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2013%20Variatio%2012%20Canone%20alla%20Quarta.mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2015%20Variatio%2014%20a%202%20Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/Kimiko%20Ishizaka%20-%20J.S.%20Bach-%20-Open-%20Goldberg%20Variations%2C%20BWV%20988%20%28Piano%29%20-%2024%20Variatio%2023%20a%202%20Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-16Variatio15A1Clav.CanoneAllaQuinta.mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-17Variatio16A1Clav.Ouverture.mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-18Variatio17A2Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-21Variatio20A2Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-23Variatio22A1Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-25Variatio24A1Clav.CanoneAllOttava.mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-27Variatio26A2Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-28Variatio27A2Clav.CanoneAllaNona-Variatio28A2Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-29Variatio29A1Ovvero2Clav..mp3",
+    "https://archive.org/download/OpenGoldbergVariations/KimikoIshizaka-J.s.Bach--open-GoldbergVariationsBwv988piano-30Variatio30A1Clav.Quodlibet.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:chris zabriskie",
+   "artist": "Chris Zabriskie",
+   "item": "Preludes-10052",
+   "title": "Preludes",
+   "year": 2009,
+   "cover": "https://archive.org/download/Preludes-10052/Preludes-10052.jpg",
+   "cover_sha256": "b50b75dcca0cfcdb5927c723d552c5adef394778cc96a315213f8b188c970bbb",
+   "audios": [
+    "https://archive.org/download/Preludes-10052/Chris_Zabriskie_-_03_-_Prelude_No_3.mp3",
+    "https://archive.org/download/Preludes-10052/Chris_Zabriskie_-_07_-_Prelude_No_7.mp3",
+    "https://archive.org/download/Preludes-10052/Chris_Zabriskie_-_10_-_Prelude_No_10.mp3",
+    "https://archive.org/download/Preludes-10052/Chris_Zabriskie_-_11_-_Prelude_No_11.mp3",
+    "https://archive.org/download/Preludes-10052/Chris_Zabriskie_-_16_-_Prelude_No_16.mp3",
+    "https://archive.org/download/Preludes-10052/Chris_Zabriskie_-_23_-_Prelude_No_23.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:chris zabriskie",
+   "artist": "Chris Zabriskie",
+   "item": "Reappear-11948",
+   "title": "Reappear",
+   "year": 2012,
+   "cover": "https://archive.org/download/Reappear-11948/Reappear-11948.jpg",
+   "cover_sha256": "dea142a9dfe8b70db6462b65cf75fb1a02c5ca4615e4220d8a493679854667fd",
+   "audios": [
+    "https://archive.org/download/Reappear-11948/Chris_Zabriskie_-_03_-_Out_of_the_Skies_Under_the_Earth.mp3",
+    "https://archive.org/download/Reappear-11948/Chris_Zabriskie_-_04_-_Is_That_You_or_Are_You_You.mp3",
+    "https://archive.org/download/Reappear-11948/Chris_Zabriskie_-_05_-_What_True_Self_Feels_Bogus_Lets_Watch_Jason_X.mp3",
+    "https://archive.org/download/Reappear-11948/Chris_Zabriskie_-_06_-_Chance_Luck_Errors_in_Nature_Fate_Destruction_As_a_Finale.mp3",
+    "https://archive.org/download/Reappear-11948/Chris_Zabriskie_-_07_-_Virtues_Inherited_Vices_Passed_On.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:robodub",
+   "artist": "Robodub",
+   "item": "Robodub-12414",
+   "title": "Robodub",
+   "year": 2012,
+   "cover": "https://archive.org/download/Robodub-12414/Robodub-12414.jpg",
+   "cover_sha256": "9691b2802dce34c853e3f2d30dca7242c4c2e0865e7c7ffbef80a9a02d81bf5d",
+   "audios": [
+    "https://archive.org/download/Robodub-12414/Robodub_-_01_-_Clockenspiel.mp3",
+    "https://archive.org/download/Robodub-12414/Robodub_-_02_-_Neon_Rollers.mp3",
+    "https://archive.org/download/Robodub-12414/Robodub_-_03_-_Jah.mp3",
+    "https://archive.org/download/Robodub-12414/Robodub_-_04_-_Meteorite.mp3",
+    "https://archive.org/download/Robodub-12414/Robodub_-_05_-_Cloud_Algorithm.mp3",
+    "https://archive.org/download/Robodub-12414/Robodub_-_06_-_Space_Bugs.mp3",
+    "https://archive.org/download/Robodub-12414/Robodub_-_07_-_Clockwork.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kai engel",
+   "artist": "Kai Engel",
+   "item": "SCL115",
+   "title": "Calls and Echoes (LP, 2014)",
+   "year": 2014,
+   "cover": "https://archive.org/download/SCL115/cover.jpg",
+   "cover_sha256": "906bc798c019d8d635f66c34c8fb0e557c027f61b74f6eec2a03e9daa75b7355",
+   "audios": [
+    "https://archive.org/download/SCL115/01_-_Prologue.mp3",
+    "https://archive.org/download/SCL115/02_-_Calls_and_Echoes.mp3",
+    "https://archive.org/download/SCL115/03_-_Fairytale.mp3",
+    "https://archive.org/download/SCL115/04_-_Raining.mp3",
+    "https://archive.org/download/SCL115/05_-_Vintage_Frames.mp3",
+    "https://archive.org/download/SCL115/06_-_The_Flames_of_Rome.mp3",
+    "https://archive.org/download/SCL115/07_-_Phantasm.mp3",
+    "https://archive.org/download/SCL115/08_-_When_the_Lights_Came_On.mp3",
+    "https://archive.org/download/SCL115/09_-_Embracing_the_Sunrise.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kai engel",
+   "artist": "Kai Engel",
+   "item": "SCL125",
+   "title": "Deathless: The Renaissance",
+   "year": 2014,
+   "cover": "https://archive.org/download/SCL125/cover.jpg",
+   "cover_sha256": "20b60a0a2363b5581c6b085c11ce771112d378fa2caf6f31496b65f327f3594e",
+   "audios": [
+    "https://archive.org/download/SCL125/01_-_The_Adumbration.mp3",
+    "https://archive.org/download/SCL125/02_-_Disciples_Of_Steel.mp3",
+    "https://archive.org/download/SCL125/03_-_Morning_Placidity.mp3",
+    "https://archive.org/download/SCL125/04_-_Chant_Of_Night_Blades.mp3",
+    "https://archive.org/download/SCL125/05_-_Avenge_The_Fallen.mp3",
+    "https://archive.org/download/SCL125/06_-_Celestial_Plains.mp3",
+    "https://archive.org/download/SCL125/07_-_Beneath_The_Stronghold.mp3",
+    "https://archive.org/download/SCL125/08_-_The_Price_Of_Valour.mp3",
+    "https://archive.org/download/SCL125/09_-_Without_Redemption.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kai engel",
+   "artist": "Kai Engel",
+   "item": "SCL155",
+   "title": "Rain Catcher",
+   "year": 2014,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/SCL155/01_-_Prelude_-_Bells_In_Heavy_Clouds.mp3",
+    "https://archive.org/download/SCL155/02_-_I_Am_Climbing_on_Air.mp3",
+    "https://archive.org/download/SCL155/04_-_Fading_Rays_Waltz.mp3",
+    "https://archive.org/download/SCL155/05_-_Twinkling_Stars_Wont_Answer_Me.mp3",
+    "https://archive.org/download/SCL155/06_-_Interlude_-_In_Anxious_Shadows.mp3",
+    "https://archive.org/download/SCL155/07_-_A_Note_is_My_Gift.mp3",
+    "https://archive.org/download/SCL155/08_-_Back_to_Lighted_Streets.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:man bites dog",
+   "artist": "Man Bites Dog",
+   "item": "Safe_and_Sound_EP-10796",
+   "title": "Safe and Sound EP",
+   "year": 2012,
+   "cover": "https://archive.org/download/Safe_and_Sound_EP-10796/Safe_and_Sound_EP-10796.jpg",
+   "cover_sha256": "06c24036216a6c01081d4296f5ff53ff233d8dd71104da17ce80e53f48f83b23",
+   "audios": [
+    "https://archive.org/download/Safe_and_Sound_EP-10796/Man_Bites_Dog_-_01_-_One_Chord_Wonder.mp3",
+    "https://archive.org/download/Safe_and_Sound_EP-10796/Man_Bites_Dog_-_02_-_Perfect_One.mp3",
+    "https://archive.org/download/Safe_and_Sound_EP-10796/Man_Bites_Dog_-_03_-_Milk_and_Honey.mp3",
+    "https://archive.org/download/Safe_and_Sound_EP-10796/Man_Bites_Dog_-_04_-_College_Rock_How_To_Hold_The_Guitar_Right.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:seetyca",
+   "artist": "Seetyca",
+   "item": "Seetyca_Suite",
+   "title": "die comoedia von der zeit",
+   "year": 2006,
+   "cover": "https://archive.org/download/Seetyca_Suite/Seetyca_Suite.JPG",
+   "cover_sha256": "5366da8dace624125624d9acf41d131e446761df8c9622e7ad1cd9e10a9fef33",
+   "audios": [
+    "https://archive.org/download/Seetyca_Suite/01_die_comoedia_von_der_zeit.mp3",
+    "https://archive.org/download/Seetyca_Suite/02_meyne_seele_theilt_sich.mp3",
+    "https://archive.org/download/Seetyca_Suite/03_der_glaube_alleyn_versetzet_nichts.mp3",
+    "https://archive.org/download/Seetyca_Suite/04_das_seyn_und_das_nichts.mp3",
+    "https://archive.org/download/Seetyca_Suite/05_warten_in_der_ruhe.mp3",
+    "https://archive.org/download/Seetyca_Suite/06_eyne_wegwerffende_bewegung.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:broke for free",
+   "artist": "Broke For Free",
+   "item": "Slam_Funk-7603",
+   "title": "Slam Funk",
+   "year": 2010,
+   "cover": "https://archive.org/download/Slam_Funk-7603/Slam_Funk-7603.jpg",
+   "cover_sha256": "81edcb0368766573ca08df36f694138cf2c1fa286712e89ea8fa3b39a127eff3",
+   "audios": [
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_01_-_Nothing_Like_Captain_Crunch.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_02_-_Calm_The_Fuck_Down.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_03_-_The_Great.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_04_-_Caught_In_The_Beat.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_05_-_Hella.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_06_-_High_School_Snaps.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_07_-_At_The_Count.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_08_-_Living_In_Reverse.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_09_-_Drop_of_Water_In_the_Ocean.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_10_-_Covered_In_Oil.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_11_-_Simple_Hop.mp3",
+    "https://archive.org/download/Slam_Funk-7603/Broke_For_Free_-_12_-_Our_Ego_Feat_Different_Visitor.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:jahzzar",
+   "artist": "Jahzzar",
+   "item": "Smoke_Factory-11354",
+   "title": "Smoke Factory (Excerpt)",
+   "year": 2012,
+   "cover": "https://archive.org/download/Smoke_Factory-11354/Smoke_Factory-11354.jpg",
+   "cover_sha256": "7454376c5a11e67d430016dbe26b9d7d120f34ec0a2d267dab6ac1d1f825ecf5",
+   "audios": [
+    "https://archive.org/download/Smoke_Factory-11354/Jahzzar_-_01_-_The_last_ones.mp3",
+    "https://archive.org/download/Smoke_Factory-11354/Jahzzar_-_04_-_Look_inside.mp3",
+    "https://archive.org/download/Smoke_Factory-11354/Jahzzar_-_07_-_Anniversary.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:soft and furious",
+   "artist": "Soft and Furious",
+   "item": "SoftAndFurious-YouKnowWhereToFindMe",
+   "title": "You Know Where To Find Me",
+   "year": 2018,
+   "cover": "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/Soft_and_Furious_-_You_know_where_to_find_me_-_20180430125722997.jpg",
+   "cover_sha256": "31d519b9e26a6b2e3075e8178bab6e9f1375b7e9d54c30370d722e47e065a684",
+   "audios": [
+    "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/SoftAndFurious-YouKnowWhereToFindMe-02ReturnToTheBasis.mp3",
+    "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/SoftAndFurious-YouKnowWhereToFindMe-03GranularDreams.mp3",
+    "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/SoftAndFurious-YouKnowWhereToFindMe-04StillWeakerThanThem.mp3",
+    "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/SoftAndFurious-YouKnowWhereToFindMe-05FallingIntoTheGame.mp3",
+    "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/SoftAndFurious-YouKnowWhereToFindMe-06AndNeverComeBack.mp3",
+    "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/SoftAndFurious-YouKnowWhereToFindMe-07PowerfulStasis.mp3",
+    "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/SoftAndFurious-YouKnowWhereToFindMe-08MurkySweetSweetStyle.mp3",
+    "https://archive.org/download/SoftAndFurious-YouKnowWhereToFindMe/SoftAndFurious-YouKnowWhereToFindMe-09HorizonEnding.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:soft and furious",
+   "artist": "Soft and Furious",
+   "item": "SoftAndFurious-manimnot",
+   "title": "The man I'm not",
+   "year": 2017,
+   "cover": "https://archive.org/download/SoftAndFurious-manimnot/a1825322208_16.jpg",
+   "cover_sha256": "8f2668e0b0cbcddd1510cec014d8751253cf26924cf656fa5cd6e4d0c7bebb12",
+   "audios": [
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-01SoWhat.mp3",
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-02Queen.mp3",
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-03WithYou.mp3",
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-04UltraPigeon.mp3",
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-05HeavyAsARedSnow.mp3",
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-06Monster.mp3",
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-07DanceLikeCrazy.mp3",
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-08TheSecret.mp3",
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-09StaticOverdrivenFlesh.mp3",
+    "https://archive.org/download/SoftAndFurious-manimnot/SoftAndFurious-TheManImNot-10MelancholicEnding.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:soft and furious",
+   "artist": "Soft and Furious",
+   "item": "SoftAndFuriousTheMerfolkIShouldTurnToBe",
+   "title": "The Merfolk I Should Turn To Be",
+   "year": 2017,
+   "cover": "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/SteveSoblick2290.jpg",
+   "cover_sha256": "595dcf2b2b17dcc9bb20d239ce97d3cdabc98c879ff24a374bfcb778acfab553",
+   "audios": [
+    "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/Soft%20and%20Furious%20-%20The%20Merfolk%20I%20Should%20Turn%20To%20Be%20-%2001%20Clash%20under%20the%20Big%20Bridge.mp3",
+    "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/Soft%20and%20Furious%20-%20The%20Merfolk%20I%20Should%20Turn%20To%20Be%20-%2002%20You%27re%20no%20good%20but%20I%20love%20you.mp3",
+    "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/Soft%20and%20Furious%20-%20The%20Merfolk%20I%20Should%20Turn%20To%20Be%20-%2003%20Post%20Yes.mp3",
+    "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/Soft%20and%20Furious%20-%20The%20Merfolk%20I%20Should%20Turn%20To%20Be%20-%2004%20Saint%20Wave.mp3",
+    "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/Soft%20and%20Furious%20-%20The%20Merfolk%20I%20Should%20Turn%20To%20Be%20-%2005%20Through%20the%20water%20and%20rain.mp3",
+    "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/Soft%20and%20Furious%20-%20The%20Merfolk%20I%20Should%20Turn%20To%20Be%20-%2006%20Superconnected%20sleep.mp3",
+    "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/Soft%20and%20Furious%20-%20The%20Merfolk%20I%20Should%20Turn%20To%20Be%20-%2008%20Hyper%20Staying.mp3",
+    "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/Soft%20and%20Furious%20-%20The%20Merfolk%20I%20Should%20Turn%20To%20Be%20-%2009%20The%20Army%20Of%20You.mp3",
+    "https://archive.org/download/SoftAndFuriousTheMerfolkIShouldTurnToBe/Soft%20and%20Furious%20-%20The%20Merfolk%20I%20Should%20Turn%20To%20Be%20-%2010%20Dramatic%20Ending.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:broke for free",
+   "artist": "Broke For Free",
+   "item": "Something_EP-9563",
+   "title": "Something EP",
+   "year": 2011,
+   "cover": "https://archive.org/download/Something_EP-9563/Something_EP-9563.jpg",
+   "cover_sha256": "a3393732a53566517b3c1a5a81d3c9ffe72d4f23f8bd102f6030a9e4aebbf4e8",
+   "audios": [
+    "https://archive.org/download/Something_EP-9563/Broke_For_Free_-_01_-_Something_Jah.mp3",
+    "https://archive.org/download/Something_EP-9563/Broke_For_Free_-_02_-_Something_Old.mp3",
+    "https://archive.org/download/Something_EP-9563/Broke_For_Free_-_03_-_Something_Wobbly.mp3",
+    "https://archive.org/download/Something_EP-9563/Broke_For_Free_-_04_-_Something_Galactic.mp3",
+    "https://archive.org/download/Something_EP-9563/Broke_For_Free_-_05_-_Something_Elated.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:stellardrone",
+   "artist": "Stellardrone",
+   "item": "Stellardrone-InventTheUniverse-CC-BY",
+   "title": "Invent the Universe",
+   "year": 2010,
+   "cover": "https://archive.org/download/Stellardrone-InventTheUniverse-CC-BY/front.jpg",
+   "cover_sha256": "3a153a324e53fbe5e9913b11e3f00d295d206c4b5530c65de2ba87b9186be3f3",
+   "audios": [
+    "https://archive.org/download/Stellardrone-InventTheUniverse-CC-BY/Stellardrone-01-TheBeltOfOrion.mp3",
+    "https://archive.org/download/Stellardrone-InventTheUniverse-CC-BY/Stellardrone-04-ApproachingTheHeliopause.mp3",
+    "https://archive.org/download/Stellardrone-InventTheUniverse-CC-BY/Stellardrone-05-MillionsOfStars.mp3",
+    "https://archive.org/download/Stellardrone-InventTheUniverse-CC-BY/Stellardrone-07-AnOceanOfGalaxies.mp3",
+    "https://archive.org/download/Stellardrone-InventTheUniverse-CC-BY/Stellardrone-08-InfiniteVoid.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:stellardrone",
+   "artist": "Stellardrone",
+   "item": "Stellardrone-LightYears",
+   "title": "Light Years",
+   "year": 2013,
+   "cover": "https://archive.org/download/Stellardrone-LightYears/cover.jpg",
+   "cover_sha256": "e71c7b2232bf8edf82c6f3bb0ccd1a1a8ec5f169d2d890de7db1892e534d6d7b",
+   "audios": [
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2001%20Red%20Giant.mp3",
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2002%20Airglow.mp3",
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2003%20Eternity.mp3",
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2004%20Light%20Years.mp3",
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2005%20In%20Time.mp3",
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2006%20Cepheid.mp3",
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2007%20Comet%20Halley.mp3",
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2008%20Ultra%20Deep%20Field.mp3",
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2009%20Eternity%20%28Reprise%29.mp3",
+    "https://archive.org/download/Stellardrone-LightYears/Stellardrone%20-%20Light%20Years%20-%2010%20Messier%2045.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:disco romancin'",
+   "artist": "Disco Romancin'",
+   "item": "TDC043",
+   "title": "DiscoTech D'Amour (TDC043)",
+   "year": 2011,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/TDC043/01.LoveMind-ThisGirldiscoRomancinRemix.mp3",
+    "https://archive.org/download/TDC043/02.Chicago.mp3",
+    "https://archive.org/download/TDC043/03.DiscoDown.mp3",
+    "https://archive.org/download/TDC043/04.BurninLuv.mp3",
+    "https://archive.org/download/TDC043/05.WorkoutMachine.mp3",
+    "https://archive.org/download/TDC043/06.BrassedOff.mp3",
+    "https://archive.org/download/TDC043/07.ChicagovatskaRemix.mp3",
+    "https://archive.org/download/TDC043/08.LinealJibe.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:disco romancin'",
+   "artist": "Disco Romancin'",
+   "item": "TDCDV003",
+   "title": "Disco Romance (TDCDV003)",
+   "year": 2011,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/TDCDV003/01%20-%20Right%20Now%20%21%20%28feat.%20Vatska%29.mp3",
+    "https://archive.org/download/TDCDV003/02%20-%20Why_.mp3",
+    "https://archive.org/download/TDCDV003/03%20-%20Run%204%20Da%20Sun.mp3",
+    "https://archive.org/download/TDCDV003/05%20-%20Starburstz.mp3",
+    "https://archive.org/download/TDCDV003/06%20-%20The%20Man%20Rocks.mp3",
+    "https://archive.org/download/TDCDV003/11%20-%20Starburstz%20%28Demo%29.mp3",
+    "https://archive.org/download/TDCDV003/Vinyl%20Version/A4%20-%20Joy%20Of%20Life%20%28Vinyl%29.mp3",
+    "https://archive.org/download/TDCDV003/Vinyl%20Version/B3%20-%20Disco%20Romance_%20The%20Demos%20%28Vinyl%29.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:voyageurs",
+   "artist": "voyageurs",
+   "item": "TRIGRAMS-8365",
+   "title": "TRIGRAMS",
+   "year": 2011,
+   "cover": "https://archive.org/download/TRIGRAMS-8365/TRIGRAMS-8365.jpg",
+   "cover_sha256": "d8e53b6f924fda69d9b7480ba1a1d8077f9687ccac36c2dee27d604a5d49908f",
+   "audios": [
+    "https://archive.org/download/TRIGRAMS-8365/voyageurs_-_01_-_A_MYSTIC.mp3",
+    "https://archive.org/download/TRIGRAMS-8365/voyageurs_-_06_-_GET_IT_RIGHT__GET_IT_TIGHT.mp3",
+    "https://archive.org/download/TRIGRAMS-8365/voyageurs_-_07_-_UV_RAYS.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:the freak fandango orchestra",
+   "artist": "The Freak Fandango Orchestra",
+   "item": "Tales_Of_A_Dead_Fish-10405",
+   "title": "Tales Of A Dead Fish",
+   "year": 2011,
+   "cover": "https://archive.org/download/Tales_Of_A_Dead_Fish-10405/Tales_Of_A_Dead_Fish-10405.jpg",
+   "cover_sha256": "6d731a6de39c9e1c86bac6ed77bd5eb7337405854cb8e08e08297b864692b254",
+   "audios": [
+    "https://archive.org/download/Tales_Of_A_Dead_Fish-10405/The_Freak_Fandango_Orchestra_-_01_-_Requiem_for_a_Fish.mp3",
+    "https://archive.org/download/Tales_Of_A_Dead_Fish-10405/The_Freak_Fandango_Orchestra_-_02_-_Late_as_Usual.mp3",
+    "https://archive.org/download/Tales_Of_A_Dead_Fish-10405/The_Freak_Fandango_Orchestra_-_03_-_Balkan_Beats.mp3",
+    "https://archive.org/download/Tales_Of_A_Dead_Fish-10405/The_Freak_Fandango_Orchestra_-_04_-_No_means_no.mp3",
+    "https://archive.org/download/Tales_Of_A_Dead_Fish-10405/The_Freak_Fandango_Orchestra_-_05_-_Hitmans_Lovesong_feat_Paola_Graziano.mp3",
+    "https://archive.org/download/Tales_Of_A_Dead_Fish-10405/The_Freak_Fandango_Orchestra_-_06_-_At_the_beginning.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:chris zabriskie",
+   "artist": "Chris Zabriskie",
+   "item": "The_Dark_Glow_of_the_Mountains-10049",
+   "title": "The Dark Glow of the Mountains",
+   "year": 2009,
+   "cover": "https://archive.org/download/The_Dark_Glow_of_the_Mountains-10049/The_Dark_Glow_of_the_Mountains-10049.jpg",
+   "cover_sha256": "075c58b97059b8bfc7fa87026477f7657c32ef25bd1c836638e4b4ae80f19d3c",
+   "audios": [
+    "https://archive.org/download/The_Dark_Glow_of_the_Mountains-10049/Chris_Zabriskie_-_01_-_The_Dark_Glow_of_the_Mountains.mp3",
+    "https://archive.org/download/The_Dark_Glow_of_the_Mountains-10049/Chris_Zabriskie_-_02_-_Brethren_Arise.mp3",
+    "https://archive.org/download/The_Dark_Glow_of_the_Mountains-10049/Chris_Zabriskie_-_03_-_I_Need_to_Start_Writing_Things_Down.mp3",
+    "https://archive.org/download/The_Dark_Glow_of_the_Mountains-10049/Chris_Zabriskie_-_04_-_The_House_Glows_With_Almost_No_Help.mp3",
+    "https://archive.org/download/The_Dark_Glow_of_the_Mountains-10049/Chris_Zabriskie_-_05_-_We_Always_Thought_the_Future_Would_Be_Kind_of_Fun.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:goto80 and the uwe schenk band",
+   "artist": "Goto80 and the Uwe Schenk Band",
+   "item": "The_Ferret_Show-13047",
+   "title": "The Ferret Show",
+   "year": 2012,
+   "cover": "https://archive.org/download/The_Ferret_Show-13047/The_Ferret_Show-13047.jpg",
+   "cover_sha256": "49f04d37ab0ecae7b6beeadeaeb521026a5082b2b91e19600ab7d9f3cf08ec77",
+   "audios": [
+    "https://archive.org/download/The_Ferret_Show-13047/Goto80_and_the_Uwe_Schenk_Band_-_01_-_Ponky_Fonky_Ferret.mp3",
+    "https://archive.org/download/The_Ferret_Show-13047/Goto80_and_the_Uwe_Schenk_Band_-_02_-_Cable_Swingin_Ferret.mp3",
+    "https://archive.org/download/The_Ferret_Show-13047/Goto80_and_the_Uwe_Schenk_Band_-_04_-_Thriller_Iller.mp3",
+    "https://archive.org/download/The_Ferret_Show-13047/Goto80_and_the_Uwe_Schenk_Band_-_05_-_Volksing_Ferretismico.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kimiko ishizaka",
+   "artist": "Kimiko Ishizaka",
+   "item": "The_Open_Goldberg_Variations-11823",
+   "title": "The Open Goldberg Variations",
+   "year": 2012,
+   "cover": "https://archive.org/download/The_Open_Goldberg_Variations-11823/The_Open_Goldberg_Variations-11823.jpg",
+   "cover_sha256": "0f9bf157ac5f0b1cf045eda84439e0da67f144753ea976bdca48c322615005f8",
+   "audios": [
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_01_-_Aria.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_14_-_Variatio_13_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_16_-_Variatio_15_a_1_Clav_Canone_alla_Quinta.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_17_-_Variatio_16_a_1_Clav_Ouverture.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_18_-_Variatio_17_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_19_-_Variatio_18_a_1_Clav_Canone_alla_Sexta.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_21_-_Variatio_20_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_22_-_Variatio_21_Canone_alla_Settima.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_23_-_Variatio_22_a_1_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_25_-_Variatio_24_a_1_Clav_Canone_allOttava.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_26_-_Variatio_25_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_27_-_Variatio_26_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_28_-_Variatio_27_a_2_Clav_Canone_alla_Nona.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_29_-_Variatio_28_a_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_30_-_Variatio_29_a_1_ovvero_2_Clav.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_31_-_Variatio_30_a_1_Clav_Quodlibet.mp3",
+    "https://archive.org/download/The_Open_Goldberg_Variations-11823/Kimiko_Ishizaka_-_32_-_Aria_da_Capo__Fine.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:josh woodward",
+   "artist": "Josh Woodward",
+   "item": "The_Simple_Life_Part_2_1667-16369",
+   "title": "The Simple Life (Part 2)",
+   "year": 2008,
+   "cover": "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/The_Simple_Life_Part_2_1667-16369.jpg",
+   "cover_sha256": "6e145f6f78141e96f2a224ce76f24cf0412c0e73250d0e498318299b2e1b3361",
+   "audios": [
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_02_-_Ships_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_04_-_Flutter_By_Butterfly_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_05_-_On_Brevity.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_06_-_On_Brevity_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_08_-_Dont_Close_Your_Eyes_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_09_-_Me_and_Billy_Barnum.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_10_-_Me_and_Billy_Barnum_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_11_-_Shadows_in_the_Moonlight.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_12_-_Shadows_in_the_Moonlight_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_14_-_Good_to_Go_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_16_-_Memorized_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_17_-_The_Mission.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_18_-_The_Mission_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_20_-_I_Wanna_Know_Instrumental.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_21_-_Afterglow.mp3",
+    "https://archive.org/download/The_Simple_Life_Part_2_1667-16369/Josh_Woodward_-_22_-_Afterglow_Instrumental.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:alaclair ensemble",
+   "artist": "Alaclair Ensemble",
+   "item": "This_Is_America-11173",
+   "title": "America",
+   "year": 2012,
+   "cover": "https://archive.org/download/This_Is_America-11173/This_Is_America-11173.jpg",
+   "cover_sha256": "01cdedad13b78da4156105f8247d851d126745292366ec48b5acdd4c48e27913",
+   "audios": [
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_02_-_KING_NeLSON.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_05_-_KEnLOs_WorKouT.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_07_-_Walers.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_08_-_With_YesMcCan.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_09_-_Zinc.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_11_-_EasSCoasT_WessCoasT.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_12_-_IDAHO_POtatOeS.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_15_-_RedWaNGs__prod_by_Jam.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_16_-_DillA_Remix.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_17_-_Dominos.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_18_-_Drive_Thru.mp3",
+    "https://archive.org/download/This_Is_America-11173/Alaclair_Ensemble_-_19_-_Tha_Wizurd_oF_BaW.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:1984",
+   "artist": "1984",
+   "item": "USR-012",
+   "title": "Ritorno a casa in un pomeriggio estivo",
+   "year": 2005,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/USR-012/01-apertura.mp3",
+    "https://archive.org/download/USR-012/02-ritorno_a_casa.mp3",
+    "https://archive.org/download/USR-012/03-senza_parole.mp3",
+    "https://archive.org/download/USR-012/05-riflessione.mp3",
+    "https://archive.org/download/USR-012/06-sei_improbabili_ragazzini.mp3",
+    "https://archive.org/download/USR-012/08-sulla_strada.mp3",
+    "https://archive.org/download/USR-012/09-IFO.mp3",
+    "https://archive.org/download/USR-012/10-finestra.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:monoculture",
+   "artist": "MonoCulture",
+   "item": "USR-019",
+   "title": "The Animal Economy",
+   "year": 2006,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/USR-019/01_-_monoculture_-_peace_city.mp3",
+    "https://archive.org/download/USR-019/02_-_monoculture_-_the_new_rasputin.mp3",
+    "https://archive.org/download/USR-019/03_-_monoculture_-_my_cancer_for_a_kingdom.mp3",
+    "https://archive.org/download/USR-019/04_-_monoculture_-_parco_girls.mp3",
+    "https://archive.org/download/USR-019/05_-_monoculture_-_cause_and_consequence.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:lee rosevere",
+   "artist": "Lee Rosevere",
+   "item": "WM074_900",
+   "title": "Play 3",
+   "year": 2007,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/WM074_900/WM074-01.mp3",
+    "https://archive.org/download/WM074_900/WM074-02.mp3",
+    "https://archive.org/download/WM074_900/WM074-03.mp3",
+    "https://archive.org/download/WM074_900/WM074-04.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:dub terminator",
+   "artist": "Dub Terminator",
+   "item": "Watch_Your_Dubstep_-_EP-4741",
+   "title": "Watch Your Dubstep - EP",
+   "year": 2009,
+   "cover": "https://archive.org/download/Watch_Your_Dubstep_-_EP-4741/Watch_Your_Dubstep_-_EP-4741.jpg",
+   "cover_sha256": "684ae99e8c51d9fa5b7db11f90662b845535d12683a71d6f3bf92cffb6f13eac",
+   "audios": [
+    "https://archive.org/download/Watch_Your_Dubstep_-_EP-4741/Dub_Terminator_-_01_-_Dub_steps.mp3",
+    "https://archive.org/download/Watch_Your_Dubstep_-_EP-4741/Dub_Terminator_-_02_-_Native_people_dubstep_mix.mp3",
+    "https://archive.org/download/Watch_Your_Dubstep_-_EP-4741/Dub_Terminator_-_03_-_Dope_magnets.mp3",
+    "https://archive.org/download/Watch_Your_Dubstep_-_EP-4741/Dub_Terminator_-_04_-_Sound_experipents.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:geese",
+   "artist": "Geese",
+   "item": "We_Be_Geese-13242",
+   "title": "We Be Geese",
+   "year": 2013,
+   "cover": "https://archive.org/download/We_Be_Geese-13242/We_Be_Geese-13242.jpg",
+   "cover_sha256": "73f9a767029d0c63c1c44ce100d89b043e2887d1319219773ca68a09c8cc0d8b",
+   "audios": [
+    "https://archive.org/download/We_Be_Geese-13242/Geese_-_01_-_Lark_Ascending.mp3",
+    "https://archive.org/download/We_Be_Geese-13242/Geese_-_02_-_Dogs_of_the_World_in_Colour.mp3",
+    "https://archive.org/download/We_Be_Geese-13242/Geese_-_03_-_Shrine_Culture.mp3",
+    "https://archive.org/download/We_Be_Geese-13242/Geese_-_04_-_Funes_the_Memorious.mp3",
+    "https://archive.org/download/We_Be_Geese-13242/Geese_-_05_-_Babylon_Got_No_Riches.mp3",
+    "https://archive.org/download/We_Be_Geese-13242/Geese_-_07_-_Skyliner_Descending.mp3",
+    "https://archive.org/download/We_Be_Geese-13242/Geese_-_08_-_Beloved_Is_He_Who_Sits_Down.mp3",
+    "https://archive.org/download/We_Be_Geese-13242/Geese_-_173-246.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:berio molina",
+   "artist": "berio molina",
+   "item": "alg003",
+   "title": "Fola",
+   "year": 2005,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/alg003/alg003_01.mp3",
+    "https://archive.org/download/alg003/alg003_02.mp3",
+    "https://archive.org/download/alg003/alg003_03.mp3",
+    "https://archive.org/download/alg003/alg003_04.mp3",
+    "https://archive.org/download/alg003/alg003_05.mp3",
+    "https://archive.org/download/alg003/alg003_06.mp3",
+    "https://archive.org/download/alg003/alg003_07.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:anacrusa",
+   "artist": "aNACRUSa",
+   "item": "alg010",
+   "title": "el borde del silencio",
+   "year": 2005,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/alg010/alg010_06.mp3",
+    "https://archive.org/download/alg010/alg010_09.mp3",
+    "https://archive.org/download/alg010/alg010_10.mp3",
+    "https://archive.org/download/alg010/alg010_12.mp3",
+    "https://archive.org/download/alg010/alg010_14.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:do",
+   "artist": "Do",
+   "item": "alg016",
+   "title": "Tokitik kanpo",
+   "year": 2006,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/alg016/01.mp3",
+    "https://archive.org/download/alg016/02.mp3",
+    "https://archive.org/download/alg016/04.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:carlos suarez",
+   "artist": "Carlos Suarez",
+   "item": "alg042",
+   "title": "Metaforas do tempo",
+   "year": 2008,
+   "cover": "https://archive.org/download/alg042/alg042.jpg",
+   "cover_sha256": "e17636e67b6ac2f4c484f454da88662e97ff6987faf501e0386db33e7792698c",
+   "audios": [
+    "https://archive.org/download/alg042/01_Sic_transit_gloria_mundi.mp3",
+    "https://archive.org/download/alg042/02_Alegoria_do_poder.mp3",
+    "https://archive.org/download/alg042/03_Metaforas_do_tempo.mp3",
+    "https://archive.org/download/alg042/04_Memento_homo.mp3",
+    "https://archive.org/download/alg042/05_Invocacion.mp3",
+    "https://archive.org/download/alg042/06_Reverberacionesdende_o_silencio.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:aquatone",
+   "artist": "Aquatone",
+   "item": "aquatone-alpha-song",
+   "title": "Alpha Song",
+   "year": 2018,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/aquatone-alpha-song/01.Alpha%20Song.mp3",
+    "https://archive.org/download/aquatone-alpha-song/02.Magic%20AquaDisco.mp3",
+    "https://archive.org/download/aquatone-alpha-song/03.Sakura.mp3",
+    "https://archive.org/download/aquatone-alpha-song/04.Geisha.mp3",
+    "https://archive.org/download/aquatone-alpha-song/05.Ruby.mp3",
+    "https://archive.org/download/aquatone-alpha-song/06.Spirits%20of%20Epic%20Dragon.mp3",
+    "https://archive.org/download/aquatone-alpha-song/07.Pixel%20Storm.mp3",
+    "https://archive.org/download/aquatone-alpha-song/08.Signals.mp3",
+    "https://archive.org/download/aquatone-alpha-song/09.Sky-Tower.mp3",
+    "https://archive.org/download/aquatone-alpha-song/10.Tears%2C%20Blood%20and%20Wind.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:aquatone",
+   "artist": "Aquatone",
+   "item": "aquatone-autumn",
+   "title": "Autumn",
+   "year": 2019,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/aquatone-autumn/01.Aquatone%20-%20Autumn.mp3",
+    "https://archive.org/download/aquatone-autumn/02.Aquatone%20-%20A%20Hut%20of%20a%20Lonely%20Gnome.mp3",
+    "https://archive.org/download/aquatone-autumn/03.Aquatone%20-%20The%20Blue%20Smoke%20%28Rises%20So%20High%29.mp3",
+    "https://archive.org/download/aquatone-autumn/04.Aquatone%20-%20Flugel%20fur%20die%20Seele.mp3",
+    "https://archive.org/download/aquatone-autumn/05.Aquatone%20-%20The%20Echoes%20of%20Memories.mp3",
+    "https://archive.org/download/aquatone-autumn/06.Aquatone%20-%20Full%20Eclipse.mp3",
+    "https://archive.org/download/aquatone-autumn/07.Aquatone%20-%20Return%20of%20the%20Whales.mp3",
+    "https://archive.org/download/aquatone-autumn/08.Aquatone%20-%20Alien%20Mushroom.mp3",
+    "https://archive.org/download/aquatone-autumn/09.Aquatone%20-%20Blue%20Lagoon.mp3",
+    "https://archive.org/download/aquatone-autumn/10.Aquatone%20-%20African%20Dreams.mp3",
+    "https://archive.org/download/aquatone-autumn/11.Aquatone%20-%20Grand%20Canyon.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:aquatone",
+   "artist": "Aquatone",
+   "item": "aquatone-mental-images",
+   "title": "Mental Images",
+   "year": 2018,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/aquatone-mental-images/01.Astral%20Wind.mp3",
+    "https://archive.org/download/aquatone-mental-images/02.Mental%20Images.mp3",
+    "https://archive.org/download/aquatone-mental-images/03.Sirius.mp3",
+    "https://archive.org/download/aquatone-mental-images/04.Sacral%20Chakra.mp3",
+    "https://archive.org/download/aquatone-mental-images/05.Totems.mp3",
+    "https://archive.org/download/aquatone-mental-images/06.Fennecus%20Dreams.mp3",
+    "https://archive.org/download/aquatone-mental-images/07.Dead%20World.mp3",
+    "https://archive.org/download/aquatone-mental-images/08.Pegasus.mp3",
+    "https://archive.org/download/aquatone-mental-images/09.Dragon%27s%20Lullaby.mp3",
+    "https://archive.org/download/aquatone-mental-images/10.Earth%20Core.mp3",
+    "https://archive.org/download/aquatone-mental-images/11.The%20Last%20Day%20of%20Hellish%20Essences.mp3",
+    "https://archive.org/download/aquatone-mental-images/12.Paradise%20Birds.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:brad sucks",
+   "artist": "Brad Sucks",
+   "item": "bs-guess-whos-a-mess-remastered",
+   "title": "Guess Who's a Mess (mariteaux Remaster)",
+   "year": 2012,
+   "cover": "https://archive.org/download/bs-guess-whos-a-mess-remastered/cover.jpg",
+   "cover_sha256": "6dd364f861aaf229500ae36060d2b2fdae4b400da8eaf6763f15067fb8646f28",
+   "audios": [
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/01%20In%20Your%20Face.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/02%20Come%20Back.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/03%20Feel%20Free%21%20Plastic%20Surgery%21.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/04%20Guess%20Who%27s%20a%20Mess.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/05%20Waste%20of%20TV.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/06%20Model%20Home.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/07%20The%20First%20Thing%20About%20Me.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/08%20I%20Need%20to%20Love%20Myself%20More%20and%20You%20Less.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/09%20Thanks%20for%20the%20Add.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/10%20Fluoride.mp3",
+    "https://archive.org/download/bs-guess-whos-a-mess-remastered/11%20Just%20in%20a%20Phase.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:brad sucks",
+   "artist": "Brad Sucks",
+   "item": "bs-i-dont-know-what-im-doing-remastered",
+   "title": "I Don't Know What I'm Doing (mariteaux Remaster)",
+   "year": 2003,
+   "cover": "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/cover.jpg",
+   "cover_sha256": "876d4b61f3e6d300a77b207b81862c3aedfb60114fddb8d0607139d3c31c97de",
+   "audios": [
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/01%20Making%20Me%20Nervous.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/02%20Look%20and%20Feel%20Years%20Younger.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/03%20Fixing%20My%20Brain.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/04%20Bad%20Attraction.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/05%20Sick%20as%20a%20Dog.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/06%20Borderline.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/07%20I%20Think%20I%20Started%20a%20Trend.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/08%20Never%20Get%20Out.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/09%20Overreacting.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/10%20Dirtbag.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/11%20Time%20to%20Take%20Out%20the%20Trash.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/12%20Work%20Out%20Fine.mp3",
+    "https://archive.org/download/bs-i-dont-know-what-im-doing-remastered/13%20Dirtbag%20%5Barpless%5D.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:brad sucks",
+   "artist": "Brad Sucks",
+   "item": "bs-out-of-it-remastered",
+   "title": "Out of It (mariteaux Remaster)",
+   "year": 2008,
+   "cover": "https://archive.org/download/bs-out-of-it-remastered/cover.jpg",
+   "cover_sha256": "878d8682aa09fe7e68667130529488548450916071e890bd13a73fa394ab5d6e",
+   "audios": [
+    "https://archive.org/download/bs-out-of-it-remastered/01%20Dropping%20Out%20of%20School.mp3",
+    "https://archive.org/download/bs-out-of-it-remastered/02%20Certain%20Death.mp3",
+    "https://archive.org/download/bs-out-of-it-remastered/03%20Fake%20It.mp3",
+    "https://archive.org/download/bs-out-of-it-remastered/04%20Bad%20Sign.mp3",
+    "https://archive.org/download/bs-out-of-it-remastered/05%20There%27s%20Something%20Wrong.mp3",
+    "https://archive.org/download/bs-out-of-it-remastered/06%20Gasoline.mp3",
+    "https://archive.org/download/bs-out-of-it-remastered/07%20Total%20Breakdown.mp3",
+    "https://archive.org/download/bs-out-of-it-remastered/08%20Understood%20by%20Your%20Dad.mp3",
+    "https://archive.org/download/bs-out-of-it-remastered/09%20Out%20of%20It.mp3",
+    "https://archive.org/download/bs-out-of-it-remastered/10%20You%27re%20Not%20Going%20Anywhere.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:rolemusic",
+   "artist": "rolemusic",
+   "item": "enrmp262_rolemusic_-_straw_fields",
+   "title": "Straw Fields",
+   "year": 2011,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/enrmp262_rolemusic_-_straw_fields/01_rolemusic_-_spell.mp3",
+    "https://archive.org/download/enrmp262_rolemusic_-_straw_fields/02_rolemusic_-_leafless_quince_tree.mp3",
+    "https://archive.org/download/enrmp262_rolemusic_-_straw_fields/03_rolemusic_-_straw_fields.mp3",
+    "https://archive.org/download/enrmp262_rolemusic_-_straw_fields/04_rolemusic_-_yellow_dust.mp3",
+    "https://archive.org/download/enrmp262_rolemusic_-_straw_fields/05_rolemusic_-_poppies.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:rolemusic",
+   "artist": "rolemusic",
+   "item": "enrmp329_rolemusic_-_the_pirate_and_the_dancer",
+   "title": "The Pirate And The Dancer",
+   "year": 2013,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/enrmp329_rolemusic_-_the_pirate_and_the_dancer/01_rolemusic_-_shipwreck_in_the_pacific_ocean.mp3",
+    "https://archive.org/download/enrmp329_rolemusic_-_the_pirate_and_the_dancer/02_rolemusic_-_chasing_the_port_chains.mp3",
+    "https://archive.org/download/enrmp329_rolemusic_-_the_pirate_and_the_dancer/03_rolemusic_-_crush_at_maracas_bar.mp3",
+    "https://archive.org/download/enrmp329_rolemusic_-_the_pirate_and_the_dancer/04_rolemusic_-_the_pirate_and_the_dancer.mp3",
+    "https://archive.org/download/enrmp329_rolemusic_-_the_pirate_and_the_dancer/05_rolemusic_-_she_is_my_best_treasure.mp3",
+    "https://archive.org/download/enrmp329_rolemusic_-_the_pirate_and_the_dancer/06_rolemusic_-_he_plays_me_the_best_rhythms.mp3",
+    "https://archive.org/download/enrmp329_rolemusic_-_the_pirate_and_the_dancer/07_rolemusic_-_beach_wedding_dance.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:genetic-trance",
+   "artist": "genetic-trance",
+   "item": "gt390FandorinProjet2",
+   "title": "Fandorin Projet 2",
+   "year": 2012,
+   "cover": "https://archive.org/download/gt390FandorinProjet2/00front.jpg",
+   "cover_sha256": "4eaef2584fbb631fe332a8a672596821ee7d465f31f4bb626f8a1b363f9ab254",
+   "audios": [
+    "https://archive.org/download/gt390FandorinProjet2/03Lezet-Redundancy.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/09Xtremlawyer-BassTheWorld.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/15Galactic1-Hyperion.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/16SaschaMller-RaggaSchredder.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/20Xtremlawyer-BirdsAndTigers.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/21MatUStoneSeieiJack-X13.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/23M.nomized-LastStandBeforeDrowningblackSeaMix.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/26EthnomitePux-Neweff.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/27Hogworm-msRmx.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/31Xtremlawyer-DieHardDieFast.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/37Troj-Disdainful.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/41Xtremlawyer-Doomsday.mp3",
+    "https://archive.org/download/gt390FandorinProjet2/46MattBuildsCharacter-Con.scienceDigestion.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:anchore state",
+   "artist": "Anchore State",
+   "item": "gt459AnchoreState-ChangesOfLifeEp",
+   "title": "Changes of life EP",
+   "year": 2012,
+   "cover": "https://archive.org/download/gt459AnchoreState-ChangesOfLifeEp/0cover.jpg",
+   "cover_sha256": "dee34ea7dc74eef8d11527b0c574f0b34eddf3bb0d458b0b027280bc269dfe49",
+   "audios": [
+    "https://archive.org/download/gt459AnchoreState-ChangesOfLifeEp/1.ItsNotAToy.mp3",
+    "https://archive.org/download/gt459AnchoreState-ChangesOfLifeEp/2.Divingrefixed.mp3",
+    "https://archive.org/download/gt459AnchoreState-ChangesOfLifeEp/3.DeepForest.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:maelstrom",
+   "artist": "Maelstrom",
+   "item": "gt536Maelstrom-ThePassage",
+   "title": "The Passage",
+   "year": 2012,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/gt536Maelstrom-ThePassage/01-Maelstrom-InAPaintedBlackWorld.mp3",
+    "https://archive.org/download/gt536Maelstrom-ThePassage/02-Maelstrom-IDreamtForABrighterSky.mp3",
+    "https://archive.org/download/gt536Maelstrom-ThePassage/03-Maelstrom-...andIWantedToLive....mp3",
+    "https://archive.org/download/gt536Maelstrom-ThePassage/04-Maelstrom-...untilTheRestOfMyLife.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:ambient samurai - ichiro nakagawa",
+   "artist": "Ambient Samurai - Ichiro NAKAGAWA",
+   "item": "jamendo-118100",
+   "title": "2013-1-27 Home Alone Recording",
+   "year": 2013,
+   "cover": "https://archive.org/download/jamendo-118100/cover.jpg",
+   "cover_sha256": "d758eec6c6a868167b60b8770822570414f098f8999b453768f70de9eacf86b2",
+   "audios": [
+    "https://archive.org/download/jamendo-118100/01-1003323-Ambient%20Samurai%20-%20Ichiro%20NAKAGAWA-Somewhere%20Over%20The%20Earth%20Tremor%20_%20%20________.mp3",
+    "https://archive.org/download/jamendo-118100/02-1003322-Ambient%20Samurai%20-%20Ichiro%20NAKAGAWA-You%20Are%20The%20Sense%20Of%20Incongruity%20%20_%20%20_____.mp3",
+    "https://archive.org/download/jamendo-118100/03-1003321-Ambient%20Samurai%20-%20Ichiro%20NAKAGAWA-Instead%20Of%20Singing%20Your%20Song%20__%20%20___________.mp3",
+    "https://archive.org/download/jamendo-118100/04-1003320-Ambient%20Samurai%20-%20Ichiro%20NAKAGAWA-Scene%20Of%20Sunshine%20Filtering%20Through%20Foliage_%20_%20________.mp3",
+    "https://archive.org/download/jamendo-118100/05-1003319-Ambient%20Samurai%20-%20Ichiro%20NAKAGAWA-Surfing%20Over%20Waves%20Of%20Time_%20_%20_______.mp3",
+    "https://archive.org/download/jamendo-118100/06-1003318-Ambient%20Samurai%20-%20Ichiro%20NAKAGAWA-Horizon%20Of%20White%20Night%20__%20_______.mp3",
+    "https://archive.org/download/jamendo-118100/07-1003324-Ambient%20Samurai%20-%20Ichiro%20NAKAGAWA-Tuning%20In%20To%20Every%20%20Moment%20Of%20Everything%20Existing.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:muflon dub sound system",
+   "artist": "Muflon Dub Sound System",
+   "item": "jamendo-118381",
+   "title": "Massive Sound To Mash Down Jericho Walls",
+   "year": 2013,
+   "cover": "https://archive.org/download/jamendo-118381/cover.jpg",
+   "cover_sha256": "98f91e42525e1b43b8e508261f94378237a3245ca3f37587ca0bf10dc7948a37",
+   "audios": [
+    "https://archive.org/download/jamendo-118381/01-1005732-Muflon%20Dub%20Sound%20System-Muflon-Dub-No_Chance_At_Dub.mp3",
+    "https://archive.org/download/jamendo-118381/02-1005731-Muflon%20Dub%20Sound%20System-Muflon-Dub-In_Love_With_Righteousness.mp3",
+    "https://archive.org/download/jamendo-118381/03-1005733-Muflon%20Dub%20Sound%20System-Muflon-Dub-Start_From_Yourself.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:jazz friends",
+   "artist": "Jazz Friends",
+   "item": "jamendo-118676",
+   "title": "Guitars in Jazz",
+   "year": 2013,
+   "cover": "https://archive.org/download/jamendo-118676/cover.jpg",
+   "cover_sha256": "04986cc238e76f3399e27d6e86ef632be56141d1ade0a39b00070ae979de4812",
+   "audios": [
+    "https://archive.org/download/jamendo-118676/01-1008085-Jazz%20Friends-Return%20to%20the%2070_s%20groove%20by%20Philippe%20Mangold.mp3",
+    "https://archive.org/download/jamendo-118676/02-1007842-Jazz%20Friends-Heaven%20by%20Bruno%20Susio%20_feat.%20Marie%20Louise%20Frifelt_.mp3",
+    "https://archive.org/download/jamendo-118676/03-1007826-Jazz%20Friends-Blues%20Bomb%20by%20Massimo%20Bognetti.mp3",
+    "https://archive.org/download/jamendo-118676/04-1008086-Jazz%20Friends-Sweety%20Valentine%20by%20Tom%20La%20Meche.mp3",
+    "https://archive.org/download/jamendo-118676/05-1007845-Jazz%20Friends-Only%20Sound%20by%20Lino%20del%20Vecchio.mp3",
+    "https://archive.org/download/jamendo-118676/06-1008204-Jazz%20Friends-Devon%20_%20Eva%20by%20Cosoid3.5.mp3",
+    "https://archive.org/download/jamendo-118676/07-1007866-Jazz%20Friends-Piemont%20Blues%20by%20Thorwald%20Odin.mp3",
+    "https://archive.org/download/jamendo-118676/08-1007825-Jazz%20Friends-An%20Unusual%20Day%20by%20F_bs.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:muflon dub sound system",
+   "artist": "Muflon Dub Sound System",
+   "item": "jamendo-133052",
+   "title": "Hopeful Dub",
+   "year": 2014,
+   "cover": "https://archive.org/download/jamendo-133052/cover.jpg",
+   "cover_sha256": "dd9b2e7d78feeac1e3b235c75cdeb89fca52f43a5a21e927d75b5bb1b910125a",
+   "audios": [
+    "https://archive.org/download/jamendo-133052/01-1113961-Muflon%20Dub%20Sound%20System-Onegetherness.mp3",
+    "https://archive.org/download/jamendo-133052/02-1113966-Muflon%20Dub%20Sound%20System-Hopeful%20Dub.mp3",
+    "https://archive.org/download/jamendo-133052/03-1113959-Muflon%20Dub%20Sound%20System-Train%20To%20Homeland.mp3",
+    "https://archive.org/download/jamendo-133052/04-1113960-Muflon%20Dub%20Sound%20System-Root%20Of%20King%20David.mp3",
+    "https://archive.org/download/jamendo-133052/05-1113962-Muflon%20Dub%20Sound%20System-Dream.mp3",
+    "https://archive.org/download/jamendo-133052/06-1113963-Muflon%20Dub%20Sound%20System-Nothing%20Really%20Matters.mp3",
+    "https://archive.org/download/jamendo-133052/07-1113964-Muflon%20Dub%20Sound%20System-Out%20Of%20The%20Shadows%20Dub.mp3",
+    "https://archive.org/download/jamendo-133052/08-1113965-Muflon%20Dub%20Sound%20System-Onegetherness%20In%20Dub.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:sugar mama blues",
+   "artist": "Sugar Mama Blues",
+   "item": "jamendo-148417",
+   "title": "Adiós Universal",
+   "year": 2015,
+   "cover": "https://archive.org/download/jamendo-148417/cover.jpg",
+   "cover_sha256": "ac58107da1c034c9ef274b7ecf9a1eac6a08d48cfc94ec9cfbc75f7dae7dd125",
+   "audios": [
+    "https://archive.org/download/jamendo-148417/01-1238104-Sugar%20Mama%20Blues-Nitroversion%20-%20Adios%20Universal.mp3",
+    "https://archive.org/download/jamendo-148417/02-1238102-Sugar%20Mama%20Blues-Nitroversion%20-%20Ciudad%20del%20plomo.mp3",
+    "https://archive.org/download/jamendo-148417/03-1238105-Sugar%20Mama%20Blues-Nitroversion%20-%20Sci-fi.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:marcello correa e castro",
+   "artist": "marcello correa e castro",
+   "item": "jamendo-153512",
+   "title": "MPB BRASIL",
+   "year": 2015,
+   "cover": "https://archive.org/download/jamendo-153512/cover.jpg",
+   "cover_sha256": "ddda32d78e6669801d51c53ccbf15f6c12ebcac50cbf86e8d508d89a08bd8708",
+   "audios": [
+    "https://archive.org/download/jamendo-153512/01-1287803-marcello%20correa%20e%20castro-05%20Qualquer%20Tipo%20de%20Can_ccedil__atilde_o%20-%20New%20Mix.mp3",
+    "https://archive.org/download/jamendo-153512/02-1287801-marcello%20correa%20e%20castro-Seus%20Planos.mp3",
+    "https://archive.org/download/jamendo-153512/03-1287806-marcello%20correa%20e%20castro-JULIA.mp3",
+    "https://archive.org/download/jamendo-153512/04-1287805-marcello%20correa%20e%20castro-QUE%20NEM%20TAMBOR.mp3",
+    "https://archive.org/download/jamendo-153512/05-1287804-marcello%20correa%20e%20castro-Um%20Sonhador%20_Pra%20Mane%20Garrincha_.mp3",
+    "https://archive.org/download/jamendo-153512/06-1287802-marcello%20correa%20e%20castro-Eu%20Nao%20Sei%20Nao%20da%20Estrada_.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:marcello correa e castro",
+   "artist": "marcello correa e castro",
+   "item": "jamendo-153622",
+   "title": "MPB BRASIL II",
+   "year": 2015,
+   "cover": "https://archive.org/download/jamendo-153622/cover.jpg",
+   "cover_sha256": "d1b31895aa9eb0157f2ae27112be8cfa782fff9cbee37beb0c9feabbb59d9499",
+   "audios": [
+    "https://archive.org/download/jamendo-153622/01-1288863-marcello%20correa%20e%20castro-AS%20LINGUAS%20%20_So%20Pra%20Aliviar_.mp3",
+    "https://archive.org/download/jamendo-153622/02-1288864-marcello%20correa%20e%20castro-TODO%20AMOR%20E%20BOM%20_basta%20so%20lembrar_.mp3",
+    "https://archive.org/download/jamendo-153622/03-1288865-marcello%20correa%20e%20castro-COMO%20VAI_.mp3",
+    "https://archive.org/download/jamendo-153622/04-1288866-marcello%20correa%20e%20castro-MEU%20MEDO.mp3",
+    "https://archive.org/download/jamendo-153622/05-1288868-marcello%20correa%20e%20castro-MEU%20CANTO%2C%20MEU%20CHAO.mp3",
+    "https://archive.org/download/jamendo-153622/06-1288862-marcello%20correa%20e%20castro-SOM%20DAS%20VOZES.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:lobo loco",
+   "artist": "Lobo Loco",
+   "item": "jamendo-164577",
+   "title": "Memories",
+   "year": 2017,
+   "cover": "https://archive.org/download/jamendo-164577/cover.jpg",
+   "cover_sha256": "92233e635043a62ffdb705e39c007a378aaf8d9a0c2e940f90e3fde2b2ab2930",
+   "audios": [
+    "https://archive.org/download/jamendo-164577/01-1407879-Lobo%20Loco-Awakening%20Spring%20_ID%20376_.mp3",
+    "https://archive.org/download/jamendo-164577/02-1407880-Lobo%20Loco-New%20Humans%20Delution%20_ID%20375_.mp3",
+    "https://archive.org/download/jamendo-164577/03-1407881-Lobo%20Loco-Others%20Always%20_ID%20370_.mp3",
+    "https://archive.org/download/jamendo-164577/05-1407883-Lobo%20Loco-Turtle%20Parade%20_ID%20373_.mp3",
+    "https://archive.org/download/jamendo-164577/06-1407884-Lobo%20Loco-Peace%20Christmas%20_ID%20371_.mp3",
+    "https://archive.org/download/jamendo-164577/07-1407885-Lobo%20Loco-Hammock%20Beach%20_ID%20367_.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:kai engel",
+   "artist": "Kai Engel",
+   "item": "jamendo-180180",
+   "title": "Idea",
+   "year": 2018,
+   "cover": "https://archive.org/download/jamendo-180180/cover.jpg",
+   "cover_sha256": "019415f599559f0ee2bb94a1a6e2fbd45f689085abf93634186afb89c609b5bb",
+   "audios": [
+    "https://archive.org/download/jamendo-180180/02-1586194-Kai%20Engel-Endless%20Story%20About%20Sun%20and%20Moon.mp3",
+    "https://archive.org/download/jamendo-180180/04-1586195-Kai%20Engel-Behind%20Your%20Window.mp3",
+    "https://archive.org/download/jamendo-180180/05-1586192-Kai%20Engel-Touch%20the%20Darkness.mp3",
+    "https://archive.org/download/jamendo-180180/07-1586196-Kai%20Engel-Pacific%20Garbage%20Patch.mp3",
+    "https://archive.org/download/jamendo-180180/08-1586197-Kai%20Engel-Heart%20and%20Mind.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:come taste the misery",
+   "artist": "Come Taste The Misery",
+   "item": "jamendo-194093",
+   "title": "Stone Dead Ballerina",
+   "year": 2020,
+   "cover": "https://archive.org/download/jamendo-194093/cover.jpg",
+   "cover_sha256": "8c4e2cba54377b2ffe8f13ddd06f0000597835e641b2f13a00260be12256c723",
+   "audios": [
+    "https://archive.org/download/jamendo-194093/01-1765875-Come%20Taste%20The%20Misery-Stone%20Dead%20Ballerina.mp3",
+    "https://archive.org/download/jamendo-194093/02-1765879-Come%20Taste%20The%20Misery-Dim%20The%20Lights.mp3",
+    "https://archive.org/download/jamendo-194093/03-1765880-Come%20Taste%20The%20Misery-Love%20Is%20The%20Last%20Vampire.mp3",
+    "https://archive.org/download/jamendo-194093/04-1765881-Come%20Taste%20The%20Misery-Ghost%20Of%20Love.mp3",
+    "https://archive.org/download/jamendo-194093/05-1765882-Come%20Taste%20The%20Misery-Every%20Time%20I%20Bleed.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:timecrawler 82",
+   "artist": "Timecrawler 82",
+   "item": "jamendo-199619",
+   "title": "Infinity",
+   "year": 2021,
+   "cover": "https://archive.org/download/jamendo-199619/cover.jpg",
+   "cover_sha256": "bd90aa0cf841c0525d5e9ccde42af0d077f8cac0b2a5b4d5deeb1edaa415e442",
+   "audios": [
+    "https://archive.org/download/jamendo-199619/01-1833808-Timecrawler%2082-Infinity.mp3",
+    "https://archive.org/download/jamendo-199619/02-1833809-Timecrawler%2082-Coral.mp3",
+    "https://archive.org/download/jamendo-199619/03-1833806-Timecrawler%2082-Midnight%20Walk.mp3",
+    "https://archive.org/download/jamendo-199619/04-1833807-Timecrawler%2082-Phantasia.mp3",
+    "https://archive.org/download/jamendo-199619/05-1833810-Timecrawler%2082-Turbulence.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:lobo loco",
+   "artist": "Lobo Loco",
+   "item": "jamendo-484532",
+   "title": "Afterwork",
+   "year": 2022,
+   "cover": "https://archive.org/download/jamendo-484532/cover.jpg",
+   "cover_sha256": "3cfc3f876d4aa8f19bb13565cc183d877598dab8d52eb8d2e67e1e03b31e2c6b",
+   "audios": [
+    "https://archive.org/download/jamendo-484532/01-1948597-Lobo%20Loco-We%20Ants%20can%20be%20Friends%20-%20Instrumental%20_ID%201681_.mp3",
+    "https://archive.org/download/jamendo-484532/02-1948632-Lobo%20Loco-Saturday%20Cosmic%20Blues%20_ID%201671_.mp3",
+    "https://archive.org/download/jamendo-484532/03-1948633-Lobo%20Loco-Blue%20Mountains%20_ID%201669_.mp3",
+    "https://archive.org/download/jamendo-484532/04-1948634-Lobo%20Loco-Speedy%20Delta%20_ID%201670_.mp3",
+    "https://archive.org/download/jamendo-484532/05-1948635-Lobo%20Loco-Stormy%20Weather%20_ID%201674_.mp3",
+    "https://archive.org/download/jamendo-484532/06-1948638-Lobo%20Loco-Journey%20of%20Hope%20_ID%201688_.mp3",
+    "https://archive.org/download/jamendo-484532/07-1948685-Lobo%20Loco-Relaxed%20Weekend%20_ID%201673_.mp3",
+    "https://archive.org/download/jamendo-484532/08-1948604-Lobo%20Loco-Lets%20do%20This%20Tonight%20_ID%201651_.mp3",
+    "https://archive.org/download/jamendo-484532/09-1948988-Lobo%20Loco-Silver%20Bowls%20_ID%201677_.mp3",
+    "https://archive.org/download/jamendo-484532/11-1948993-Lobo%20Loco-Swinging%20Boss%20_ID%201675_.mp3",
+    "https://archive.org/download/jamendo-484532/12-1948999-Lobo%20Loco-Train%20Loosing%20Man%20_ID%201678_.mp3",
+    "https://archive.org/download/jamendo-484532/13-1949000-Lobo%20Loco-Night%20Roses%20for%20Dario%20-%20Strings%20_ID%201696_.mp3",
+    "https://archive.org/download/jamendo-484532/14-1949002-Lobo%20Loco-After%20Christmas%20Blues%20_ID%201644_.mp3",
+    "https://archive.org/download/jamendo-484532/15-1949004-Lobo%20Loco-Endless%20Sunny%20Afternoon%20_ID%201684_M.mp3",
+    "https://archive.org/download/jamendo-484532/16-1949007-Lobo%20Loco-Woke%20up%20This%20Morning%20-%20RocknRoll%20_ID%201672_.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:lobo loco",
+   "artist": "Lobo Loco",
+   "item": "jamendo-602837",
+   "title": "Tunnel Games",
+   "year": 2025,
+   "cover": "https://archive.org/download/jamendo-602837/cover.jpg",
+   "cover_sha256": "74fb6f3e8cc63c035bd789ce70ddeded2b06c7e735eb38948e6ed12f7472ff8c",
+   "audios": [
+    "https://archive.org/download/jamendo-602837/02-2253110-Lobo%20Loco-Hopefully%20Love%20_ID%202324_.mp3",
+    "https://archive.org/download/jamendo-602837/03-2253108-Lobo%20Loco-Angels%20Roadtrip%20_ID%202307_.mp3",
+    "https://archive.org/download/jamendo-602837/04-2253109-Lobo%20Loco-Even%20to%20Lately%20_ID%202306_.mp3",
+    "https://archive.org/download/jamendo-602837/05-2253107-Lobo%20Loco-Dreamy%20Feets%20-%20Instrumental%20_ID%202323_.mp3",
+    "https://archive.org/download/jamendo-602837/06-2253105-Lobo%20Loco-End%20of%20the%20Clans%20_ID%202315_.mp3",
+    "https://archive.org/download/jamendo-602837/07-2253106-Lobo%20Loco-St%20Mary%20Lake%20Hut%20_ID%202316_.mp3",
+    "https://archive.org/download/jamendo-602837/08-2253104-Lobo%20Loco-Heartly%20-%20Harphversion%20_ID%202326_.mp3",
+    "https://archive.org/download/jamendo-602837/09-2253103-Lobo%20Loco-Dusty%20Mountians%20_ID%202309_.mp3",
+    "https://archive.org/download/jamendo-602837/10-2253101-Lobo%20Loco-New%20Beginning%20_ID%202314_.mp3",
+    "https://archive.org/download/jamendo-602837/11-2253102-Lobo%20Loco-Settlers%20Caravan%20_ID%202322_.mp3",
+    "https://archive.org/download/jamendo-602837/12-2253100-Lobo%20Loco-Hopeful%20after%20Broken%20Dreams%20_ID%202303_.mp3",
+    "https://archive.org/download/jamendo-602837/14-2253098-Lobo%20Loco-You%20got%20my%20Jacket%20_ID%202313_.mp3",
+    "https://archive.org/download/jamendo-602837/15-2253095-Lobo%20Loco-No%20More%20Blood%20_ID%202306_.mp3",
+    "https://archive.org/download/jamendo-602837/16-2253096-Lobo%20Loco-Red%20Mountians%20_ID%202311_.mp3",
+    "https://archive.org/download/jamendo-602837/17-2253097-Lobo%20Loco-Top%20of%20the%20Mountains%20_ID%202311_.mp3",
+    "https://archive.org/download/jamendo-602837/18-2253093-Lobo%20Loco-Crazy%20Visions%20_ID%202316_.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:4t thieves",
+   "artist": "4T Thieves",
+   "item": "kahvi017",
+   "title": "Mists of Time EP",
+   "year": 2003,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/kahvi017/kahvi017a_4tthieves-mistsoftime.mp3",
+    "https://archive.org/download/kahvi017/kahvi017b_4tthieves-mistsoftimeambient.mp3",
+    "https://archive.org/download/kahvi017/kahvi017c_4tthieves-trancendental.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:mindflower",
+   "artist": "mindflower",
+   "item": "kahvi035",
+   "title": "Cornerstation EP",
+   "year": 2003,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/kahvi035/kahvi035a_mindflower-calm.mp3",
+    "https://archive.org/download/kahvi035/kahvi035b_mindflower-breakntwomen.mp3",
+    "https://archive.org/download/kahvi035/kahvi035c_mindflower-bang.mp3",
+    "https://archive.org/download/kahvi035/kahvi035d_mindflower-dropdown.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:4t thieves",
+   "artist": "4T Thieves",
+   "item": "kahvi042",
+   "title": "The Beginning EP",
+   "year": 2003,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/kahvi042/kahvi042a_4tthieves-the_beginning.mp3",
+    "https://archive.org/download/kahvi042/kahvi042b_4tthieves-dimension_x.mp3",
+    "https://archive.org/download/kahvi042/kahvi042c_4tthieves-tidalblues_v2.mp3",
+    "https://archive.org/download/kahvi042/kahvi042d_4tthieves-cubicstate.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:the alpha conspiracy",
+   "artist": "The Alpha Conspiracy",
+   "item": "kahvi053",
+   "title": "Cipher (Sampler)",
+   "year": 2003,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/kahvi053/kahvi053a-the_alpha_conspiracy-cross_product.ogg",
+    "https://archive.org/download/kahvi053/kahvi053b-the_alpha_conspiracy-black_sunrise.ogg",
+    "https://archive.org/download/kahvi053/kahvi053c-the_alpha_conspiracy-winter.ogg",
+    "https://archive.org/download/kahvi053/kahvi053d-the_alpha_conspiracy-ubik.ogg"
+   ]
+  },
+  {
+   "artist_key": "archive:budha building",
+   "artist": "Budha Building",
+   "item": "kahvi060",
+   "title": "Anchoring The Unity Consciousness",
+   "year": 2003,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/kahvi060/kahvi060a_budha_building-derivative_works.ogg",
+    "https://archive.org/download/kahvi060/kahvi060b_budha_building-rain_river_sea.ogg",
+    "https://archive.org/download/kahvi060/kahvi060c_budha_building-slowest_possible_groove.ogg"
+   ]
+  },
+  {
+   "artist_key": "archive:various artists",
+   "artist": "Various Artists",
+   "item": "kahvi066",
+   "title": "Avaruusromua EP",
+   "year": 2003,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/kahvi066/kahvi066a_4tthieves-somewhere_in_time.ogg",
+    "https://archive.org/download/kahvi066/kahvi066b_badloop-glacier.ogg",
+    "https://archive.org/download/kahvi066/kahvi066d_jeannine-witick_island.ogg",
+    "https://archive.org/download/kahvi066/kahvi066e_vae-lynn_brook.ogg"
+   ]
+  },
+  {
+   "artist_key": "archive:berestez",
+   "artist": "Berestez",
+   "item": "kahvi079",
+   "title": "Plokcity EP",
+   "year": 2003,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/kahvi079/kahvi079a_berestez-vendox.ogg",
+    "https://archive.org/download/kahvi079/kahvi079d_berestez-unclone.ogg",
+    "https://archive.org/download/kahvi079/kahvi079e_berestez-korimba.ogg"
+   ]
+  },
+  {
+   "artist_key": "archive:various artists",
+   "artist": "Various Artists",
+   "item": "kahvi081",
+   "title": "Assembly EP",
+   "year": 2003,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/kahvi081/kahvi081a_4t_thieves-chernobyl_underground.ogg",
+    "https://archive.org/download/kahvi081/kahvi081b_bad_loop-50Mikrog_192mg.ogg",
+    "https://archive.org/download/kahvi081/kahvi081c_crud-plenty_of_fresh_air_and_exercise.ogg",
+    "https://archive.org/download/kahvi081/kahvi081e_phrulex-amoeba.ogg",
+    "https://archive.org/download/kahvi081/kahvi081f_pinza-irrelevance.ogg"
+   ]
+  },
+  {
+   "artist_key": "archive:lee rosevere",
+   "artist": "Lee Rosevere",
+   "item": "lee-rosevere-promise",
+   "title": "Promise",
+   "year": 2020,
+   "cover": "https://archive.org/download/lee-rosevere-promise/A_LeeRosevere_Promise_front.jpg",
+   "cover_sha256": "4e6e1ce1a94980691556f692235d614db23000929a9114c4a82803600b87c9d4",
+   "audios": [
+    "https://archive.org/download/lee-rosevere-promise/Lee%20Rosevere%20-%20Promise%20-%2001%20-%20What%20did%20i%20miss.mp3",
+    "https://archive.org/download/lee-rosevere-promise/Lee%20Rosevere%20-%20Promise%20-%2002%20-%20Life%20is%20strange.mp3",
+    "https://archive.org/download/lee-rosevere-promise/Lee%20Rosevere%20-%20Promise%20-%2003%20-%20Early%20Evening.mp3",
+    "https://archive.org/download/lee-rosevere-promise/Lee%20Rosevere%20-%20Promise%20-%2004%20-%20Chasing%20Fireflies.mp3",
+    "https://archive.org/download/lee-rosevere-promise/Lee%20Rosevere%20-%20Promise%20-%2005%20-%20Feelings%2C%20Memories%2C%20Dreams.mp3",
+    "https://archive.org/download/lee-rosevere-promise/Lee%20Rosevere%20-%20Promise%20-%2006%20-%20Mini%20Fireworks.mp3",
+    "https://archive.org/download/lee-rosevere-promise/Lee%20Rosevere%20-%20Promise%20-%2007%20-%20Morning%20Sun.mp3",
+    "https://archive.org/download/lee-rosevere-promise/Lee%20Rosevere%20-%20Promise%20-%2008%20-%20New%20Places.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:miquel parera jaques",
+   "artist": "Miquel Parera Jaques",
+   "item": "nx010",
+   "title": "Now is the Time",
+   "year": 2011,
+   "cover": "https://archive.org/download/nx010/nx010_cover.jpg",
+   "cover_sha256": "64fd8785caf583f3e016d12ce9368aaf3375102acd8b718cff1242501e59a9b3",
+   "audios": [
+    "https://archive.org/download/nx010/nx010-01.mp3",
+    "https://archive.org/download/nx010/nx010-02.mp3",
+    "https://archive.org/download/nx010/nx010-03.mp3",
+    "https://archive.org/download/nx010/nx010-04.mp3",
+    "https://archive.org/download/nx010/nx010-05.mp3",
+    "https://archive.org/download/nx010/nx010-06.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:miquel parera jaques",
+   "artist": "Miquel Parera Jaques",
+   "item": "nx011",
+   "title": "nx011",
+   "year": 2013,
+   "cover": "https://archive.org/download/nx011/nx011.jpg",
+   "cover_sha256": "87b4916d3430ca006f5d5ac4504b7c477914bfcb9257526eb8eb2b28df24e432",
+   "audios": [
+    "https://archive.org/download/nx011/nx011_01.mp3",
+    "https://archive.org/download/nx011/nx011_02.mp3",
+    "https://archive.org/download/nx011/nx011_04.mp3",
+    "https://archive.org/download/nx011/nx011_05.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:miquel parera jaques",
+   "artist": "Miquel Parera Jaques",
+   "item": "nx012",
+   "title": "nx012",
+   "year": 2013,
+   "cover": "https://archive.org/download/nx012/cover.jpg",
+   "cover_sha256": "467b351a4de51118814ae740519b90442ec846bc9524b4ba0e411a1901d956cd",
+   "audios": [
+    "https://archive.org/download/nx012/QAD-2013-05-13_20_25_25-Stereo.mp3",
+    "https://archive.org/download/nx012/QAD-2013-05-13_20_34_18-Stereo.mp3",
+    "https://archive.org/download/nx012/QAD-2013-05-13_22_14_36-Stereo.mp3",
+    "https://archive.org/download/nx012/QAD-2013-05-13_23_47_26-Stereo.mp3",
+    "https://archive.org/download/nx012/QAD-2013-05-13_23_57_30-Stereo.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:tryad",
+   "artist": "Tryad",
+   "item": "pandacd-87-listen",
+   "title": "Listen",
+   "year": 2006,
+   "cover": "https://archive.org/download/pandacd-87-listen/%5Bcover%5D%20Tryad%20-%20Listen.jpg",
+   "cover_sha256": "70bab77bc29e94483bbcab548f8effbe980943fe96954a820d783990e3e038ad",
+   "audios": [
+    "https://archive.org/download/pandacd-87-listen/01%20-%20Struttin%27.mp3",
+    "https://archive.org/download/pandacd-87-listen/02%20-%20Breathe.mp3",
+    "https://archive.org/download/pandacd-87-listen/03%20-%20Alone.mp3",
+    "https://archive.org/download/pandacd-87-listen/04%20-%20Listen.mp3",
+    "https://archive.org/download/pandacd-87-listen/05%20-%20You%20Are%20God.mp3",
+    "https://archive.org/download/pandacd-87-listen/06%20-%20Lovely.mp3",
+    "https://archive.org/download/pandacd-87-listen/07%20-%20Beauty.mp3",
+    "https://archive.org/download/pandacd-87-listen/08%20-%20Empty.mp3",
+    "https://archive.org/download/pandacd-87-listen/09%20-%20Mesmerize.mp3",
+    "https://archive.org/download/pandacd-87-listen/10%20-%20All%20the%20Same.mp3",
+    "https://archive.org/download/pandacd-87-listen/11%20-%20This.mp3",
+    "https://archive.org/download/pandacd-87-listen/12%20-%20Waltz%20Into%20the%20Moonlight.mp3",
+    "https://archive.org/download/pandacd-87-listen/13%20-%20Far%20and%20Away.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:tryad",
+   "artist": "Tryad",
+   "item": "pandacd-88-public-domain",
+   "title": "Public Domain",
+   "year": 2005,
+   "cover": "https://archive.org/download/pandacd-88-public-domain/%5Bcover%5D%20Tryad%20-%20Public%20Domain.jpg",
+   "cover_sha256": "612f2f65cd2f0495fb5f07f2cff4cba6dd1327ba7def5eae06f901e067723509",
+   "audios": [
+    "https://archive.org/download/pandacd-88-public-domain/01%20-%20The%20Final%20Rewind.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/02%20-%20I%20See.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/03%20-%20Our%20Lives%20Change.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/04%20-%20Seduction.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/05%20-%20Witness.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/07%20-%20Peace%20On%20Earth%20%28Same%20Place%29.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/09%20-%20Dance%20of%20the%20Urbanite.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/10%20-%20Star%20Guide.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/11%20-%20Sampling%20Memory.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/12%20-%20My%20Placid%20Island.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/13%20-%20Arcadia.mp3",
+    "https://archive.org/download/pandacd-88-public-domain/14%20-%20The%20Rising.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:rolemusic",
+   "artist": "rolemusic",
+   "item": "rolemusic_singles",
+   "title": "Singles",
+   "year": 2020,
+   "cover": "https://archive.org/download/rolemusic_singles/rolemusic.png",
+   "cover_sha256": "65efa1e615142f992fdb2f78012440380210f613ce1c69f37eb4cd872c839a23",
+   "audios": [
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_02_-_may.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_14_-_the_will.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_a_ninja_among_oscillators.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_cold_chains.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_come_fruta.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_gringo_steele_rocks_the_40.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_if_pigs_could_sing.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_improvisation_at_lovers_cavern.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_itsumo_no_y_ni.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_la_calahorra.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_la_la_triroriro.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_ladybug_castle.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_neogauge.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_neoishiki.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_omou_matsu.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_peek-door_quest.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_pl4y1ng.mp3",
+    "https://archive.org/download/rolemusic_singles/rolemusic_-_shaanti.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:artem folevski",
+   "artist": "Artem Folevski",
+   "item": "shoki011af",
+   "title": "Solid Paranoid / The Sense (Remixes)",
+   "year": 2008,
+   "cover": "https://archive.org/download/shoki011af/shoki011.jpg",
+   "cover_sha256": "45f3c5bb237facc4c75fde11ea8f6dc8a16a299b2a68af7381f9a11c0fff6798",
+   "audios": [
+    "https://archive.org/download/shoki011af/shoki011-01_-_Artem_Folevski_-_Solid_Paranoid__Lesik_Paranoic_Remix_.mp3",
+    "https://archive.org/download/shoki011af/shoki011-02_-_Artem_Folevski_-_Solid_Paranoid__Fcode_Remix_.mp3",
+    "https://archive.org/download/shoki011af/shoki011-03_-_Artem_Folevski_-_The_Sense__Lesik_Sense_Of_Music_Remix_.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:jonathan coulton",
+   "artist": "Jonathan Coulton",
+   "item": "smoking-monkey",
+   "title": "Smoking Monkey",
+   "year": 2003,
+   "cover": "https://archive.org/download/smoking-monkey/JoCo_SmokingMonkey.jpg",
+   "cover_sha256": "744808be1edb209b7395ad8c575cf3c1027888d0b67133cab9303df13f35cd57",
+   "audios": [
+    "https://archive.org/download/smoking-monkey/01%20I%27m%20Having%20a%20Party.mp3",
+    "https://archive.org/download/smoking-monkey/02%20Bozo%27s%20Lament.mp3",
+    "https://archive.org/download/smoking-monkey/03%20Kenesaw%20Mountain%20Landis.mp3",
+    "https://archive.org/download/smoking-monkey/04%20Ikea.mp3",
+    "https://archive.org/download/smoking-monkey/05%20I%20Hate%20California.mp3",
+    "https://archive.org/download/smoking-monkey/06%20Christmas%20Is%20Interesting.mp3",
+    "https://archive.org/download/smoking-monkey/07%20Over%20There.mp3",
+    "https://archive.org/download/smoking-monkey/08%20Millionaire%20Girlfriend.mp3",
+    "https://archive.org/download/smoking-monkey/09%20First%20of%20May.mp3",
+    "https://archive.org/download/smoking-monkey/10%20De-Evolving.mp3",
+    "https://archive.org/download/smoking-monkey/11%20I%27m%20a%20Mason%20Now.mp3",
+    "https://archive.org/download/smoking-monkey/12%20Overhead.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:soft and furious",
+   "artist": "Soft and Furious",
+   "item": "soft-and-furious-diving-in-the-self",
+   "title": "Diving In The Self",
+   "year": 2021,
+   "cover": "https://archive.org/download/soft-and-furious-diving-in-the-self/cover.jpg",
+   "cover_sha256": "f1601b6eface0140142e58d0515bf54d880bd59479ac2ea13afcdde48c9502dc",
+   "audios": [
+    "https://archive.org/download/soft-and-furious-diving-in-the-self/Soft%20and%20Furious%20-%20Diving%20in%20the%20self%20-%2001%20see%20me%20seeming.mp3",
+    "https://archive.org/download/soft-and-furious-diving-in-the-self/Soft%20and%20Furious%20-%20Diving%20in%20the%20self%20-%2002%20Warming%20up.mp3",
+    "https://archive.org/download/soft-and-furious-diving-in-the-self/Soft%20and%20Furious%20-%20Diving%20in%20the%20self%20-%2003%20Shivering.mp3",
+    "https://archive.org/download/soft-and-furious-diving-in-the-self/Soft%20and%20Furious%20-%20Diving%20in%20the%20self%20-%2004%20I%20need%20to%20do%20it%2C%20to%20be%20alive.mp3",
+    "https://archive.org/download/soft-and-furious-diving-in-the-self/Soft%20and%20Furious%20-%20Diving%20in%20the%20self%20-%2005%204%20in%20the%20afternoon.mp3",
+    "https://archive.org/download/soft-and-furious-diving-in-the-self/Soft%20and%20Furious%20-%20Diving%20in%20the%20self%20-%2006%20Dancing%20with%20your%20fright.mp3",
+    "https://archive.org/download/soft-and-furious-diving-in-the-self/Soft%20and%20Furious%20-%20Diving%20in%20the%20self%20-%2007%20In%20Liquid%20Ending.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:timecrawler 82",
+   "artist": "Timecrawler 82",
+   "item": "timecrawler82--osaka-lights",
+   "title": "Osaka Lights",
+   "year": 2018,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/timecrawler82--osaka-lights/01%20Driving%20in%20the%20Rain.mp3",
+    "https://archive.org/download/timecrawler82--osaka-lights/02%20Mt.%20Fuji.mp3",
+    "https://archive.org/download/timecrawler82--osaka-lights/03%20Street%20Dancing.mp3",
+    "https://archive.org/download/timecrawler82--osaka-lights/04%20Palms%20and%20Seagulls.mp3",
+    "https://archive.org/download/timecrawler82--osaka-lights/05%20Corner%20of%20the%20Room%20%28feat.%20Silvia%29.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:mystified",
+   "artist": "mystified",
+   "item": "treetrunk011",
+   "title": "Fractal Diner 3",
+   "year": 2005,
+   "cover": "https://archive.org/download/treetrunk011/treetrunk011_Front_Cover.JPG",
+   "cover_sha256": "fcb303f0b2c403db6c69e2f67432b30bac5569ddfcab876986eefbd08d2dcc42",
+   "audios": [
+    "https://archive.org/download/treetrunk011/01_Boy_King.mp3",
+    "https://archive.org/download/treetrunk011/03_Beans.mp3",
+    "https://archive.org/download/treetrunk011/05_MN12.mp3",
+    "https://archive.org/download/treetrunk011/06_What_Was_Next.mp3",
+    "https://archive.org/download/treetrunk011/09_FM_Six.mp3",
+    "https://archive.org/download/treetrunk011/10_QFourteen.mp3",
+    "https://archive.org/download/treetrunk011/11_Progress.mp3",
+    "https://archive.org/download/treetrunk011/12_Stepping_Down.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:vortex mechanic",
+   "artist": "Vortex Mechanic",
+   "item": "vortex-mechanic-fluctuation-of-thoughts",
+   "title": "Fluctuation of Thoughts",
+   "year": 2020,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/vortex-mechanic-fluctuation-of-thoughts/01.Vortex%20Mechanic%20-%20Fluctuation%20of%20Thoughts%20Part%201.mp3",
+    "https://archive.org/download/vortex-mechanic-fluctuation-of-thoughts/02.Vortex%20Mechanic%20-%20Fluctuation%20of%20Thoughts%20Part%202.mp3",
+    "https://archive.org/download/vortex-mechanic-fluctuation-of-thoughts/03.Vortex%20Mechanic%20-%20Fluctuation%20of%20Thoughts%20Part%203.mp3"
+   ]
+  },
+  {
+   "artist_key": "archive:vortex mechanic",
+   "artist": "Vortex Mechanic",
+   "item": "vortex-mechanic-questions-to-eternity",
+   "title": "Questions to Eternity",
+   "year": 2018,
+   "cover": "",
+   "cover_sha256": "",
+   "audios": [
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/01.Why%20Life%20and%20Why%20Death.mp3",
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/02.Anxious%20Search.mp3",
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/03.Third%20Slice%20of%20Genesis.mp3",
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/04.Constant%20Fear.mp3",
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/05.Futility%20of%20Existence.mp3",
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/06.Entropy%20in%20Us.mp3",
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/07.Faith%27s%20Disbelief.mp3",
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/08.The%20Insignificance.mp3",
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/09.Silence%20Before%20and%20Silence%20After.mp3",
+    "https://archive.org/download/vortex-mechanic-questions-to-eternity/10.Questions%20to%20Eternity.mp3"
+   ]
+  }
+ ]
+}
